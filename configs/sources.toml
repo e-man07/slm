@@ -1,0 +1,147 @@
+# Data sources configuration for SLM pipeline
+# Each source has: type, url, license, training_permitted, collection_method
+
+[repos]
+
+[repos.anchor]
+url = "https://github.com/solana-foundation/anchor"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust", "ts", "md"]
+description = "Anchor framework + documentation"
+
+[repos.spl]
+url = "https://github.com/solana-labs/solana-program-library"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust", "ts"]
+description = "SPL token programs, governance, stake pool"
+
+[repos.program-examples]
+url = "https://github.com/solana-developers/program-examples"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust", "ts"]
+description = "Official examples in Anchor, native Rust, TypeScript"
+
+[repos.agave]
+url = "https://github.com/anza-xyz/agave"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust"]
+description = "Solana validator client"
+
+[repos.anchor-examples]
+url = "https://github.com/solana-developers/anchor-examples"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust", "ts"]
+description = "26 dedicated Anchor examples"
+
+[repos.developer-content]
+url = "https://github.com/solana-foundation/developer-content"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["md"]
+description = "Source for solana.com/docs"
+
+[repos.solana-cookbook]
+url = "https://github.com/solana-developers/solana-cookbook"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["md", "ts", "rust"]
+description = "Solana Cookbook tutorials"
+
+[docs]
+
+[docs.helius-blog]
+url = "https://helius.dev/blog"
+license = "unknown"
+training_permitted = false
+collection_method = "crawl"
+description = "Helius deep technical articles (RAG-only until permission)"
+
+[docs.helius-docs]
+url = "https://helius.dev/docs"
+license = "unknown"
+training_permitted = false
+collection_method = "crawl"
+description = "Helius API documentation (RAG-only until permission)"
+
+[docs.metaplex]
+url = "https://developers.metaplex.com"
+license = "unknown"
+training_permitted = false
+collection_method = "crawl"
+description = "Metaplex docs (RAG-only until permission)"
+
+[docs.anchor-rustdoc]
+url = "https://docs.rs/anchor-lang/latest"
+license = "Apache-2.0"
+training_permitted = true
+collection_method = "crawl"
+description = "Anchor Rust API reference"
+
+[datasets]
+
+[datasets.lumo-fart]
+url = "lumolabs-ai/Lumo-Fart-DS-Instruct"
+license = "AGPL-3.0"
+training_permitted = true
+verified_date = "2026-03-27"
+size = "~500K"
+description = "Largest Solana instruction dataset"
+
+[datasets.lumo-novel]
+url = "lumolabs-ai/Lumo-Novel-DS-Instruct"
+license = "AGPL-3.0"
+training_permitted = true
+verified_date = "2026-03-27"
+size = "95.1K"
+description = "Lumo Novel instruction dataset"
+
+[datasets.lumo-iris]
+url = "lumolabs-ai/Lumo-Iris-DS-Instruct"
+license = "AGPL-3.0"
+training_permitted = true
+verified_date = "2026-03-27"
+size = "28.5K"
+description = "Lumo Iris Q&A pairs"
+
+[datasets.lumo-8b]
+url = "lumolabs-ai/Lumo-8B-DS-Instruct"
+license = "AGPL-3.0"
+training_permitted = true
+verified_date = "2026-03-27"
+size = "5.5K"
+description = "Lumo 8B instruction dataset"
+
+[datasets.insecure-solana]
+url = "almanax/insecure-solana-programs"
+license = "unknown-gated"
+training_permitted = "pending"
+description = "Curated vulnerability examples (gated — requires HF login + acceptance)"
+
+[datasets.learn-rust]
+url = "gaianet/learn-rust"
+license = "Apache-2.0"
+training_permitted = true
+verified_date = "2026-03-27"
+size = "~10K"
+description = "Rust Q&A pairs"
+
+[datasets.stack-rust-clean]
+url = "ammarnasr/the-stack-rust-clean"
+license = "OpenRAIL"
+training_permitted = true
+verified_date = "2026-03-27"
+size = "large"
+description = "Clean Rust code from The Stack"
+
+[excluded]
+
+[excluded.stackexchange]
+url = "https://archive.org/details/stackexchange_20251231"
+license = "CC-BY-SA-4.0-anti-LLM"
+training_permitted = false
+reason = "License explicitly excludes LLM training since July 2024. RAG-only."

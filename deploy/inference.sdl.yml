@@ -1,0 +1,185 @@
+---
+version: "2.0"
+
+services:
+  sglang:
+    image: lmsysorg/sglang:latest
+    env:
+      - "HUGGING_FACE_HUB_TOKEN=<your-hf-token>"
+    command:
+      - "python"
+      - "-m"
+      - "sglang.launch_server"
+    args:
+      - "--model-path"
+      - "slm-solana"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "30000"
+      - "--tp"
+      - "1"
+      - "--context-length"
+      - "32768"
+      - "--mem-fraction-static"
+      - "0.88"
+      - "--enable-prefix-caching"
+      - "--served-model-name"
+      - "slm-solana"
+      - "--trust-remote-code"
+    expose:
+      - port: 30000
+        as: 30000
+        to:
+          - service: litellm
+            global: false
+    params:
+      storage:
+        models:
+          mount: /root/.cache
+          readOnly: false
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    env:
+      - "LITELLM_MASTER_KEY=sk-slm-admin-key-change-me"
+      - "LITELLM_LOG_LEVEL=INFO"
+    command:
+      - "bash"
+      - "-c"
+    args:
+      - "cat > /app/config.yaml << 'CONF'\nmodel_list:\n  - model_name: slm-solana\n    litellm_params:\n      model: openai/slm-solana\n      api_base: http://sglang:30000/v1\n      api_key: none\n      max_tokens: 4096\n      stream: true\nlitellm_settings:\n  drop_params: true\n  set_verbose: false\ngeneral_settings:\n  master_key: sk-slm-admin-key-change-me\n  database_url: sqlite:///litellm.db\nCONF\nlitellm --config /app/config.yaml --host 0.0.0.0 --port 4000"
+    expose:
+      - port: 4000
+        as: 80
+        to:
+          - global: true
+    depends_on:
+      - service: sglang
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    expose:
+      - port: 6333
+        as: 6333
+        to:
+          - service: rag-api
+            global: false
+      - port: 6334
+        as: 6334
+        to:
+          - service: rag-api
+            global: false
+    params:
+      storage:
+        qdrant-data:
+          mount: /qdrant/storage
+          readOnly: false
+
+  rag-api:
+    image: python:3.11-slim
+    env:
+      - "SGLANG_URL=http://sglang:30000/v1"
+      - "QDRANT_URL=http://qdrant:6333"
+      - "EMBEDDING_MODEL=BAAI/bge-small-en-v1.5"
+    command:
+      - "bash"
+      - "-c"
+    args:
+      - "pip install -q fastapi uvicorn httpx qdrant-client sentence-transformers && python -c \"from fastapi import FastAPI; import uvicorn; app = FastAPI(title='SLM RAG API'); health=lambda: {'status':'ok'}; app.get('/health')(health); uvicorn.run(app, host='0.0.0.0', port=8080)\""
+    expose:
+      - port: 8080
+        as: 8080
+        to:
+          - global: true
+    depends_on:
+      - service: sglang
+      - service: qdrant
+
+profiles:
+  compute:
+    sglang:
+      resources:
+        cpu:
+          units: 8
+        memory:
+          size: 48Gi
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+                - model: a100
+        storage:
+          - size: 30Gi
+          - name: models
+            size: 80Gi
+            attributes:
+              persistent: true
+              class: beta3
+
+    litellm:
+      resources:
+        cpu:
+          units: 2
+        memory:
+          size: 2Gi
+        storage:
+          - size: 5Gi
+
+    qdrant:
+      resources:
+        cpu:
+          units: 2
+        memory:
+          size: 4Gi
+        storage:
+          - size: 5Gi
+          - name: qdrant-data
+            size: 10Gi
+            attributes:
+              persistent: true
+              class: beta3
+
+    rag-api:
+      resources:
+        cpu:
+          units: 4
+        memory:
+          size: 8Gi
+        storage:
+          - size: 10Gi
+
+  placement:
+    akash:
+      pricing:
+        sglang:
+          denom: uakt
+          amount: 100000
+        litellm:
+          denom: uakt
+          amount: 1000
+        qdrant:
+          denom: uakt
+          amount: 1000
+        rag-api:
+          denom: uakt
+          amount: 2000
+
+deployment:
+  sglang:
+    akash:
+      profile: sglang
+      count: 1
+  litellm:
+    akash:
+      profile: litellm
+      count: 1
+  qdrant:
+    akash:
+      profile: qdrant
+      count: 1
+  rag-api:
+    akash:
+      profile: rag-api
+      count: 1

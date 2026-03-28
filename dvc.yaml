@@ -1,0 +1,190 @@
+stages:
+  collect-repos:
+    cmd: python3 scripts/collect.py
+    deps:
+      - scripts/collect.py
+      - scripts/schema.py
+      - configs/sources.toml
+    outs:
+      - data/processed/anchor.jsonl
+      - data/processed/spl.jsonl
+      - data/processed/program-examples.jsonl
+      - data/processed/agave.jsonl
+      - data/processed/anchor-examples.jsonl
+      - data/processed/developer-content.jsonl
+      - data/processed/solana-cookbook.jsonl
+
+  collect-hf:
+    cmd: python3 scripts/collect.py collect-hf-datasets
+    deps:
+      - scripts/collect.py
+      - scripts/schema.py
+      - configs/sources.toml
+    outs:
+      - data/processed/hf-lumo-fart.jsonl:
+          persist: true
+      - data/processed/hf-lumo-novel.jsonl:
+          persist: true
+      - data/processed/hf-lumo-iris.jsonl:
+          persist: true
+      - data/processed/hf-lumo-8b.jsonl:
+          persist: true
+      - data/processed/hf-insecure-solana.jsonl:
+          persist: true
+      - data/processed/hf-learn-rust.jsonl:
+          persist: true
+      - data/processed/hf-stack-rust-clean.jsonl:
+          persist: true
+
+  crawl-docs:
+    cmd: python3 scripts/crawl_docs.py
+    deps:
+      - scripts/crawl_docs.py
+      - scripts/schema.py
+    outs:
+      - data/processed/crawl-anchor-rustdoc.jsonl:
+          persist: true
+      - data/processed/crawl-helius-blog.jsonl:
+          persist: true
+      - data/processed/crawl-helius-docs.jsonl:
+          persist: true
+      - data/processed/crawl-metaplex-docs.jsonl:
+          persist: true
+
+  crawl-forum:
+    cmd: python3 scripts/crawl_forum.py
+    deps:
+      - scripts/crawl_forum.py
+      - scripts/schema.py
+    outs:
+      - data/processed/forum-solana.jsonl:
+          persist: true
+
+  collect-stackexchange:
+    cmd: python3 scripts/collect_stackexchange.py
+    deps:
+      - scripts/collect_stackexchange.py
+      - scripts/schema.py
+    outs:
+      - data/processed/stackexchange-solana.jsonl:
+          persist: true
+
+  migrate-examples:
+    cmd: python3 scripts/migrate_examples.py
+    deps:
+      - scripts/migrate_examples.py
+      - scripts/schema.py
+    outs:
+      - data/processed/migration-examples.jsonl
+
+  synthetic-bulk1:
+    cmd: python3 scripts/gen_synthetic_bulk1.py
+    deps:
+      - scripts/gen_synthetic_bulk1.py
+      - scripts/schema.py
+    outs:
+      - data/processed/synthetic-bulk1.jsonl:
+          persist: true
+
+  synthetic-bulk2:
+    cmd: python3 scripts/gen_synthetic_bulk2.py
+    deps:
+      - scripts/gen_synthetic_bulk2.py
+      - scripts/schema.py
+    outs:
+      - data/processed/synthetic-bulk2.jsonl:
+          persist: true
+
+  synthetic-bulk3:
+    cmd: python3 scripts/gen_synthetic_bulk3.py
+    deps:
+      - scripts/gen_synthetic_bulk3.py
+      - scripts/schema.py
+    outs:
+      - data/processed/synthetic-evol-bulk.jsonl:
+          persist: true
+      - data/processed/synthetic-oss-bulk.jsonl:
+          persist: true
+      - data/processed/dpo-chosen-bulk.jsonl:
+          persist: true
+      - data/processed/dpo-rejected-bulk.jsonl:
+          persist: true
+
+  synthetic-bulk4:
+    cmd: python3 scripts/gen_synthetic_bulk4.py
+    deps:
+      - scripts/gen_synthetic_bulk4.py
+      - scripts/schema.py
+    outs:
+      - data/processed/synthetic-bulk4.jsonl:
+          persist: true
+
+  synthetic-bulk5:
+    cmd: python3 scripts/gen_synthetic_bulk5.py
+    deps:
+      - scripts/gen_synthetic_bulk5.py
+      - scripts/schema.py
+    outs:
+      - data/processed/synthetic-bulk5-glan.jsonl:
+          persist: true
+      - data/processed/synthetic-bulk5-evol.jsonl:
+          persist: true
+      - data/processed/synthetic-bulk5-oss.jsonl:
+          persist: true
+      - data/processed/dpo-chosen-bulk2.jsonl:
+          persist: true
+      - data/processed/dpo-rejected-bulk2.jsonl:
+          persist: true
+
+  synthetic-extra:
+    cmd: python3 scripts/gen_synthetic_extra.py && python3 scripts/gen_synthetic_extra2.py
+    deps:
+      - scripts/gen_synthetic_extra.py
+      - scripts/gen_synthetic_extra2.py
+      - scripts/schema.py
+    outs:
+      - data/processed/synthetic-glan-extra.jsonl:
+          persist: true
+      - data/processed/synthetic-evol-extra.jsonl:
+          persist: true
+
+  filter-perplexity:
+    cmd: python3 scripts/filter_perplexity.py
+    deps:
+      - scripts/filter_perplexity.py
+      - scripts/schema.py
+      - data/processed/crawl-anchor-rustdoc.jsonl
+      - data/processed/crawl-helius-blog.jsonl
+      - data/processed/crawl-helius-docs.jsonl
+      - data/processed/crawl-metaplex-docs.jsonl
+
+  dedup:
+    cmd: python3 scripts/dedup.py
+    deps:
+      - scripts/dedup.py
+      - scripts/schema.py
+      - data/processed/
+    outs:
+      - data/deduped/deduped.jsonl
+
+  filter:
+    cmd: python3 scripts/filter.py
+    deps:
+      - scripts/filter.py
+      - scripts/schema.py
+      - data/deduped/deduped.jsonl
+    outs:
+      - data/final/filtered.jsonl
+
+  prepare:
+    cmd: python3 scripts/prepare.py
+    deps:
+      - scripts/prepare.py
+      - scripts/schema.py
+      - data/final/filtered.jsonl
+    outs:
+      - data/final/cpt_train.jsonl
+      - data/final/sft_train.jsonl
+    metrics:
+      - data/final/dataset_meta.json:
+          cache: false

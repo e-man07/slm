@@ -1,0 +1,68 @@
+---
+version: "2.0"
+
+services:
+  training:
+    image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
+    env:
+      - "HUGGING_FACE_HUB_TOKEN=<your-hf-token>"
+      - "WANDB_API_KEY=<your-wandb-key>"
+      - "WANDB_PROJECT=slm-solana"
+      - "MODEL_NAME=Qwen/Qwen3-Coder-30B-A3B"
+      - "HF_HOME=/workspace/cache/huggingface"
+      - "TRANSFORMERS_CACHE=/workspace/cache/huggingface"
+      - "SSH_PASSWORD=<your-ssh-password>"
+    command:
+      - "/bin/bash"
+      - "-c"
+    args:
+      - "apt-get update -qq && apt-get install -y -qq openssh-server git wget > /dev/null 2>&1 && mkdir -p /run/sshd && echo root:$SSH_PASSWORD | chpasswd && sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && /usr/sbin/sshd && mkdir -p /workspace/data /workspace/checkpoints /workspace/scripts /workspace/cache/huggingface && pip install -q unsloth trl datasets wandb typer rich datasketch huggingface_hub jupyterlab && nvidia-smi && echo '=== SLM Training Container Ready ===' && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password='' --notebook-dir=/workspace"
+    expose:
+      - port: 8888
+        as: 8888
+        to:
+          - global: true
+      - port: 22
+        as: 22
+        to:
+          - global: true
+    params:
+      storage:
+        workspace:
+          mount: /workspace
+          readOnly: false
+
+profiles:
+  compute:
+    training:
+      resources:
+        cpu:
+          units: 16
+        memory:
+          size: 64Gi
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+                - model: a100
+        storage:
+          - size: 50Gi
+          - name: workspace
+            size: 200Gi
+            attributes:
+              persistent: true
+              class: beta3
+
+  placement:
+    akash:
+      pricing:
+        training:
+          denom: uakt
+          amount: 100000
+
+deployment:
+  training:
+    akash:
+      profile: training
+      count: 1

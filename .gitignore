@@ -1,0 +1,30 @@
+# Data directories — tracked by DVC, not git
+data/
+synthetic/
+
+# DVC local cache
+/dvc.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment / secrets
+.env
+.env.*
