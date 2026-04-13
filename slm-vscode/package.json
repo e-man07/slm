@@ -1,0 +1,66 @@
+{
+  "name": "slm-vscode",
+  "displayName": "SLM - Solana Language Model",
+  "description": "Chat with SLM directly in VS Code. Get Solana coding help, explain transactions, decode errors.",
+  "version": "0.1.0",
+  "publisher": "slm",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": ["Programming Languages", "Machine Learning"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "slm.chat",
+        "name": "slm",
+        "fullName": "SLM - Solana Language Model",
+        "description": "Solana coding AI that actually knows Solana",
+        "isSticky": true
+      }
+    ],
+    "commands": [
+      {
+        "command": "slm.explainError",
+        "title": "SLM: Explain Error Code"
+      },
+      {
+        "command": "slm.explainTx",
+        "title": "SLM: Explain Transaction"
+      }
+    ],
+    "configuration": {
+      "title": "SLM",
+      "properties": {
+        "slm.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your SLM API key"
+        },
+        "slm.apiUrl": {
+          "type": "string",
+          "default": "https://slm.dev/api",
+          "description": "SLM API base URL"
+        },
+        "slm.mode": {
+          "type": "string",
+          "enum": ["quality", "fast"],
+          "default": "quality",
+          "description": "Model mode: 'quality' for best results, 'fast' for speed"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.93.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.0"
+  }
+}

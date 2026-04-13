@@ -1,0 +1,39 @@
+{
+  "name": "@slm/mcp",
+  "version": "0.1.0",
+  "description": "SLM MCP Server — Solana Language Model tools for Claude Code, Cursor, and Codex",
+  "type": "module",
+  "bin": {
+    "slm-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3",
+    "tsx": "^4.19.4",
+    "@types/node": "^22.15.3"
+  },
+  "files": [
+    "dist/",
+    "data/"
+  ],
+  "keywords": [
+    "solana",
+    "anchor",
+    "mcp",
+    "claude",
+    "ai"
+  ],
+  "license": "MIT"
+}

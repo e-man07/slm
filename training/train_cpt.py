@@ -11,6 +11,9 @@ Usage:
 """
 from __future__ import annotations
 
+import torch._dynamo
+torch._dynamo.config.disable = True
+
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -28,7 +31,7 @@ from unsloth import FastLanguageModel, UnslothTrainer, UnslothTrainingArguments
 
 @dataclass
 class ModelConfig:
-    model_name: str = field(default="Qwen/Qwen3-Coder-30B-A3B")
+    model_name: str = field(default="Qwen/Qwen3-Coder-30B-A3B-Instruct")
     max_seq_length: int = field(default=8192)
     load_in_4bit: bool = field(default=True)
     dtype: str = field(default="auto")  # auto, float16, bfloat16
@@ -63,8 +66,8 @@ class CPTConfig:
     lora_r: int = field(default=32)
     lora_alpha: int = field(default=64)
     lora_dropout: float = field(default=0.0)
-    # W&B
-    report_to: str = field(default="wandb")
+    # Logging
+    report_to: str = field(default="none")
     run_name: str = field(default="slm-cpt")
 
 
@@ -108,8 +111,7 @@ def main():
 
     # ── 2. Apply LoRA ──
     print("[2/5] Applying LoRA adapters...")
-    model = FastLanguageModel.get_peft_model(
-        model,
+    lora_kwargs = dict(
         r=train_cfg.lora_r,
         lora_alpha=train_cfg.lora_alpha,
         lora_dropout=train_cfg.lora_dropout,
@@ -121,6 +123,10 @@ def main():
         use_gradient_checkpointing="unsloth",
         random_state=train_cfg.seed,
     )
+    try:
+        model = FastLanguageModel.get_peft_model(model, target_parameters=[], **lora_kwargs)
+    except TypeError:
+        model = FastLanguageModel.get_peft_model(model, **lora_kwargs)
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())

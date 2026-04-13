@@ -28,3 +28,9 @@ Thumbs.db
 # Environment / secrets
 .env
 .env.*
+deploy/train-safe-update.sdl.yml
+
+node_modules/
+
+.claude/
+.dvc/

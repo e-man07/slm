@@ -81,10 +81,33 @@ def detect_anchor_version(content: str, file_path: str = "") -> str | None:
 
 
 def is_modern_anchor(content: str) -> bool:
-    """Check if code uses modern Anchor 0.30+ patterns."""
-    modern_markers = ["declare_program!", "solana-foundation/anchor"]
-    old_markers = ["declare_id!", "coral-xyz/anchor"]
-    has_modern = any(m in content for m in modern_markers)
+    """Check if code uses modern Anchor 0.30+ patterns.
+
+    Broadened detection: modern Anchor code commonly uses anchor_lang::prelude,
+    #[account(init, payer)], InitSpace, ctx.bumps, etc. even without
+    declare_program! or explicit solana-foundation references.
+    """
+    modern_markers = [
+        "declare_program!",
+        "solana-foundation/anchor",
+        "InitSpace",
+        "ctx.bumps.",
+        "anchor_lang::prelude::*",
+        "#[program]",
+        "#[derive(Accounts)]",
+        "#[account(init,",
+        "#[account(init_if_needed",
+        "#[account(mut,",
+        "#[account(seeds",
+        "anchor_lang::system_program",
+        "anchor_spl::",
+        "require!(",
+        "require_keys_eq!(",
+        "require_gt!(",
+        "msg!(",
+    ]
+    old_markers = ["declare_id!", "coral-xyz/anchor", "project-serum/anchor", "#[state]"]
+    has_modern = sum(1 for m in modern_markers if m in content) >= 2  # require at least 2 markers
     has_old = any(m in content for m in old_markers)
     if has_modern and not has_old:
         return True

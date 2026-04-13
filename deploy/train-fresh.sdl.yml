@@ -1,0 +1,63 @@
+---
+version: "2.0"
+
+services:
+  training:
+    image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
+    env:
+      - "HUGGING_FACE_HUB_TOKEN=<your-hf-token>"
+      - "WANDB_MODE=disabled"
+      - "HF_HOME=/workspace/cache/huggingface"
+      - "TRANSFORMERS_CACHE=/workspace/cache/huggingface"
+      - "PIP_CACHE_DIR=/workspace/cache/pip"
+      - "PYTORCH_ALLOC_CONF=expandable_segments:True"
+    command:
+      - "/bin/bash"
+      - "-c"
+    args:
+      - "mkdir -p /run/sshd /workspace/data /workspace/scripts /workspace/checkpoints /workspace/logs /workspace/cache/pip && apt-get update -qq && apt-get install -y -qq openssh-server git wget tini > /dev/null 2>&1 && apt-get clean && rm -rf /var/lib/apt/lists/* && echo 'root:slm@training' | chpasswd && sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && /usr/sbin/sshd && pip install -q --cache-dir=/workspace/cache/pip unsloth trl datasets huggingface_hub && echo '=== READY ===' && exec tini -- sleep infinity"
+    expose:
+      - port: 22
+        as: 22
+        to:
+          - global: true
+    params:
+      storage:
+        workspace:
+          mount: /workspace
+          readOnly: false
+
+profiles:
+  compute:
+    training:
+      resources:
+        cpu:
+          units: 16
+        memory:
+          size: 128Gi
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+                - model: h100
+        storage:
+          - size: 100Gi
+          - name: workspace
+            size: 200Gi
+            attributes:
+              persistent: true
+              class: beta3
+
+  placement:
+    akash:
+      pricing:
+        training:
+          denom: uakt
+          amount: 200000
+
+deployment:
+  training:
+    akash:
+      profile: training
+      count: 1

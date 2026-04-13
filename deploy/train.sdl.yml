@@ -6,17 +6,25 @@ services:
     image: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-devel
     env:
       - "HUGGING_FACE_HUB_TOKEN=<your-hf-token>"
-      - "WANDB_API_KEY=<your-wandb-key>"
-      - "WANDB_PROJECT=slm-solana"
+      - "WANDB_MODE=disabled"
       - "MODEL_NAME=Qwen/Qwen3-Coder-30B-A3B"
       - "HF_HOME=/workspace/cache/huggingface"
       - "TRANSFORMERS_CACHE=/workspace/cache/huggingface"
+      - "PIP_CACHE_DIR=/workspace/cache/pip"
       - "SSH_PASSWORD=<your-ssh-password>"
+    # tini as PID 1: reaps zombie processes, prevents container recycling.
+    # Download tini-static to /workspace/ before updating SDL:
+    #   wget -O /workspace/tini-static https://github.com/krallin/tini/releases/download/v0.19.0/tini-static
+    #   chmod +x /workspace/tini-static
+    #   cp deploy/entrypoint.sh /workspace/entrypoint.sh
+    #   touch /workspace/.auto-start-training   # enable auto-resume
+    # This is a MUTABLE SDL update — won't close the lease or lose persistent storage.
     command:
-      - "/bin/bash"
-      - "-c"
+      - "/workspace/tini-static"
     args:
-      - "apt-get update -qq && apt-get install -y -qq openssh-server git wget > /dev/null 2>&1 && mkdir -p /run/sshd && echo root:$SSH_PASSWORD | chpasswd && sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && /usr/sbin/sshd && mkdir -p /workspace/data /workspace/checkpoints /workspace/scripts /workspace/cache/huggingface && pip install -q unsloth trl datasets wandb typer rich datasketch huggingface_hub jupyterlab && nvidia-smi && echo '=== SLM Training Container Ready ===' && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password='' --notebook-dir=/workspace"
+      - "--"
+      - "/bin/bash"
+      - "/workspace/entrypoint.sh"
     expose:
       - port: 8888
         as: 8888
@@ -31,6 +39,9 @@ services:
         workspace:
           mount: /workspace
           readOnly: false
+        shm:
+          mount: /dev/shm
+          readOnly: false
 
 profiles:
   compute:
@@ -39,7 +50,7 @@ profiles:
         cpu:
           units: 16
         memory:
-          size: 64Gi
+          size: 128Gi
         gpu:
           units: 1
           attributes:
@@ -47,12 +58,17 @@ profiles:
               nvidia:
                 - model: a100
         storage:
-          - size: 50Gi
+          - size: 100Gi
           - name: workspace
             size: 200Gi
             attributes:
               persistent: true
               class: beta3
+          - name: shm
+            size: 1Gi
+            attributes:
+              class: ram
+              persistent: false
 
   placement:
     akash:

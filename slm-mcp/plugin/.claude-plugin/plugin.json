@@ -1,0 +1,9 @@
+{
+  "name": "slm-solana",
+  "version": "0.1.0",
+  "display_name": "SLM - Solana Language Model",
+  "description": "Fine-tuned Solana/Anchor development assistant with error decoding, code review, migration, and transaction explanation tools.",
+  "author": "SLM",
+  "homepage": "https://slm.dev",
+  "skills": ["skills/solana"]
+}

@@ -1,0 +1,769 @@
+{
+  "timestamp": "2026-04-03T16:03:35.352251+00:00",
+  "model_path": "/workspace/checkpoints/sft/checkpoint-160",
+  "baseline": false,
+  "overall": {
+    "passed": 70,
+    "total": 80,
+    "score": 0.875
+  },
+  "categories": {
+    "adversarial": {
+      "passed": 3,
+      "total": 10,
+      "score": 0.3
+    },
+    "anchor_constraints": {
+      "passed": 13,
+      "total": 15,
+      "score": 0.8667
+    },
+    "cpi_patterns": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "error_handling": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "pda_derivation": {
+      "passed": 14,
+      "total": 15,
+      "score": 0.9333
+    },
+    "spl_token_ops": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "transaction_construction": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    }
+  },
+  "task_results": [
+    {
+      "id": "pda-01",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns",
+      "output_length": 1460,
+      "elapsed_s": 31.1,
+      "output_preview": "Here's an Anchor instruction that derives a PDA for a user profile account using the user's public key as a seed:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[program]\npub mod user_profile_program {\n    u"
+    },
+    {
+      "id": "pda-02",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1213,
+      "elapsed_s": 28.59,
+      "output_preview": "In Anchor 0.30+, you can use `find_program_address` to derive a PDA for your program. Here's how you can do it:\n\n1. **Derive the PDA**: Use `find_program_address` to get the PDA and its bump seed.\n2. "
+    },
+    {
+      "id": "pda-03",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 4/4 pass patterns",
+      "output_length": 1384,
+      "elapsed_s": 31.16,
+      "output_preview": "Here's an Anchor `#[derive(Accounts)]` struct that initializes a PDA using both a string literal seed (`\"my_seed\"`) and a user-provided public key (`user.key()`), with the `init` and `space` constrain"
+    },
+    {
+      "id": "pda-04",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1457,
+      "elapsed_s": 33.07,
+      "output_preview": "In Anchor 0.30+, you can use `ctx.bumps` to access the canonical bump of a PDA within an instruction handler. This is particularly useful when you need to derive or verify the bump seed for a PDA.\n\nHe"
+    },
+    {
+      "id": "pda-05",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "Fail patterns matched: ['declare_id!']",
+      "output_length": 2003,
+      "elapsed_s": 45.74,
+      "output_preview": "Here's an Anchor program that creates a counter PDA per user, seeded by `[b\"counter\", user.key().as_ref()]`:\n\n```rust\nuse anchor_lang::prelude::*;\n\ndeclare_id!(\"Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zP"
+    },
+    {
+      "id": "pda-06",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1713,
+      "elapsed_s": 35.33,
+      "output_preview": "To verify a PDA off-chain using `@solana/web3.js`, you can use the `PublicKey.findProgramAddressSync` function to derive the expected PDA address and compare it with the provided address.\n\nHere's how "
+    },
+    {
+      "id": "pda-07",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/3 pass patterns",
+      "output_length": 699,
+      "elapsed_s": 16.21,
+      "output_preview": "Here's an Anchor PDA account definition for a vault using both the pool ID (`u64`) and token mint as seeds:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[account]\npub struct Vault {\n    pub pool_id: u64,\n "
+    },
+    {
+      "id": "pda-08",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1762,
+      "elapsed_s": 35.57,
+      "output_preview": "In Anchor, when deriving a PDA (Program Derived Address) for a given account, you can specify the `seeds::program` constraint to indicate that the program ID should be used as part of the derivation p"
+    },
+    {
+      "id": "pda-09",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns",
+      "output_length": 308,
+      "elapsed_s": 7.9,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\npub fn create_session_pda(\n    player: &Pubkey,\n    game_id: u64,\n) -> Result<Pubkey> {\n    let seeds = [\n        b\"session\".as_ref(),\n        player.as_ref(),\n  "
+    },
+    {
+      "id": "pda-10",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1711,
+      "elapsed_s": 35.89,
+      "output_preview": "To close a PDA account in Anchor 0.30+, you can use the `close` constraint on the account field. This constraint allows you to transfer the lamports from the account to another specified account. Here"
+    },
+    {
+      "id": "pda-11",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1566,
+      "elapsed_s": 44.41,
+      "output_preview": "### Why PDAs Cannot Have a Corresponding Private Key\n\nProgram Derived Addresses (PDAs) in Solana are derived from a program ID and a set of seeds, but they do not have a corresponding private key. Thi"
+    },
+    {
+      "id": "pda-12",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/3 pass patterns",
+      "output_length": 852,
+      "elapsed_s": 44.48,
+      "output_preview": "Here's the Anchor `#[derive(Accounts)]` struct for the marketplace listing PDA:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[derive(Accounts)]\npub struct MarketplaceListing<'info> {\n    #[account(\n       "
+    },
+    {
+      "id": "pda-13",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 831,
+      "elapsed_s": 17.98,
+      "output_preview": "In Anchor 0.30+, you can use the `realloc` constraint to reallocate a PDA account. The syntax for this constraint is as follows:\n\n```rust\n#[account(\n    mut,\n    seeds = [b\"my_seed\"],\n    bump = my_pd"
+    },
+    {
+      "id": "pda-14",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1869,
+      "elapsed_s": 39.63,
+      "output_preview": "In Anchor, `init_if_needed` is used to initialize a PDA account only if it does not already exist. This is useful when you want to avoid overwriting existing data in the account.\n\nHere's an example of"
+    },
+    {
+      "id": "pda-15",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1951,
+      "elapsed_s": 45.55,
+      "output_preview": "In native Solana (without Anchor), you can derive a Program Derived Address (PDA) using `Pubkey::find_program_address` and then verify that the resulting address matches the expected PDA. Here's how y"
+    },
+    {
+      "id": "anchor-01",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1421,
+      "elapsed_s": 32.4,
+      "output_preview": "Here's a comprehensive list of commonly used Anchor account constraints with examples:\n\n### 1. `has_one`\nEnsures that the account is owned by the specified account.\n\n```rust\n#[account(has_one = author"
+    },
+    {
+      "id": "anchor-02",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1333,
+      "elapsed_s": 28.52,
+      "output_preview": "Here's an example of an Anchor `#[derive(Accounts)]` struct that uses `has_one` to verify that the `authority` account matches a stored field in another account:\n\n```rust\nuse anchor_lang::prelude::*;\n"
+    },
+    {
+      "id": "anchor-03",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1954,
+      "elapsed_s": 35.38,
+      "output_preview": "In Anchor, the `#[account(...)]` attribute is used to define constraints on accounts within your program. These constraints can include checks for account ownership, data size, and other conditions th"
+    },
+    {
+      "id": "anchor-04",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "Fail patterns matched: ['declare_id!']",
+      "output_length": 1581,
+      "elapsed_s": 34.37,
+      "output_preview": "Here's an Anchor program that uses the `InitSpace` derive macro to automatically calculate account space:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_lang::solana_program::entrypoint::ProgramResu"
+    },
+    {
+      "id": "anchor-05",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "Fail patterns matched: ['declare_id!']",
+      "output_length": 1162,
+      "elapsed_s": 23.2,
+      "output_preview": "In Anchor 0.30+, you declare the program ID using the `program` attribute on the `#[derive(Accounts)]` struct that represents your program's context. Here's how:\n\n```rust\nuse anchor_lang::prelude::*;\n"
+    },
+    {
+      "id": "anchor-06",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2033,
+      "elapsed_s": 46.22,
+      "output_preview": "Here's an Anchor instruction that transfers SOL from a signer to a PDA using `system_program::transfer`:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[program]\npub mod sol_transfer {\n    use super::*;\n\n   "
+    },
+    {
+      "id": "anchor-07",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1814,
+      "elapsed_s": 34.28,
+      "output_preview": "In Anchor, the `#[account(...)]` attribute is used to define constraints on account fields within your program's instructions. When working with token accounts, particularly those related to SPL Token"
+    },
+    {
+      "id": "anchor-08",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1521,
+      "elapsed_s": 31.35,
+      "output_preview": "Here's an Anchor `Accounts` struct that includes both the `associated_token::mint` and `associated_token::authority` constraints:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::associated_token"
+    },
+    {
+      "id": "anchor-09",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1095,
+      "elapsed_s": 22.31,
+      "output_preview": "To use the Anchor `address` constraint for verifying that an account matches a known public key, you can define a constraint in your instruction's accounts struct. Here's an example:\n\n```rust\nuse anch"
+    },
+    {
+      "id": "anchor-10",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1098,
+      "elapsed_s": 22.22,
+      "output_preview": "Here's an example of how to define a custom error enum in Anchor using `#[error_code]` and apply it with the `require!` macro:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum MyError {\n "
+    },
+    {
+      "id": "anchor-11",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1101,
+      "elapsed_s": 21.0,
+      "output_preview": "In Anchor, you can validate that an account is owned by a specific program by using the `#[account(owner = \"program_id\")]` constraint on your account struct fields. This ensures that the account's own"
+    },
+    {
+      "id": "anchor-12",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 309,
+      "elapsed_s": 8.14,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[zero_copy]\n#[derive(Debug, Clone)]\npub struct MyAccount {\n    pub data: [u8; 1024], // Example data field\n    pub owner: Pubkey,\n    pub timestamp: i64,\n}\n\n#[ac"
+    },
+    {
+      "id": "anchor-13",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2431,
+      "elapsed_s": 44.64,
+      "output_preview": "In Anchor, the `#[instruction(...)]` attribute allows you to pass instruction arguments directly into your program's accounts validation logic. This is particularly useful when you need to validate ac"
+    },
+    {
+      "id": "anchor-14",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1109,
+      "elapsed_s": 23.57,
+      "output_preview": "Here's an example of how to define a large account using the `#[account(box)]` attribute in Anchor:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[account]\npub struct BigData {\n    // Define fields here\n   "
+    },
+    {
+      "id": "anchor-15",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2364,
+      "elapsed_s": 45.44,
+      "output_preview": "In Anchor, the `Program` and `Signer` account types can be used for validation without explicit constraints by leveraging their built-in checks during account deserialization.\n\n### Using `Program` Acc"
+    },
+    {
+      "id": "spl-01",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2218,
+      "elapsed_s": 45.17,
+      "output_preview": "Here's an Anchor instruction that mints SPL tokens to a user's associated token account:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    metadata::{\n"
+    },
+    {
+      "id": "spl-02",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1697,
+      "elapsed_s": 31.76,
+      "output_preview": "To create an associated token account in Anchor using the `init` constraint with `associated_token`, you can follow the example below:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::associated_"
+    },
+    {
+      "id": "spl-03",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2196,
+      "elapsed_s": 45.84,
+      "output_preview": "Here's an Anchor instruction that transfers SPL tokens between two token accounts:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    metadata::{Metadat"
+    },
+    {
+      "id": "spl-04",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1780,
+      "elapsed_s": 38.82,
+      "output_preview": "To burn SPL tokens in Anchor, you need to use the `burn` function from the `spl_token` crate. This function requires a context that includes the token program, the mint account, the token account, and"
+    },
+    {
+      "id": "spl-05",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2090,
+      "elapsed_s": 43.66,
+      "output_preview": "Here's an Anchor instruction that freezes a token account using the `freeze_account` CPI:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    metadata::{"
+    },
+    {
+      "id": "spl-06",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1320,
+      "elapsed_s": 46.57,
+      "output_preview": "To create a new SPL token mint in Anchor with a PDA as the mint authority, you can follow the steps outlined below:\n\n1. **Define the PDA seeds**: The PDA will be derived from a specific seed, such as "
+    },
+    {
+      "id": "spl-07",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2115,
+      "elapsed_s": 45.85,
+      "output_preview": "Here's an Anchor instruction that sets a new authority on an SPL token mint:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    metadata::{MasterEdition"
+    },
+    {
+      "id": "spl-08",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2290,
+      "elapsed_s": 43.88,
+      "output_preview": "In Anchor, to approve a delegate to spend tokens from a token account, you use the `approve` instruction provided by the SPL Token program. This is done through a CPI (Cross-Program Invocation) call w"
+    },
+    {
+      "id": "spl-09",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 818,
+      "elapsed_s": 17.49,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::token::{TokenAccount, Mint};\n\n#[derive(Accounts)]\npub struct CheckTokenBalance<'info> {\n    #[account(\n        mut,\n        seeds = [b\"mint\", mint."
+    },
+    {
+      "id": "spl-10",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1460,
+      "elapsed_s": 44.94,
+      "output_preview": "To use Token-2022 (token extensions) in Anchor, you need to make several key adjustments compared to the standard SPL token program. Here's a comprehensive guide on how to implement this:\n\n1. **Import"
+    },
+    {
+      "id": "cpi-01",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2164,
+      "elapsed_s": 44.39,
+      "output_preview": "Here's an example of how to perform a CPI call from Program A to Program B using Anchor, including the construction of `CpiContext` with signer seeds for PDA signing:\n\n### Program A (Source)\n```rust\nu"
+    },
+    {
+      "id": "cpi-02",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1793,
+      "elapsed_s": 33.91,
+      "output_preview": "To invoke the System Program's `transfer` instruction via CPI in Anchor, you need to use the `transfer` function from the `system_program` module. Here's how you can do it:\n\n1. **Import the necessary "
+    },
+    {
+      "id": "cpi-03",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1943,
+      "elapsed_s": 39.92,
+      "output_preview": "Here's an example of how to write an Anchor instruction that invokes another Anchor program using its CPI module:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::token::{self, Mint, TokenAccount"
+    },
+    {
+      "id": "cpi-04",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2542,
+      "elapsed_s": 46.27,
+      "output_preview": "In Anchor, you can pass `remaining_accounts` in a CPI call by explicitly including them in the instruction's accounts struct. This is particularly useful when you need to provide additional account in"
+    },
+    {
+      "id": "cpi-05",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1172,
+      "elapsed_s": 19.5,
+      "output_preview": "The CPI (Cross-Program Invocation) depth limit on Solana is **10**.\n\nThis means that a program can invoke at most 10 other programs in a single transaction execution. This limit is enforced by the run"
+    },
+    {
+      "id": "cpi-06",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1181,
+      "elapsed_s": 46.33,
+      "output_preview": "Here's how you can write a CPI to the Metaplex Token Metadata program to create metadata for an NFT:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    "
+    },
+    {
+      "id": "cpi-07",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1993,
+      "elapsed_s": 46.92,
+      "output_preview": "To use `invoke_signed` for a PDA to sign a CPI in native Solana, you need to manually construct the instruction and provide the necessary account information, including the PDA's seeds and bump seed. "
+    },
+    {
+      "id": "cpi-08",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1673,
+      "elapsed_s": 35.34,
+      "output_preview": "Here's an example of how to perform a CPI call in Anchor to transfer SOL from a program-derived address (PDA) to a user:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_lang::solana_program::system_i"
+    },
+    {
+      "id": "cpi-09",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2221,
+      "elapsed_s": 47.41,
+      "output_preview": "In Solana, when handling Cross-Program Invocations (CPI), you can use `sol_set_return_data` to set return data that will be available to the calling program after the CPI completes. This is particular"
+    },
+    {
+      "id": "cpi-10",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2243,
+      "elapsed_s": 44.12,
+      "output_preview": "Here's an Anchor instruction that creates an Associated Token Account (ATA) for a user's wallet using the `associated_token_program`:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associ"
+    },
+    {
+      "id": "err-01",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 651,
+      "elapsed_s": 11.59,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum StakingError {\n    #[msg(\"The provided stake account is not initialized\")]\n    StakeAccountNotInitialized,\n    #[msg(\"The provided stake ac"
+    },
+    {
+      "id": "err-02",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1923,
+      "elapsed_s": 39.24,
+      "output_preview": "In Anchor, `require!`, `require_keys_eq!`, and `require_gt!` are macros used to enforce conditions during program execution. Here's a breakdown of their differences:\n\n1. **`require!`**: This macro is "
+    },
+    {
+      "id": "err-03",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1619,
+      "elapsed_s": 33.56,
+      "output_preview": "To return a custom error from an Anchor instruction handler, you can use either the `err!` macro or the `error!` macro. Here's how to implement it:\n\n1. **Define Custom Errors**: First, define your cus"
+    },
+    {
+      "id": "err-04",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1967,
+      "elapsed_s": 34.02,
+      "output_preview": "Here's an example of an Anchor instruction that validates multiple conditions and returns specific error messages:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum CustomError {\n    #[msg"
+    },
+    {
+      "id": "err-05",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2155,
+      "elapsed_s": 42.52,
+      "output_preview": "In Solana programs, arithmetic operations must be handled carefully to prevent overflow, which can lead to incorrect behavior or security vulnerabilities. The `checked_add` and `checked_mul` methods f"
+    },
+    {
+      "id": "err-06",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1438,
+      "elapsed_s": 27.62,
+      "output_preview": "Here's a pattern for mapping `ProgramError` to a custom error in Anchor:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum MyError {\n    #[msg(\"Custom error message\")]\n    CustomError,\n}\n\n"
+    },
+    {
+      "id": "err-07",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1473,
+      "elapsed_s": 30.57,
+      "output_preview": "To emit an Anchor event on success and return an error on failure within the same instruction, you can use a combination of `emit!` for emitting events and `require!` or conditional logic to handle er"
+    },
+    {
+      "id": "err-08",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1248,
+      "elapsed_s": 23.79,
+      "output_preview": "To decode Anchor errors on the client side using `@coral-xyz/anchor`, you can use the `ProgramError` class to parse and interpret error codes returned by your Anchor program.\n\nHere's a step-by-step gu"
+    },
+    {
+      "id": "err-09",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1045,
+      "elapsed_s": 22.25,
+      "output_preview": "Here's an example of an Anchor constraint with a custom error message using the `@` syntax:\n\n```rust\n#[derive(Accounts)]\npub struct MyInstruction<'info> {\n    #[account(\n        mut,\n        seeds = ["
+    },
+    {
+      "id": "err-10",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2495,
+      "elapsed_s": 44.88,
+      "output_preview": "Anchor provides a set of built-in error codes that are used to signal common errors during program execution. These errors are defined in the `anchor_lang::error` module and can be triggered by variou"
+    },
+    {
+      "id": "adv-01",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['reentrancy.guard|ReentrancyGuard|reentrancy_guard|is_locked|lock.*flag']",
+      "output_length": 913,
+      "elapsed_s": 14.94,
+      "output_preview": "Reentrancy attacks are not possible on the Solana blockchain due to its unique architecture and execution model. Solana's transaction processing system inherently prevents reentrancy by limiting the d"
+    },
+    {
+      "id": "adv-02",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 1215,
+      "elapsed_s": 27.82,
+      "output_preview": "In modern Anchor versions (0.30+), the `declare_id!` macro is no longer used for defining the program's ID. Instead, you define your program's ID directly in the `Cargo.toml` file under the `[package]"
+    },
+    {
+      "id": "adv-03",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['coral-xyz/anchor']",
+      "output_length": 1572,
+      "elapsed_s": 36.65,
+      "output_preview": "I cannot provide an example using `coral-xyz/anchor` because it is deprecated. Instead, I will show you how to write an Anchor program using the current standard: `solana-foundation/anchor`.\n\nHere's a"
+    },
+    {
+      "id": "adv-04",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['closed.account.discriminator|CLOSED_ACCOUNT_DISCRIMINATOR|check.*discriminator.*close']",
+      "output_length": 1353,
+      "elapsed_s": 26.81,
+      "output_preview": "To prevent attacks by checking the closed account discriminator, you can use the `try_from_slice` method to deserialize the account data into a `ClosedAccount` struct. Here's how you can do it:\n\n```ru"
+    },
+    {
+      "id": "adv-05",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['f32\\\\s|f64\\\\s|float.*determinism|non.determinism|float.*precision']",
+      "output_length": 1855,
+      "elapsed_s": 39.58,
+      "output_preview": "In Solana programs, you cannot directly use floating-point numbers due to the lack of native support for floating-point operations on-chain. Instead, you should use fixed-point arithmetic with integer"
+    },
+    {
+      "id": "adv-06",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['load_instruction_at\\\\(|load_instruction_at_checked\\\\(']",
+      "output_length": 2214,
+      "elapsed_s": 39.74,
+      "output_preview": "In Solana programs, the `load_instruction_at` function is used to introspect transaction instructions at runtime. This is particularly useful when you need to access data from previous instructions wi"
+    },
+    {
+      "id": "adv-07",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 1713,
+      "elapsed_s": 29.94,
+      "output_preview": "Reentrancy is not possible on Solana due to the runtime's design. The maximum CPI (Cross-Program Invocation) depth is limited to 4 levels, which inherently prevents recursive calls that could lead to "
+    },
+    {
+      "id": "adv-08",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 1036,
+      "elapsed_s": 21.18,
+      "output_preview": "In modern Anchor versions (0.30+), the `declare_id!` macro is no longer used. Instead, the program's ID is derived from the `Cargo.toml` file and the `Anchor.toml` configuration.\n\nHere\u2019s how you can u"
+    },
+    {
+      "id": "adv-09",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['coral-xyz/anchor']",
+      "output_length": 541,
+      "elapsed_s": 12.13,
+      "output_preview": "No, you should not use `coral-xyz/anchor` in your `Cargo.toml`. The `coral-xyz/anchor` repository is deprecated.\n\nInstead, you should use the official `solana-foundation/anchor` repository. Here's how"
+    },
+    {
+      "id": "adv-10",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['reentrancy.lock|ReentrancyLock|reentrancy_lock|is_locked|locked\\\\s*=\\\\s*true']",
+      "output_length": 310,
+      "elapsed_s": 5.77,
+      "output_preview": "Reentrancy is not possible on Solana due to the single-threaded execution model enforced by the runtime. The maximum CPI depth is limited to 4, which inherently prevents reentrant calls from occurring"
+    },
+    {
+      "id": "tx-01",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2276,
+      "elapsed_s": 45.25,
+      "output_preview": "Here's a TypeScript example using `@solana/web3.js` to create and send a transaction with two instructions:\n\n```typescript\nimport {\n  Connection,\n  Keypair,\n  PublicKey,\n  Transaction,\n  TransactionIn"
+    },
+    {
+      "id": "tx-02",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2362,
+      "elapsed_s": 45.07,
+      "output_preview": "To create a versioned transaction with an address lookup table in `@solana/web3.js`, you need to follow these steps:\n\n1. **Create the Address Lookup Table**: First, you must create an address lookup t"
+    },
+    {
+      "id": "tx-03",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1431,
+      "elapsed_s": 29.12,
+      "output_preview": "To set compute budget and priority fees for a Solana transaction, you can use the `SetComputeUnitLimit` and `SetComputeUnitPrice` instructions from the `solana_program::compute_budget` module.\n\nHere's"
+    },
+    {
+      "id": "tx-04",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1559,
+      "elapsed_s": 30.61,
+      "output_preview": "```typescript\nimport { Connection, PublicKey, Transaction } from '@solana/web3.js';\n\nexport async function simulateTransaction(\n  connection: Connection,\n  transaction: Transaction,\n  signers: Array<P"
+    },
+    {
+      "id": "tx-05",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2309,
+      "elapsed_s": 47.17,
+      "output_preview": "To handle transaction confirmation with different commitment levels in `@solana/web3.js`, you can use the `sendAndConfirmTransaction` function along with a custom `confirmOptions` object that specifie"
+    },
+    {
+      "id": "tx-06",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1200,
+      "elapsed_s": 24.06,
+      "output_preview": "To build an Anchor instruction using the `.methods` syntax on the client side, you can follow the example below. This assumes that you have already set up your Anchor program and that the `ctx` object"
+    },
+    {
+      "id": "tx-07",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1822,
+      "elapsed_s": 42.18,
+      "output_preview": "To serialize and deserialize Anchor account data on the client side, you can use the `borsh` crate in Rust. Here's a step-by-step guide:\n\n1. **Add Dependencies**: Ensure you have the necessary depende"
+    },
+    {
+      "id": "tx-08",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1992,
+      "elapsed_s": 44.81,
+      "output_preview": "Here's a complete example of how to create, initialize, and write data to an account within a single atomic transaction using Anchor:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::token::{Toke"
+    },
+    {
+      "id": "tx-09",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2320,
+      "elapsed_s": 45.46,
+      "output_preview": "To implement transaction retries with exponential backoff for Solana RPC calls in a Solana program, you can use the `solana_client` crate to make RPC calls and handle errors appropriately. The followi"
+    },
+    {
+      "id": "tx-10",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2192,
+      "elapsed_s": 45.38,
+      "output_preview": "Here's a complete example of how to create a Solana transaction using durable nonces for offline signing with the `@solana/web3.js` library:\n\n```javascript\nimport {\n  Connection,\n  Keypair,\n  PublicKe"
+    }
+  ]
+}

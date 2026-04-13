@@ -10,13 +10,13 @@ solana.stackexchange.com,CC-BY-SA-4.0-anti-LLM,2026-03-26,no,,Explicitly exclude
 helius.dev/blog,unknown,2026-03-26,pending,hello@helius.dev,Email sent for training permission; RAG-only until response
 helius.dev/docs,unknown,2026-03-26,pending,hello@helius.dev,Email sent for training permission; RAG-only until response
 developers.metaplex.com,unknown,2026-03-26,pending,,Email for training permission; RAG-only until response
-lumolabs-ai/Lumo-Fart-DS-Instruct,check-hf-card,2026-03-26,pending,,Verify HuggingFace license card
-lumolabs-ai/Lumo-Novel-DS-Instruct,check-hf-card,2026-03-26,pending,,Verify HuggingFace license card
-lumolabs-ai/Lumo-Iris-DS-Instruct,check-hf-card,2026-03-26,pending,,Verify HuggingFace license card
-lumolabs-ai/Lumo-8B-DS-Instruct,check-hf-card,2026-03-26,pending,,Verify HuggingFace license card
+lumolabs-ai/Lumo-Fart-DS-Instruct,AGPL-3.0,2026-03-27,yes,,HF card verified 2026-03-27; AGPL-3.0 copyleft — model weights may inherit obligations if distributed
+lumolabs-ai/Lumo-Novel-DS-Instruct,AGPL-3.0,2026-03-27,yes,,HF card verified 2026-03-27; AGPL-3.0 copyleft — model weights may inherit obligations if distributed
+lumolabs-ai/Lumo-Iris-DS-Instruct,AGPL-3.0,2026-03-27,yes,,HF card verified 2026-03-27; AGPL-3.0 copyleft — model weights may inherit obligations if distributed
+lumolabs-ai/Lumo-8B-DS-Instruct,AGPL-3.0,2026-03-27,yes,,HF card verified 2026-03-27; AGPL-3.0 copyleft — model weights may inherit obligations if distributed
 almanax/insecure-solana-programs,check-hf-card,2026-03-26,pending,,Verify HuggingFace license card
-gaianet/learn-rust,check-hf-card,2026-03-26,pending,,Verify HuggingFace license card
-ammarnasr/the-stack-rust-clean,check-hf-card,2026-03-26,pending,,Verify HuggingFace license card
+gaianet/learn-rust,Apache-2.0,2026-03-27,yes,,HF card verified 2026-03-27
+ammarnasr/the-stack-rust-clean,OpenRAIL,2026-03-27,yes,,HF card verified 2026-03-27; OpenRAIL permits training
 synthetic/openai,synthetic-permissible,2026-03-26,yes,,OpenAI ToS permits training on batch API outputs
 synthetic/anthropic,synthetic-permissible,2026-03-26,yes,,Anthropic ToS permits training on batch API outputs
 hand-curated/migration-examples,Apache-2.0,2026-03-26,yes,,Original content created by project team

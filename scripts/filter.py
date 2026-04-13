@@ -280,27 +280,40 @@ def filter_data(
     console.print(f"  Untagged:       {count - modern_count - old_count}")
 
 
+class CargoProject:
+    """Temporary Cargo project for type-checking, with automatic cleanup."""
+
+    def __init__(self):
+        self._tmpdir = tempfile.TemporaryDirectory(prefix="slm-cargo-")
+        self.path = Path(self._tmpdir.name)
+        (self.path / "src").mkdir()
+
+        cargo_toml = self.path / "Cargo.toml"
+        cargo_toml.write_text(
+            '[package]\nname = "slm-check"\nversion = "0.1.0"\nedition = "2021"\n\n'
+            "[dependencies]\n"
+            'anchor-lang = "0.30"\n'
+            'solana-program = "2.0"\n'
+        )
+        console.print(f"  [dim]Cargo project: {self.path}[/dim]")
+        # Initial build to cache deps
+        subprocess.run(
+            ["cargo", "check"],
+            cwd=str(self.path),
+            capture_output=True,
+            timeout=120,
+        )
+
+    def cleanup(self):
+        self._tmpdir.cleanup()
+
+
 def setup_cargo_project() -> Path:
     """Create a temporary Cargo project for type-checking."""
-    tmpdir = Path(tempfile.mkdtemp(prefix="slm-cargo-"))
-    (tmpdir / "src").mkdir()
-
-    cargo_toml = tmpdir / "Cargo.toml"
-    cargo_toml.write_text(
-        '[package]\nname = "slm-check"\nversion = "0.1.0"\nedition = "2021"\n\n'
-        "[dependencies]\n"
-        'anchor-lang = "0.30"\n'
-        'solana-program = "2.0"\n'
-    )
-    console.print(f"  [dim]Cargo project: {tmpdir}[/dim]")
-    # Initial build to cache deps
-    subprocess.run(
-        ["cargo", "check"],
-        cwd=str(tmpdir),
-        capture_output=True,
-        timeout=120,
-    )
-    return tmpdir
+    project = CargoProject()
+    # Store reference on the function so it persists and can be cleaned up
+    setup_cargo_project._project = project
+    return project.path
 
 
 if __name__ == "__main__":

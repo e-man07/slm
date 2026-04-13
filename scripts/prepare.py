@@ -32,88 +32,125 @@ console = Console()
 PROJECT_ROOT = Path(__file__).parent.parent
 FINAL_DIR = PROJECT_ROOT / "data" / "final"
 
+SYSTEM_PROMPT = (
+    "You are an expert Solana and Anchor developer. "
+    "Provide accurate, secure, and up-to-date code and guidance."
+)
+
+# Licenses that explicitly prohibit training
+EXCLUDED_LICENSES = {"CC-BY-SA-4.0-no-training", "CC-BY-SA-4.0-anti-LLM"}
+
+
+def _try_parse_qa_json(content: str) -> dict | None:
+    """Try to parse content as a JSON Q&A object ({question, answer, ...}).
+    Returns the parsed dict or None."""
+    try:
+        parsed = json.loads(content)
+        if isinstance(parsed, dict) and "question" in parsed and "answer" in parsed:
+            return parsed
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return None
+
+
+def _try_parse_messages_json(content: str) -> list | None:
+    """Try to parse content as a ChatML messages list ([{role, content}, ...]).
+    Returns the parsed list or None."""
+    try:
+        parsed = json.loads(content)
+        if isinstance(parsed, list) and all(
+            isinstance(m, dict) and "role" in m for m in parsed
+        ):
+            return parsed
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return None
+
 
 def record_to_cpt(record: Record) -> dict:
-    """Convert a record to CPT format (raw text for continued pretraining)."""
-    # Add source context as a natural prefix
-    prefix_parts = []
+    """Convert a record to CPT format (clean text for continued pretraining).
+
+    For Q&A records stored as JSON, extracts question + answer as natural text.
+    For code records, adds source context as a comment prefix.
+    """
+    content = record.content
+
+    # Handle Q&A records: flatten JSON {question, answer} into readable text
+    if record.source_type == "qa":
+        qa = _try_parse_qa_json(content)
+        if qa:
+            q = qa["question"].strip()
+            a = qa["answer"].strip()
+            content = f"Question: {q}\n\nAnswer: {a}"
+        else:
+            # Try ChatML messages list
+            msgs = _try_parse_messages_json(content)
+            if msgs:
+                parts = []
+                for m in msgs:
+                    role = m.get("role", "")
+                    text = m.get("content", "")
+                    if role == "system":
+                        continue  # Skip system prompt for CPT
+                    elif role == "user":
+                        parts.append(f"Question: {text}")
+                    elif role == "assistant":
+                        parts.append(f"Answer: {text}")
+                content = "\n\n".join(parts) if parts else content
+
+    # Add source prefix for code records
     if record.language == "rust":
-        prefix_parts.append(f"// Source: {record.source}")
+        prefix = f"// Source: {record.source}"
         if record.metadata.get("file_path"):
-            prefix_parts.append(f"// File: {record.metadata['file_path']}")
+            prefix += f"\n// File: {record.metadata['file_path']}"
         if record.metadata.get("anchor_version"):
-            prefix_parts.append(f"// Anchor version: {record.metadata['anchor_version']}")
-    elif record.language == "md":
-        prefix_parts.append(f"<!-- Source: {record.source} -->")
+            prefix += f"\n// Anchor version: {record.metadata['anchor_version']}"
+        content = prefix + "\n\n" + content
 
-    if prefix_parts:
-        text = "\n".join(prefix_parts) + "\n\n" + record.content
-    else:
-        text = record.content
-
-    return {"text": text}
+    return {"text": content}
 
 
 def record_to_sft(record: Record) -> dict | None:
     """Convert a record to SFT ChatML format.
 
-    Only works for QA-type records or code with clear structure.
+    Handles: ChatML messages, JSON Q&A {question, answer}, Alpaca-style.
     Returns None if conversion isn't meaningful.
     """
     if record.source_type == "qa":
-        # Try to parse existing conversation format
-        try:
-            messages = json.loads(record.content)
-            if isinstance(messages, list) and all(
-                isinstance(m, dict) and "role" in m for m in messages
-            ):
-                # Already in messages format, add system prompt if missing
-                if not messages or messages[0].get("role") != "system":
-                    messages.insert(
-                        0,
-                        {
-                            "role": "system",
-                            "content": "You are an expert Solana and Anchor developer. Provide accurate, secure, and up-to-date code and guidance.",
-                        },
-                    )
-                return {"messages": messages}
-        except (json.JSONDecodeError, TypeError):
-            pass
+        # Try ChatML messages list
+        msgs = _try_parse_messages_json(record.content)
+        if msgs:
+            if not msgs or msgs[0].get("role") != "system":
+                msgs.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+            return {"messages": msgs}
+
+        # Try JSON Q&A {question, answer}
+        qa = _try_parse_qa_json(record.content)
+        if qa:
+            q = qa["question"].strip()
+            a = qa["answer"].strip()
+            if len(a) < 20:
+                return None  # Skip if answer is too short
+            return {
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": q},
+                    {"role": "assistant", "content": a},
+                ]
+            }
 
         # Alpaca-style: split instruction/output
         parts = record.content.split("\n\n", 2)
         if len(parts) >= 2:
             return {
                 "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are an expert Solana and Anchor developer. Provide accurate, secure, and up-to-date code and guidance.",
-                    },
+                    {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": parts[0].strip()},
                     {"role": "assistant", "content": "\n\n".join(parts[1:]).strip()},
                 ]
             }
 
-    if record.source_type == "code" and record.language == "rust":
-        # Code → "explain this code" SFT pair
-        file_path = record.metadata.get("file_path", "unknown")
-        return {
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are an expert Solana and Anchor developer. Provide accurate, secure, and up-to-date code and guidance.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Explain this Solana program code from `{file_path}`:\n\n```rust\n{record.content}\n```",
-                },
-                {
-                    "role": "assistant",
-                    "content": f"This is a Solana program file at `{file_path}`. Let me explain the key components:\n\n[This would be filled by synthetic generation - see scripts/synthetic.py]",
-                },
-            ]
-        }
-
+    # Plain code records belong in CPT only.
     return None
 
 
@@ -164,9 +201,11 @@ def prepare(
     if stats_only:
         raise typer.Exit()
 
-    # Separate training-permitted records
+    # Separate training-permitted records (robust boolean check + license exclusion)
     training_records = [
-        r for r in records if r.metadata.get("training_permitted", "true") != "false"
+        r for r in records
+        if str(r.metadata.get("training_permitted", "true")).lower() not in ("false", "no", "0", "pending")
+        and r.license not in EXCLUDED_LICENSES
     ]
     rag_only = len(records) - len(training_records)
     if rag_only > 0:

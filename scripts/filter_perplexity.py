@@ -206,12 +206,18 @@ def main(
                 console.print(f"  Would remove {len(indices)} records from {path.name}")
             raise typer.Exit()
 
-        # Rewrite files without removed records
+        # Rewrite files without removed records into a filtered subdirectory
+        # (avoids destructive in-place modification of processed data)
+        filtered_dir = PROCESSED_DIR / "perplexity_filtered"
+        filtered_dir.mkdir(parents=True, exist_ok=True)
         for path, indices in removals_by_file.items():
             lines = path.read_text().strip().split("\n")
             new_lines = [l for i, l in enumerate(lines) if i not in indices]
-            path.write_text("\n".join(new_lines) + "\n" if new_lines else "")
-            console.print(f"  {path.name}: removed {len(indices)}, kept {len(new_lines)}")
+            out_path = filtered_dir / path.name
+            out_path.write_text("\n".join(new_lines) + "\n" if new_lines else "")
+            console.print(f"  {path.name}: removed {len(indices)}, kept {len(new_lines)} → {out_path}")
+        console.print(f"\n  [dim]Filtered files written to {filtered_dir}/[/dim]")
+        console.print(f"  [dim]Original files in {PROCESSED_DIR}/ are unchanged.[/dim]")
 
         console.print(f"\n[bold green]Done. Removed {removed} low-quality records.[/bold green]")
 

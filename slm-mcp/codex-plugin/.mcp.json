@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "slm": {
+      "command": "npx",
+      "args": ["@slm/mcp"],
+      "env": {
+        "SLM_API_KEY": ""
+      }
+    }
+  }
+}

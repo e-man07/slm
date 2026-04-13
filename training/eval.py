@@ -12,6 +12,13 @@ Usage:
 """
 from __future__ import annotations
 
+# Disable torch.compile/dynamo before any other imports — prevents flex_attention crash
+import torch._dynamo
+torch._dynamo.config.disable = True
+# Force eager attention to avoid flex_attention bug
+import os
+os.environ["TRANSFORMERS_ATTENTION_IMPLEMENTATION"] = "eager"
+
 import json
 import os
 import re
@@ -40,7 +47,7 @@ class EvalConfig:
     load_in_4bit: bool = field(default=True)
     dtype: str = field(default="auto")
     max_new_tokens: int = field(
-        default=1024,
+        default=512,
         metadata={"help": "Max tokens to generate per eval task"},
     )
     temperature: float = field(default=0.0)
@@ -825,10 +832,18 @@ def main():
         max_seq_length=cfg.max_seq_length,
         dtype=dtype,
         load_in_4bit=cfg.load_in_4bit,
+        attn_implementation="eager",  # Avoid flex_attention crash
     )
 
     FastLanguageModel.for_inference(model)
-    print("  Model loaded and set to inference mode.")
+
+    # Ensure model config uses eager attention for generation
+    if hasattr(model, "config"):
+        model.config._attn_implementation = "eager"
+    if hasattr(model, "model") and hasattr(model.model, "config"):
+        model.model.config._attn_implementation = "eager"
+
+    print("  Model loaded and set to inference mode (eager attention).")
 
     # ── 2. Run eval tasks ──
     print(f"\n[2/3] Running {len(EVAL_TASKS)} eval tasks...")
