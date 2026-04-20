@@ -20,12 +20,12 @@ describe("getSolanaExpertPrompt", () => {
     expect(userMsg!.content.text).toContain("cross-program invocations");
   });
 
-  it("includes SLM context in system message", async () => {
+  it("includes Sealevel context in system message", async () => {
     const result = await getSolanaExpertPrompt({ topic: "tokens" });
 
     // Should have system-level context about being a Solana expert
     const hasSystemContext = result.messages.some(
-      (m) => m.content.text.includes("Solana") || m.content.text.includes("SLM"),
+      (m) => m.content.text.includes("Solana") || m.content.text.includes("Sealevel"),
     );
     expect(hasSystemContext).toBe(true);
   });

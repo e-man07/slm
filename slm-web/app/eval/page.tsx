@@ -58,7 +58,7 @@ export default function EvalPage() {
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Base Model</span>
-                <span>Qwen3-Coder-30B-A3B</span>
+                <span>Qwen2.5-Coder-7B-Instruct</span>
               </div>
               <Separator />
               <div className="flex justify-between">
@@ -68,7 +68,7 @@ export default function EvalPage() {
               <Separator />
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Architecture</span>
-                <Badge variant="outline">MoE 30B/3.3B active</Badge>
+                <Badge variant="outline">7B dense</Badge>
               </div>
               <Separator />
               <div className="flex justify-between">

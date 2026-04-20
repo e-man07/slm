@@ -1,18 +1,25 @@
 {
   "name": "@slm/mcp",
   "version": "0.1.0",
-  "description": "SLM MCP Server — Solana Language Model tools for Claude Code, Cursor, and Codex",
+  "description": "Sealevel MCP Server — Solana Language Model tools for Claude Code, Cursor, Windsurf, and Codex. Adds @slm chat, code review, migration, and Solana transaction/error decoding.",
   "type": "module",
   "bin": {
     "slm-mcp": "./dist/index.js"
   },
   "main": "./dist/index.js",
+  "files": [
+    "dist/",
+    "data/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -24,16 +31,35 @@
     "tsx": "^4.19.4",
     "@types/node": "^22.15.3"
   },
-  "files": [
-    "dist/",
-    "data/"
-  ],
   "keywords": [
     "solana",
     "anchor",
     "mcp",
     "claude",
-    "ai"
+    "claude-code",
+    "cursor",
+    "windsurf",
+    "codex",
+    "ai",
+    "llm",
+    "copilot",
+    "blockchain"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "author": "Sealevel Contributors <hi@slm.dev>",
+  "homepage": "https://slm.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kshitij-hash/slm.git",
+    "directory": "slm-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/kshitij-hash/slm/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

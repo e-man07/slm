@@ -1,8 +1,8 @@
 {
   "name": "slm-solana",
   "version": "0.1.0",
-  "display_name": "SLM - Solana Language Model",
+  "display_name": "Sealevel - Solana Language Model",
   "description": "Fine-tuned Solana/Anchor development assistant with error decoding, code review, migration, and transaction explanation tools.",
-  "author": "SLM",
+  "author": "Sealevel",
   "homepage": "https://slm.dev"
 }

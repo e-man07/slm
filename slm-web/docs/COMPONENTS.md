@@ -58,7 +58,7 @@ npx shadcn@latest add avatar command
 ### Layout
 
 **`NavBar`** (`components/nav-bar.tsx`)
-- Logo (SLM wordmark)
+- Logo (Sealevel wordmark)
 - Page links: Chat, Explain, Docs, Eval
 - Theme toggle (dark/light)
 - GitHub link (icon)

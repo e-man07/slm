@@ -1,4 +1,4 @@
-"""Shared schema and utilities for the SLM data pipeline."""
+"""Shared schema and utilities for the Sealevel data pipeline."""
 
 from __future__ import annotations
 
@@ -112,6 +112,65 @@ def is_modern_anchor(content: str) -> bool:
     if has_modern and not has_old:
         return True
     return False
+
+
+def is_pinocchio(content: str) -> bool:
+    """Check if code uses the Pinocchio framework (zero-copy Solana framework).
+
+    Pinocchio programs use pinocchio crate imports, process_instruction entrypoints,
+    ProgramResult return types, and raw AccountInfo parsing without Anchor macros.
+    """
+    markers = [
+        "pinocchio",
+        "ProgramResult",
+        "process_instruction",
+        "pinocchio_token",
+        "pinocchio_system",
+        "AccountInfo",
+        "unsafe { ",
+        "from_account_info_unchecked",
+    ]
+    # Require at least 2 markers to avoid false positives with native solana-program code
+    return sum(1 for m in markers if m in content) >= 2
+
+
+def detect_framework(content: str) -> str:
+    """Detect which Solana framework the code uses.
+
+    Returns: "pinocchio" | "anchor" | "native"
+    """
+    if is_pinocchio(content):
+        return "pinocchio"
+    anchor_markers = [
+        "anchor_lang",
+        "#[program]",
+        "#[derive(Accounts)]",
+        "#[account(",
+        "declare_program!",
+        "declare_id!",
+    ]
+    if sum(1 for m in anchor_markers if m in content) >= 2:
+        return "anchor"
+    return "native"
+
+
+def infer_domain(content: str) -> str:
+    """Heuristic domain inference from code content.
+
+    Returns: "defi" | "nft" | "token" | "governance" | "staking" | "general"
+    """
+    lower = content.lower()
+    if any(w in lower for w in ["swap", "amm", "pool", "liquidity", "whirlpool", "clmm"]):
+        return "defi"
+    if any(w in lower for w in ["metadata", "collection", "nft", "candy_machine", "metaplex"]):
+        return "nft"
+    if any(w in lower for w in ["mint_to", "transfer", "burn", "token_2022", "spl_token"]):
+        return "token"
+    if any(w in lower for w in ["vote", "governance", "proposal", "multisig"]):
+        return "governance"
+    if any(w in lower for w in ["stake", "unstake", "delegate", "validator", "epoch"]):
+        return "staking"
+    return "general"
 
 
 def normalize_for_hashing(content: str, language: str) -> str:

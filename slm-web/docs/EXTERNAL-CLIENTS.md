@@ -52,7 +52,7 @@ pipx install slm-cli
 
 ### Capabilities
 1. **Chat Participant** — `@slm` in Copilot chat panel
-2. **Code Action** — "Explain with SLM" on rust-analyzer errors
+2. **Code Action** — "Explain with Sealevel" on rust-analyzer errors
 3. **Diagnostic Interception** — listen for rust-analyzer errors
 
 ### Architecture
@@ -65,7 +65,7 @@ Extension Host (TypeScript)
   │
   ├── Code Action Provider
   │     ├── Filters diagnostics for source: "rust-analyzer"
-  │     └── Offers "Explain with SLM" quick fix
+  │     └── Offers "Explain with Sealevel" quick fix
   │
   └── Settings
         ├── slm.apiKey

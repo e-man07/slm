@@ -22,7 +22,7 @@ export async function readEvalResultsResource(): Promise<ReadResourceResult> {
   const scorePercent = (overall.score * 100).toFixed(1);
 
   const lines = [
-    "# SLM Evaluation Results",
+    "# Sealevel Evaluation Results",
     "",
     `**Overall Score: ${scorePercent}%** (${overall.passed}/${overall.total} passed)`,
     "",

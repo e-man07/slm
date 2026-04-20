@@ -148,6 +148,58 @@ stages:
       - data/processed/synthetic-evol-extra.jsonl:
           persist: true
 
+  # ─── SFT v2 pipeline stages ───────────────────────────────────────────────
+
+  collect-code:
+    cmd: python3 scripts/collect_solana_code.py
+    deps:
+      - scripts/collect_solana_code.py
+      - scripts/schema.py
+    outs:
+      - data/collected/solana_code_sft.jsonl:
+          persist: true
+
+  collect-pinocchio:
+    cmd: python3 scripts/collect_pinocchio.py
+    deps:
+      - scripts/collect_pinocchio.py
+      - scripts/schema.py
+    outs:
+      - data/collected/pinocchio_sft.jsonl:
+          persist: true
+
+  gen-sft-from-code:
+    cmd: python3 scripts/gen_sft_from_code.py
+    deps:
+      - scripts/gen_sft_from_code.py
+      - scripts/schema.py
+      - data/collected/solana_code_sft.jsonl
+      - data/collected/pinocchio_sft.jsonl
+    outs:
+      - data/processed/sft-code-write.jsonl:
+          persist: true
+      - data/processed/sft-code-explain.jsonl:
+          persist: true
+      - data/processed/sft-code-complete.jsonl:
+          persist: true
+      - data/processed/sft-code-fix.jsonl:
+          persist: true
+      - data/processed/sft-code-refactor.jsonl:
+          persist: true
+
+  gen-adversarial:
+    cmd: python3 scripts/gen_adversarial_sft.py
+    deps:
+      - scripts/gen_adversarial_sft.py
+      - scripts/schema.py
+    outs:
+      - data/processed/adversarial-refusals.jsonl:
+          persist: true
+      - data/processed/dpo-chosen-adversarial.jsonl:
+          persist: true
+      - data/processed/dpo-rejected-adversarial.jsonl:
+          persist: true
+
   filter-perplexity:
     cmd: python3 scripts/filter_perplexity.py
     deps:
@@ -182,6 +234,8 @@ stages:
       - scripts/prepare.py
       - scripts/schema.py
       - data/final/filtered.jsonl
+      - data/collected/
+      - data/validated/
     outs:
       - data/final/cpt_train.jsonl
       - data/final/sft_train.jsonl

@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         name: user.name,
         email: user.email,
         tier: user.tier,
-        created_at: user.created_at,
+        created_at: user.createdAt,
       },
       today: {
         requests: todayStats?.requests ?? 0,

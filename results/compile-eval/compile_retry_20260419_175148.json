@@ -1,0 +1,156 @@
+{
+  "timestamp": "2026-04-19T17:51:48.526716+00:00",
+  "max_retries": 3,
+  "first_try": {
+    "passed": 9,
+    "total": 20,
+    "score": 0.45
+  },
+  "after_retry": {
+    "passed": 17,
+    "total": 20,
+    "score": 0.85
+  },
+  "results": [
+    {
+      "id": "comp-01",
+      "description": "Basic account creation with counter",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 2.81
+    },
+    {
+      "id": "comp-02",
+      "description": "PDA counter increment",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 1.41
+    },
+    {
+      "id": "comp-03",
+      "description": "SOL transfer via system program CPI",
+      "passed": true,
+      "attempts": 3,
+      "elapsed_s": 4.58
+    },
+    {
+      "id": "comp-04",
+      "description": "Custom errors with require!",
+      "passed": true,
+      "attempts": 2,
+      "elapsed_s": 7.36
+    },
+    {
+      "id": "comp-05",
+      "description": "Vault with InitSpace",
+      "passed": true,
+      "attempts": 2,
+      "elapsed_s": 3.44
+    },
+    {
+      "id": "comp-06",
+      "description": "Deposit with has_one constraint",
+      "passed": false,
+      "attempts": 4,
+      "elapsed_s": 9.17
+    },
+    {
+      "id": "comp-07",
+      "description": "Account closing",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 1.99
+    },
+    {
+      "id": "comp-08",
+      "description": "String data update with constraint",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 2.12
+    },
+    {
+      "id": "comp-09",
+      "description": "Event emission",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 1.36
+    },
+    {
+      "id": "comp-10",
+      "description": "Profile PDA creation",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 1.74
+    },
+    {
+      "id": "comp-11",
+      "description": "Two instructions with checked math",
+      "passed": true,
+      "attempts": 2,
+      "elapsed_s": 3.49
+    },
+    {
+      "id": "comp-12",
+      "description": "Admin-only config with hardcoded key",
+      "passed": true,
+      "attempts": 3,
+      "elapsed_s": 4.93
+    },
+    {
+      "id": "comp-13",
+      "description": "Marketplace listing PDA",
+      "passed": false,
+      "attempts": 4,
+      "elapsed_s": 7.05
+    },
+    {
+      "id": "comp-14",
+      "description": "Time-locked withdrawal",
+      "passed": true,
+      "attempts": 2,
+      "elapsed_s": 5.19
+    },
+    {
+      "id": "comp-15",
+      "description": "Voting with bool parameter",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 1.33
+    },
+    {
+      "id": "comp-16",
+      "description": "Multisig initialization",
+      "passed": true,
+      "attempts": 2,
+      "elapsed_s": 4.19
+    },
+    {
+      "id": "comp-17",
+      "description": "Escrow create and release",
+      "passed": false,
+      "attempts": 4,
+      "elapsed_s": 15.33
+    },
+    {
+      "id": "comp-18",
+      "description": "Game score recording with Clock",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 2.49
+    },
+    {
+      "id": "comp-19",
+      "description": "Vec parameter with sum",
+      "passed": true,
+      "attempts": 1,
+      "elapsed_s": 1.39
+    },
+    {
+      "id": "comp-20",
+      "description": "Registry with add_entry",
+      "passed": true,
+      "attempts": 2,
+      "elapsed_s": 4.38
+    }
+  ]
+}

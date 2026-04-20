@@ -3,8 +3,10 @@ import { Geist, JetBrains_Mono } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthSessionProvider } from "@/components/auth/session-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
+import { auth } from "@/lib/auth-next"
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -17,27 +19,27 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "SLM - Solana Language Model",
+  title: "Sealevel - Solana Language Model",
   description:
     "The Solana coding AI that actually knows Solana. Chat, explain transactions, decode errors.",
   openGraph: {
-    title: "SLM - Solana Language Model",
+    title: "Sealevel - Solana Language Model",
     description:
       "The Solana coding AI that actually knows Solana. Chat, explain transactions, decode errors.",
-    siteName: "SLM",
+    siteName: "Sealevel",
     type: "website",
     images: [
       {
         url: "/og-image.svg",
         width: 1200,
         height: 630,
-        alt: "SLM - Solana Language Model",
+        alt: "Sealevel - Solana Language Model",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SLM - Solana Language Model",
+    title: "Sealevel - Solana Language Model",
     description:
       "The Solana coding AI that actually knows Solana. Chat, explain transactions, decode errors.",
     images: ["/og-image.svg"],
@@ -47,11 +49,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const session = await auth()
+
   return (
     <html
       lang="en"
@@ -64,10 +68,12 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <AuthSessionProvider session={session}>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   )

@@ -3,7 +3,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { callChat } from "../lib/api-client.js";
 
 export const chatInputSchema = {
-  message: z.string().describe("Message to send to SLM"),
+  message: z.string().describe("Message to send to Sealevel"),
   context: z
     .string()
     .optional()

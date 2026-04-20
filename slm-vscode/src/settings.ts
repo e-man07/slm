@@ -7,7 +7,7 @@ export interface SLMSettings {
 }
 
 /**
- * Read SLM extension settings from VS Code configuration.
+ * Read Sealevel extension settings from VS Code configuration.
  */
 export function getSettings(): SLMSettings {
   const config = vscode.workspace.getConfiguration("slm")

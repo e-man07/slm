@@ -1,4 +1,4 @@
-# SLM Project - Progress Tracker
+# Sealevel Project - Progress Tracker
 
 Last updated: 2026-04-05 (end of day)
 
@@ -199,7 +199,7 @@ input, input-group, textarea, card, badge, tabs, table, accordion, sonner, toolt
 
 | File | Type |
 |------|------|
-| `public/logo.svg` | SLM wordmark |
+| `public/logo.svg` | Sealevel wordmark |
 | `public/og-image.svg` | Social preview (needs PNG conversion) |
 | `app/favicon.ico` | Favicon |
 

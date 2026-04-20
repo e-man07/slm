@@ -2,6 +2,8 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { createServer as createHttpServer } from "http";
 
 // Tools
 import { chatInputSchema, handleChat } from "./tools/chat.js";
@@ -59,9 +61,9 @@ export function createServer(): McpServer {
   // ── Tools ──────────────────────────────────────────────
 
   server.registerTool("slm_chat", {
-    title: "SLM Chat",
+    title: "Sealevel Chat",
     description:
-      "Ask SLM (Solana Language Model) a question about Solana or Anchor development",
+      "Ask Sealevel (Solana Language Model) a question about Solana or Anchor development",
     inputSchema: chatInputSchema,
   }, async (args) => {
     return handleChat(args);
@@ -114,16 +116,16 @@ export function createServer(): McpServer {
   });
 
   server.registerResource("eval-results", "solana://eval-results", {
-    title: "SLM Eval Results",
-    description: "SLM model evaluation results (87.5% overall score)",
+    title: "Sealevel Eval Results",
+    description: "Sealevel model evaluation results (87.5% overall score)",
     mimeType: "text/plain",
   }, async () => {
     return readEvalResultsResource();
   });
 
   server.registerResource("system-prompt", "solana://system-prompt", {
-    title: "SLM System Prompt",
-    description: "The system prompt and guardrail rules used by SLM",
+    title: "Sealevel System Prompt",
+    description: "The system prompt and guardrail rules used by Sealevel",
     mimeType: "text/plain",
   }, async () => {
     return readSystemPromptResource();
@@ -167,9 +169,55 @@ const isDirectRun =
     process.argv[1].endsWith("index.ts"));
 
 if (isDirectRun) {
-  const server = createServer();
-  const transport = new StdioServerTransport();
-  server.connect(transport).then(() => {
-    console.error("SLM MCP server running on stdio");
-  });
+  const mode = process.env.MCP_TRANSPORT ?? (process.env.PORT ? "http" : "stdio");
+
+  if (mode === "http") {
+    // HTTP transport — for remote deployment (GCP, Akash, etc.)
+    const port = parseInt(process.env.PORT ?? "8080", 10);
+    const server = createServer();
+
+    const httpServer = createHttpServer(async (req, res) => {
+      // CORS
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, mcp-session-id");
+      res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
+
+      if (req.method === "OPTIONS") {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
+      // Health check
+      if (req.method === "GET" && req.url === "/health") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ status: "ok", server: "slm-mcp", version: "0.1.0" }));
+        return;
+      }
+
+      // MCP endpoint
+      if (req.url === "/mcp" || req.url === "/") {
+        const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+        res.on("close", () => { transport.close(); });
+        await server.connect(transport);
+        await transport.handleRequest(req, res);
+        return;
+      }
+
+      res.writeHead(404);
+      res.end("Not found");
+    });
+
+    httpServer.listen(port, () => {
+      console.error(`Sealevel MCP server running on http://0.0.0.0:${port}/mcp`);
+    });
+  } else {
+    // stdio transport — for local use
+    const server = createServer();
+    const transport = new StdioServerTransport();
+    server.connect(transport).then(() => {
+      console.error("Sealevel MCP server running on stdio");
+    });
+  }
 }

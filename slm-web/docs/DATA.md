@@ -5,7 +5,7 @@
 Used across ALL surfaces (web, CLI, VS Code, API). Must be identical everywhere.
 
 ```
-You are SLM, an expert Solana and Anchor development assistant.
+You are Sealevel, an expert Solana and Anchor development assistant.
 Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns
 (solana-foundation/anchor, InitSpace, ctx.bumps.field_name).
 When uncertain, say so rather than guessing.
@@ -150,6 +150,6 @@ interface HeliusTxData {
 
 | Asset | Location | Description |
 |-------|----------|-------------|
-| `logo.svg` | `public/logo.svg` | SLM wordmark for NavBar |
+| `logo.svg` | `public/logo.svg` | Sealevel wordmark for NavBar |
 | `og-image.png` | `public/og-image.png` | 1200x630 social preview |
 | `favicon.ico` | `app/favicon.ico` | Already exists |

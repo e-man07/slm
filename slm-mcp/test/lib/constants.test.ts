@@ -12,7 +12,7 @@ describe("SYSTEM_PROMPT", () => {
   });
 
   it("contains key guardrail rules", () => {
-    expect(SYSTEM_PROMPT).toContain("SLM");
+    expect(SYSTEM_PROMPT).toContain("Sealevel");
     expect(SYSTEM_PROMPT).toContain("Solana");
     expect(SYSTEM_PROMPT).toContain("Anchor");
     expect(SYSTEM_PROMPT).toContain("reentrancy");

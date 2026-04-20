@@ -8,8 +8,12 @@ mkdir -p /workspace/logs /workspace/cache/pip /run/sshd
 apt-get update -qq && apt-get install -y -qq openssh-server git wget >/dev/null 2>&1 || true
 apt-get clean && rm -rf /var/lib/apt/lists/* 2>/dev/null || true
 
-# SSH
-echo "root:${SSH_PASSWORD:-changeme}" | chpasswd
+# SSH — fail closed if password not provided
+if [ -z "$SSH_PASSWORD" ]; then
+    echo "ERROR: SSH_PASSWORD env var must be set" >&2
+    exit 1
+fi
+echo "root:${SSH_PASSWORD}" | chpasswd
 sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
 sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
 /usr/sbin/sshd || true

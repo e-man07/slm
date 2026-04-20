@@ -1,13 +1,34 @@
 import * as vscode from "vscode"
 import { registerChatParticipant } from "./chat-participant"
+import { registerAutocomplete } from "./autocomplete"
+import { registerDiagnostics } from "./diagnostics"
+import { registerStatusBar } from "./status-bar"
 
 /**
- * Activate the SLM VS Code extension.
- * Registers the @slm chat participant and commands.
+ * Activate the Sealevel VS Code extension.
+ * Registers the @slm chat participant, commands, inline completions,
+ * deprecated-pattern diagnostics, status bar, and output channel.
  */
 export function activate(context: vscode.ExtensionContext): void {
+  // Output channel for debug logs
+  const output = vscode.window.createOutputChannel("Sealevel")
+  context.subscriptions.push(output)
+  output.appendLine(`[${new Date().toISOString()}] Sealevel extension activated`)
+
   // Register the chat participant
   registerChatParticipant(context)
+
+  // Status bar indicator + health polling
+  registerStatusBar(context, output)
+
+  // Deprecated-pattern diagnostics + quick-fix code actions
+  registerDiagnostics(context)
+
+  // Register inline autocomplete
+  const config = vscode.workspace.getConfiguration("slm")
+  if (config.get<boolean>("autocomplete.enabled", true)) {
+    registerAutocomplete(context)
+  }
 
   // Register explain error command
   const explainError = vscode.commands.registerCommand(

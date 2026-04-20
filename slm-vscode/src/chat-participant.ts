@@ -16,7 +16,7 @@ interface ChatPayload {
 }
 
 /**
- * Format a chat payload for the SLM API.
+ * Format a chat payload for the Sealevel API.
  */
 export function formatChatPayload(
   message: string,
@@ -70,7 +70,7 @@ export function parseSseChunk(line: string): string | null {
 }
 
 /**
- * Register the SLM chat participant with VS Code.
+ * Register the Sealevel chat participant with VS Code.
  */
 export function registerChatParticipant(
   context: vscode.ExtensionContext,
@@ -125,7 +125,7 @@ export function registerChatParticipant(
         const message =
           error instanceof Error ? error.message : "Unknown error"
         stream.markdown(
-          `**Error:** Could not connect to SLM API. ${message}`,
+          `**Error:** Could not connect to Sealevel API. ${message}`,
         )
       }
     },

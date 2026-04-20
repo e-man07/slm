@@ -22,7 +22,7 @@ export async function getSolanaExpertPrompt(args: {
         role: "assistant",
         content: {
           type: "text",
-          text: `I'm SLM, your Solana and Anchor development expert. I'll help you with ${args.topic}. Let me provide accurate, secure, and up-to-date guidance using modern Anchor 0.30+ patterns.`,
+          text: `I'm Sealevel, your Solana and Anchor development expert. I'll help you with ${args.topic}. Let me provide accurate, secure, and up-to-date guidance using modern Anchor 0.30+ patterns.`,
         },
       },
       {

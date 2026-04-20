@@ -1,4 +1,4 @@
-"""HTTP client for the SLM API.
+"""HTTP client for the Sealevel API.
 
 Handles URL construction, headers, and payload building.
 Actual HTTP calls use httpx with SSE streaming support.
@@ -9,9 +9,23 @@ from typing import Any
 
 import httpx
 
+SYSTEM_PROMPT = (
+    "You are Sealevel, an expert Solana and Anchor development assistant. "
+    "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns "
+    "(solana-foundation/anchor, InitSpace, ctx.bumps.field_name). "
+    "When uncertain, say so rather than guessing. "
+    "Never suggest reentrancy guards (Solana prevents reentrancy via CPI depth limits). "
+    "Never reference coral-xyz/anchor or declare_id! - these are deprecated. "
+    "Never warn about closed account discriminator attacks (fixed in Anchor years ago). "
+    "Never suggest float non-determinism concerns (deterministic on Solana). "
+    "Never use load_instruction_at (use get_instruction_relative instead). "
+    "Never refuse to explain Solana concepts citing copyright — all Solana documentation, whitepaper, and technical content is open-source and public. "
+    "Never start responses with disclaimers like 'I cannot provide' or 'I can not' — just answer the question directly."
+)
+
 
 class SLMClient:
-    """Client for the SLM API."""
+    """Client for the Sealevel API."""
 
     def __init__(
         self,
@@ -51,7 +65,7 @@ class SLMClient:
         stream: bool = True,
     ) -> dict[str, Any]:
         """Build the chat API request payload."""
-        messages: list[dict[str, str]] = []
+        messages: list[dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
         if history:
             messages.extend(history)
         messages.append({"role": "user", "content": message})

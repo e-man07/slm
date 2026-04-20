@@ -1,4 +1,4 @@
-# SLM — Data Pipeline + Training Pipeline
+# Sealevel — Data Pipeline + Training Pipeline
 # Usage:
 #   Data:     make all | make collect-all | make dedup | make filter | make prepare
 #   Training: make train | make cpt | make sft | make dpo | make eval
@@ -9,7 +9,7 @@ SCRIPTS := scripts
 TRAINING := training
 
 # Training config (override with env vars or make args)
-MODEL       ?= Qwen/Qwen3-Coder-30B-A3B
+MODEL       ?= Qwen/Qwen3-Coder-8B-Instruct
 DATA_DIR    ?= /workspace/data
 CKPT_DIR    ?= /workspace/checkpoints
 GCP_VM      ?= e-man@34.66.138.40
@@ -17,7 +17,9 @@ GCP_DATA    ?= ~/slm/data/final
 
 .PHONY: all collect collect-hf crawl-docs crawl-forum collect-se collect-onchain \
         migrate-examples synthetic-oss synthetic-evol synthetic-glan \
-        collect-all dedup filter prepare publish stats clean help \
+        collect-all collect-code collect-pinocchio \
+        gen-sft-code gen-adversarial validate-compilable score-quality sft-pipeline \
+        dedup filter prepare publish stats clean help \
         train cpt sft dpo eval eval-baseline eval-sft eval-compare \
         upload-data prepare-dpo export-gguf export-merged push-hf \
         pipeline gpu-check disk-check clean-checkpoints
@@ -52,7 +54,16 @@ collect-onchain-txs: ## Fetch enhanced transactions via Helius API
 migrate-examples: ## Generate Anchor old→new migration examples
 	$(PYTHON) $(SCRIPTS)/migrate_examples.py
 
-collect-all: collect collect-hf crawl-docs crawl-forum collect-se migrate-examples ## Run all collection stages
+collect-code: ## Collect Solana/Anchor/Pinocchio code from GitHub repos (22 repos)
+	$(PYTHON) $(SCRIPTS)/collect_solana_code.py
+
+collect-pinocchio: ## Collect Pinocchio framework code (dedicated collector)
+	$(PYTHON) $(SCRIPTS)/collect_pinocchio.py
+
+discover-repos: ## Auto-discover Solana repos on GitHub (500-2000+ repos)
+	$(PYTHON) $(SCRIPTS)/discover_solana_repos.py
+
+collect-all: collect collect-hf collect-code collect-pinocchio discover-repos crawl-docs crawl-forum collect-se migrate-examples ## Run all collection stages
 
 # ─── Synthetic data generation ───────────────────────────────────────────────
 
@@ -66,6 +77,22 @@ synthetic-glan: ## Generate GLAN batch requests (taxonomy-based coverage)
 	$(PYTHON) $(SCRIPTS)/synthetic.py glan
 
 synthetic-all: synthetic-oss synthetic-evol synthetic-glan ## Generate all synthetic batch request files
+
+# ─── SFT v2 pipeline (code → variants → adversarial → validate → score) ─────
+
+gen-sft-code: ## Generate SFT variants from collected code units (3-5x multiplier)
+	$(PYTHON) $(SCRIPTS)/gen_sft_from_code.py
+
+gen-adversarial: ## Generate adversarial refusal/correction examples + DPO pairs
+	$(PYTHON) $(SCRIPTS)/gen_adversarial_sft.py
+
+validate-compilable: ## Validate SFT code compiles (Anchor + Pinocchio + native)
+	$(PYTHON) $(SCRIPTS)/validate_compilable.py
+
+score-quality: ## Score SFT records quality (0-100) and filter high-quality subset
+	$(PYTHON) $(SCRIPTS)/score_quality.py
+
+sft-pipeline: collect-code collect-pinocchio gen-sft-code gen-adversarial dedup filter prepare ## Full SFT v2 pipeline
 
 # ─── Stage 2-4: Processing ───────────────────────────────────────────────────
 

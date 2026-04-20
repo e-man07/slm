@@ -23,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { UserMenu } from "@/components/auth/user-menu"
 import { cn } from "@/lib/utils"
 
 interface NavBarProps {
@@ -137,7 +138,7 @@ export function NavBar({ minimal = false }: NavBarProps) {
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.svg"
-            alt="SLM"
+            alt="Sealevel"
             width={80}
             height={28}
             className="dark:invert-0 invert"
@@ -167,6 +168,7 @@ export function NavBar({ minimal = false }: NavBarProps) {
               <HugeiconsIcon icon={GithubIcon} size={18} />
             </a>
           </Button>
+          <UserMenu />
           {!minimal && <MobileMenu />}
         </div>
       </div>

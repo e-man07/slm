@@ -18,7 +18,7 @@ def test_cli_help():
     runner = CliRunner()
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "SLM" in result.stdout or "slm" in result.stdout.lower()
+    assert "Sealevel" in result.stdout or "sealevel" in result.stdout.lower()
 
 
 def test_config_show_without_config():

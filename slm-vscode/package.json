@@ -1,21 +1,53 @@
 {
   "name": "slm-vscode",
-  "displayName": "SLM - Solana Language Model",
-  "description": "Chat with SLM directly in VS Code. Get Solana coding help, explain transactions, decode errors.",
+  "displayName": "Sealevel - Solana Language Model",
+  "description": "Solana-specialized AI assistant. Chat, inline autocomplete, explain transactions, decode errors.",
   "version": "0.1.0",
   "publisher": "slm",
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "homepage": "https://slm.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kshitij-hash/slm.git",
+    "directory": "slm-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/kshitij-hash/slm/issues"
+  },
+  "keywords": [
+    "solana",
+    "anchor",
+    "rust",
+    "ai",
+    "copilot",
+    "llm",
+    "blockchain",
+    "web3",
+    "smart-contract",
+    "autocomplete"
+  ],
+  "galleryBanner": {
+    "color": "#0C0F14",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.93.0"
   },
-  "categories": ["Programming Languages", "Machine Learning"],
-  "activationEvents": [],
+  "categories": ["Programming Languages", "Machine Learning", "Snippets"],
+  "activationEvents": [
+    "onLanguage:rust",
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:toml"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "chatParticipants": [
       {
         "id": "slm.chat",
         "name": "slm",
-        "fullName": "SLM - Solana Language Model",
+        "fullName": "Sealevel - Solana Language Model",
         "description": "Solana coding AI that actually knows Solana",
         "isSticky": true
       }
@@ -23,31 +55,41 @@
     "commands": [
       {
         "command": "slm.explainError",
-        "title": "SLM: Explain Error Code"
+        "title": "Sealevel: Explain Error Code"
       },
       {
         "command": "slm.explainTx",
-        "title": "SLM: Explain Transaction"
+        "title": "Sealevel: Explain Transaction"
       }
     ],
     "configuration": {
-      "title": "SLM",
+      "title": "Sealevel",
       "properties": {
         "slm.apiKey": {
           "type": "string",
           "default": "",
-          "description": "Your SLM API key"
+          "description": "Your Sealevel API key"
         },
         "slm.apiUrl": {
           "type": "string",
           "default": "https://slm.dev/api",
-          "description": "SLM API base URL"
+          "description": "Sealevel API base URL"
         },
         "slm.mode": {
           "type": "string",
           "enum": ["quality", "fast"],
           "default": "quality",
           "description": "Model mode: 'quality' for best results, 'fast' for speed"
+        },
+        "slm.autocomplete.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Sealevel inline code completions for Solana/Anchor files"
+        },
+        "slm.autocomplete.debounceMs": {
+          "type": "number",
+          "default": 1500,
+          "description": "Delay in ms before triggering autocomplete after typing stops"
         }
       }
     }

@@ -19,7 +19,7 @@ async function assertOk(response: Response, context: string): Promise<void> {
   if (!response.ok) {
     const body = await response.text().catch(() => "");
     throw new Error(
-      `SLM API error (${context}): ${response.status} ${response.statusText}${body ? ` - ${body}` : ""}`,
+      `Sealevel API error (${context}): ${response.status} ${response.statusText}${body ? ` - ${body}` : ""}`,
     );
   }
 }
@@ -28,20 +28,27 @@ export async function callChat(
   message: string,
   context?: string,
 ): Promise<string> {
-  const body: Record<string, unknown> = { message, stream: false };
-  if (context) {
-    body.context = context;
-  }
+  const userContent = context
+    ? `${message}\n\nContext:\n${context}`
+    : message;
 
   const response = await fetch(`${getBaseUrl()}/chat`, {
     method: "POST",
     headers: getHeaders(),
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      messages: [{ role: "user", content: userContent }],
+      stream: false,
+      max_tokens: 1024,
+      temperature: 0.0,
+    }),
   });
 
   await assertOk(response, "chat");
-  const data = (await response.json()) as { text: string };
-  return data.text;
+  const data = (await response.json()) as {
+    choices?: Array<{ message: { content: string } }>;
+    text?: string;
+  };
+  return data.choices?.[0]?.message?.content ?? data.text ?? "";
 }
 
 export async function callExplainTx(

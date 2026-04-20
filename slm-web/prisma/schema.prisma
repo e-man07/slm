@@ -1,0 +1,68 @@
+// SLM database schema — Neon Postgres + Prisma
+// Reflects existing tables (users, api_usage) and adds chat persistence.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         Int           @id @default(autoincrement())
+  provider   String        @default("github") // "github" | "google"
+  providerId String        @map("provider_id") // OAuth subject/id from provider
+  name       String        @default("")
+  email      String        @default("")
+  apiKey     String        @unique @map("api_key")
+  tier       String        @default("free")
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  usage      ApiUsage[]
+  sessions   ChatSession[]
+
+  @@unique([provider, providerId])
+  @@index([provider, providerId])
+  @@index([apiKey])
+  @@map("users")
+}
+
+model ApiUsage {
+  id         Int      @id @default(autoincrement())
+  apiKey     String   @map("api_key")
+  endpoint   String
+  tokensUsed Int      @default(0) @map("tokens_used")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user       User?    @relation(fields: [apiKey], references: [apiKey], onDelete: SetNull)
+
+  @@index([apiKey])
+  @@index([createdAt])
+  @@map("api_usage")
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    Int?          @map("user_id")
+  title     String        @default("New chat")
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+
+  @@index([userId])
+  @@index([updatedAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String      @map("session_id")
+  role      String // "user" | "assistant" | "system"
+  content   String      @db.Text
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}

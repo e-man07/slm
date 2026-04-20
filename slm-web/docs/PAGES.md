@@ -3,7 +3,7 @@
 ## 1. Landing Page (`/`)
 
 ### Sections
-1. **Hero** - "SLM" wordmark, tagline: "The Solana coding AI that actually knows Solana", two CTAs: "Try it" → /chat, "Get API key" → /dashboard
+1. **Hero** - "Sealevel" wordmark, tagline: "The Solana coding AI that actually knows Solana", two CTAs: "Try it" → /chat, "Get API key" → /dashboard
 2. **Features Grid** - 4 cards: Chat, Tx Explainer, Error Decoder, API Access. Each with Hugeicon, title, one-line description, link
 3. **Install** - Tabbed code blocks showing: CLI (`pip install slm-cli`), VS Code (marketplace link), API (curl example), Ollama (`ollama run slm-solana`)
 4. **Eval Results** - Summary bar showing 87.5% overall with category breakdown. Link to /eval

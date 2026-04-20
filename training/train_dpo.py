@@ -43,7 +43,7 @@ class DataConfig:
 class DPORunConfig:
     output_dir: str = field(default="/workspace/checkpoints/dpo")
     num_train_epochs: int = field(default=2)
-    per_device_train_batch_size: int = field(default=1)
+    per_device_train_batch_size: int = field(default=2)
     gradient_accumulation_steps: int = field(default=4)
     learning_rate: float = field(default=5e-6)
     lr_scheduler_type: str = field(default="cosine")
@@ -59,15 +59,15 @@ class DPORunConfig:
     beta: float = field(default=0.1)
     max_prompt_length: int = field(default=1024)
     max_length: int = field(default=4096)
-    lora_r: int = field(default=16)
-    lora_alpha: int = field(default=32)
+    lora_r: int = field(default=32)
+    lora_alpha: int = field(default=64)
     lora_dropout: float = field(default=0.0)
     report_to: str = field(default="none")
     run_name: str = field(default="slm-dpo")
 
 
 SYSTEM_PROMPT = (
-    "You are SLM, an expert Solana and Anchor development assistant. "
+    "You are Sealevel, an expert Solana and Anchor development assistant. "
     "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns."
 )
 
@@ -151,7 +151,7 @@ def main():
     model_cfg, data_cfg, train_cfg = parser.parse_args_into_dataclasses()
 
     print("=" * 60)
-    print("  SLM - Direct Preference Optimization (DPO)")
+    print("  Sealevel - Direct Preference Optimization (DPO)")
     print("=" * 60)
     print(f"  Base:     {model_cfg.base_model}")
     print(f"  Chosen:   {data_cfg.chosen_path}")
@@ -166,7 +166,7 @@ def main():
     dtype = None if model_cfg.dtype == "auto" else getattr(torch, model_cfg.dtype)
 
     # Load the base model first
-    base_model_name = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+    base_model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
     print(f"  Loading base: {base_model_name}")
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=base_model_name,

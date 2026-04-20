@@ -1,0 +1,13 @@
+.vscode/**
+.vscode-test/**
+src/**
+test/**
+**/*.ts
+**/tsconfig*.json
+.gitignore
+.eslintrc*
+**/*.map
+**/*.test.*
+vitest.config.*
+tsconfig.json
+resources/icon.svg

@@ -39,7 +39,7 @@ describe("Fix 3 - OG/social meta tags", () => {
     expect(metadata.openGraph).toBeDefined()
     expect(metadata.openGraph!.title).toBeDefined()
     expect(metadata.openGraph!.description).toBeDefined()
-    expect(metadata.openGraph!.siteName).toBe("SLM")
+    expect(metadata.openGraph!.siteName).toBe("Sealevel")
   })
 
   it("exports metadata with twitter card fields", async () => {

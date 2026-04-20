@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluation script for SLM (Solana-specialized coding LLM).
+"""Evaluation script for Sealevel (Solana-specialized coding LLM).
 
 Runs a hardcoded suite of 80 Solana/Anchor tasks across 7 categories,
 scores model outputs with regex-based heuristics, and writes a JSON report.
@@ -7,7 +7,7 @@ scores model outputs with regex-based heuristics, and writes a JSON report.
 Usage:
     python training/eval.py
     python training/eval.py --model-path /workspace/checkpoints/sft/final
-    python training/eval.py --model-path Qwen/Qwen3-Coder-30B-A3B --baseline
+    python training/eval.py --model-path Qwen/Qwen3-Coder-8B-Instruct --baseline
     python training/eval.py --no-wandb
 """
 from __future__ import annotations
@@ -69,7 +69,7 @@ class EvalConfig:
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = (
-    "You are SLM, an expert Solana and Anchor development assistant. "
+    "You are Sealevel, an expert Solana and Anchor development assistant. "
     "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns "
     "(solana-foundation/anchor, InitSpace, ctx.bumps.field_name). "
     "When uncertain, say so rather than guessing. "
@@ -794,7 +794,7 @@ def main():
     (cfg,) = parser.parse_args_into_dataclasses()
 
     print("=" * 60)
-    print("  SLM — Evaluation")
+    print("  Sealevel — Evaluation")
     print("=" * 60)
     print(f"  Model:     {cfg.model_path}")
     print(f"  Baseline:  {cfg.baseline}")

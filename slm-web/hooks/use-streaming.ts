@@ -14,6 +14,8 @@ interface UseStreamingReturn {
   error: string | null
   start: (response: Response) => void
   stop: () => void
+  /** Creates a new AbortController and returns its signal. Pass to fetch(). */
+  createSignal: () => AbortSignal
 }
 
 export function useStreaming(options: UseStreamingOptions = {}): UseStreamingReturn {
@@ -27,13 +29,20 @@ export function useStreaming(options: UseStreamingOptions = {}): UseStreamingRet
     setIsStreaming(false)
   }, [])
 
+  const createSignal = React.useCallback(() => {
+    stop()
+    const controller = new AbortController()
+    abortRef.current = controller
+    return controller.signal
+  }, [stop])
+
   const start = React.useCallback(
     (response: Response) => {
-      stop()
       setError(null)
       setIsStreaming(true)
 
-      const controller = new AbortController()
+      // Reuse existing controller (from createSignal) or create a new one
+      const controller = abortRef.current ?? new AbortController()
       abortRef.current = controller
 
       ;(async () => {
@@ -66,12 +75,12 @@ export function useStreaming(options: UseStreamingOptions = {}): UseStreamingRet
         }
       })()
     },
-    [options, stop],
+    [options],
   )
 
   React.useEffect(() => {
     return () => stop()
   }, [stop])
 
-  return { isStreaming, error, start, stop }
+  return { isStreaming, error, start, stop, createSignal }
 }

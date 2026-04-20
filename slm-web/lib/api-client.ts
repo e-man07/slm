@@ -4,6 +4,7 @@ export interface ChatCompletionOptions {
   maxTokens?: number
   temperature?: number
   apiKey?: string
+  signal?: AbortSignal
 }
 
 export interface ExplainTxOptions {
@@ -37,6 +38,7 @@ export function chatCompletions(options: ChatCompletionOptions): Promise<Respons
       max_tokens: options.maxTokens ?? 1024,
       temperature: options.temperature ?? 0.0,
     }),
+    signal: options.signal,
   })
 }
 

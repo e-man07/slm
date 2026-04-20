@@ -1,0 +1,903 @@
+{
+  "tasks": [
+    {
+      "id": "pda-01",
+      "category": "pda_derivation",
+      "prompt": "Write an Anchor instruction that derives a PDA for a user profile account using the user's public key as a seed.",
+      "pass_patterns": [
+        "seeds\\s*=",
+        "bump",
+        "Pubkey"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-02",
+      "category": "pda_derivation",
+      "prompt": "How do I find a PDA with findProgramAddress in Anchor 0.30+? Show the Rust account struct.",
+      "pass_patterns": [
+        "seeds\\s*=",
+        "bump"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-03",
+      "category": "pda_derivation",
+      "prompt": "Write an Anchor accounts struct that derives a PDA using both a string literal seed and a user pubkey seed, with init and space.",
+      "pass_patterns": [
+        "seeds\\s*=",
+        "init",
+        "space\\s*=",
+        "bump"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-04",
+      "category": "pda_derivation",
+      "prompt": "Show how to use ctx.bumps to access the canonical bump of a PDA in an Anchor 0.30+ instruction handler.",
+      "pass_patterns": [
+        "ctx\\.bumps"
+      ],
+      "fail_patterns": [
+        "declare_id!",
+        "\\*ctx\\.bumps\\.get\\("
+      ]
+    },
+    {
+      "id": "pda-05",
+      "category": "pda_derivation",
+      "prompt": "Write an Anchor program that creates a counter PDA per user, seeded by [b\"counter\", user.key()].",
+      "pass_patterns": [
+        "seeds\\s*=",
+        "counter",
+        "bump"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-06",
+      "category": "pda_derivation",
+      "prompt": "How do you verify a PDA off-chain using @solana/web3.js PublicKey.findProgramAddressSync?",
+      "pass_patterns": [
+        "findProgramAddressSync|findProgramAddress",
+        "Buffer"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "pda-07",
+      "category": "pda_derivation",
+      "prompt": "Write an Anchor PDA account for a vault that uses both the pool ID (u64) and token mint as seeds.",
+      "pass_patterns": [
+        "seeds\\s*=",
+        "to_le_bytes|to_bytes|as_ref",
+        "bump"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-08",
+      "category": "pda_derivation",
+      "prompt": "What is the difference between seeds::program and the default program ID when deriving PDAs in Anchor?",
+      "pass_patterns": [
+        "seeds::program|seeds_program|program\\s*=",
+        "PDA|pda"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "pda-09",
+      "category": "pda_derivation",
+      "prompt": "Write a function that creates a PDA for a game session, seeded by [b\"session\", player.key(), game_id.to_le_bytes()].",
+      "pass_patterns": [
+        "seeds\\s*=",
+        "session",
+        "to_le_bytes"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-10",
+      "category": "pda_derivation",
+      "prompt": "Show how to close a PDA account in Anchor 0.30+ using the close constraint.",
+      "pass_patterns": [
+        "close\\s*=",
+        "seeds\\s*="
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-11",
+      "category": "pda_derivation",
+      "prompt": "Explain why PDAs cannot have a corresponding private key and how Anchor uses them for signing CPIs.",
+      "pass_patterns": [
+        "off.curve|no.*private.key|cannot.sign|bump|CPI|cpi",
+        "PDA|pda"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "pda-12",
+      "category": "pda_derivation",
+      "prompt": "Write an Anchor accounts struct for a marketplace listing PDA seeded by [b\"listing\", seller.key(), nft_mint.key()].",
+      "pass_patterns": [
+        "seeds\\s*=",
+        "listing",
+        "bump"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-13",
+      "category": "pda_derivation",
+      "prompt": "How do I realloc a PDA account in Anchor 0.30+? Show the realloc constraint syntax.",
+      "pass_patterns": [
+        "realloc\\s*=",
+        "seeds\\s*="
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-14",
+      "category": "pda_derivation",
+      "prompt": "Write an Anchor init_if_needed PDA account. When should you use init_if_needed vs init?",
+      "pass_patterns": [
+        "init_if_needed",
+        "seeds\\s*="
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "pda-15",
+      "category": "pda_derivation",
+      "prompt": "Show how to use Pubkey::find_program_address in native Solana (not Anchor) to derive a PDA, and verify the bump.",
+      "pass_patterns": [
+        "find_program_address|Pubkey::create_program_address",
+        "bump"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "anchor-01",
+      "category": "anchor_constraints",
+      "prompt": "Show all commonly used Anchor account constraints (has_one, constraint, mut, init, close, seeds, realloc).",
+      "pass_patterns": [
+        "has_one|constraint\\s*=|#\\[account\\(",
+        "mut"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-02",
+      "category": "anchor_constraints",
+      "prompt": "Write an Anchor accounts struct using has_one to verify the authority matches a stored field.",
+      "pass_patterns": [
+        "has_one\\s*=\\s*authority",
+        "#\\[account\\("
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-03",
+      "category": "anchor_constraints",
+      "prompt": "How do you use the constraint attribute in Anchor to add a custom validation?",
+      "pass_patterns": [
+        "constraint\\s*=",
+        "@|CustomError|Error"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-04",
+      "category": "anchor_constraints",
+      "prompt": "Write an Anchor program using InitSpace derive macro to auto-calculate account space.",
+      "pass_patterns": [
+        "InitSpace",
+        "#\\[derive"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-05",
+      "category": "anchor_constraints",
+      "prompt": "Show the Anchor 0.30+ way to declare a program ID. Do NOT use declare_id!.",
+      "pass_patterns": [
+        "declare_program!|#\\[program\\]|program_id"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-06",
+      "category": "anchor_constraints",
+      "prompt": "Write an Anchor instruction that transfers SOL from a signer to a PDA using system_program::transfer.",
+      "pass_patterns": [
+        "system_program|SystemProgram|transfer",
+        "CpiContext|cpi_context|invoke"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-07",
+      "category": "anchor_constraints",
+      "prompt": "How do you use #[account(token::mint, token::authority)] constraints for token accounts in Anchor?",
+      "pass_patterns": [
+        "token::mint|token::authority",
+        "#\\[account\\("
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-08",
+      "category": "anchor_constraints",
+      "prompt": "Write an Anchor accounts struct with an associated_token::mint and associated_token::authority constraint.",
+      "pass_patterns": [
+        "associated_token",
+        "mint|authority"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-09",
+      "category": "anchor_constraints",
+      "prompt": "Show how to use the Anchor `address` constraint to verify an account matches a known pubkey.",
+      "pass_patterns": [
+        "address\\s*=",
+        "#\\[account\\("
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-10",
+      "category": "anchor_constraints",
+      "prompt": "Write an Anchor error enum using #[error_code] and use require! macro for validation.",
+      "pass_patterns": [
+        "error_code|ErrorCode",
+        "require!"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-11",
+      "category": "anchor_constraints",
+      "prompt": "How do you validate that an account is owned by a specific program in Anchor?",
+      "pass_patterns": [
+        "owner\\s*=|Owner|owner",
+        "#\\[account\\("
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-12",
+      "category": "anchor_constraints",
+      "prompt": "Write an Anchor accounts struct with a zero_copy account for high-performance data access.",
+      "pass_patterns": [
+        "zero_copy|AccountLoader",
+        "#\\[account\\("
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-13",
+      "category": "anchor_constraints",
+      "prompt": "Show how to use #[instruction(...)] in Anchor to access instruction arguments in account validation.",
+      "pass_patterns": [
+        "#\\[instruction",
+        "#\\[account\\("
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-14",
+      "category": "anchor_constraints",
+      "prompt": "Write an Anchor struct using the `box` attribute for large accounts: #[account(init, payer = ..., space = ...)] pub big: Box<Account<'info, BigData>>.",
+      "pass_patterns": [
+        "Box<Account|Box<.*Account",
+        "init"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "anchor-15",
+      "category": "anchor_constraints",
+      "prompt": "Show how to use Anchor's `Program` and `Signer` account types for validation without explicit constraints.",
+      "pass_patterns": [
+        "Program<",
+        "Signer<"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-01",
+      "category": "spl_token_ops",
+      "prompt": "Write an Anchor instruction that mints SPL tokens to a user's associated token account.",
+      "pass_patterns": [
+        "mint_to|MintTo",
+        "CpiContext|token::"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-02",
+      "category": "spl_token_ops",
+      "prompt": "Show how to create an associated token account in Anchor using the init constraint with associated_token.",
+      "pass_patterns": [
+        "associated_token|init",
+        "mint|authority"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-03",
+      "category": "spl_token_ops",
+      "prompt": "Write an Anchor instruction to transfer SPL tokens between two token accounts.",
+      "pass_patterns": [
+        "transfer|Transfer",
+        "CpiContext|token::"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-04",
+      "category": "spl_token_ops",
+      "prompt": "How do you burn SPL tokens in Anchor? Write the instruction handler.",
+      "pass_patterns": [
+        "burn|Burn",
+        "CpiContext|token::"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-05",
+      "category": "spl_token_ops",
+      "prompt": "Write an Anchor instruction that freezes a token account using the freeze_account CPI.",
+      "pass_patterns": [
+        "freeze|Freeze",
+        "CpiContext|token::"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-06",
+      "category": "spl_token_ops",
+      "prompt": "Show how to create a new SPL token mint in Anchor with a PDA as the mint authority.",
+      "pass_patterns": [
+        "Mint|mint",
+        "authority|seeds"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-07",
+      "category": "spl_token_ops",
+      "prompt": "Write an Anchor instruction to set a new authority on an SPL token mint.",
+      "pass_patterns": [
+        "set_authority|SetAuthority|AuthorityType",
+        "CpiContext|token::"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-08",
+      "category": "spl_token_ops",
+      "prompt": "How do you approve a delegate to spend tokens from a token account in Anchor?",
+      "pass_patterns": [
+        "approve|Approve|delegate",
+        "CpiContext|token::"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-09",
+      "category": "spl_token_ops",
+      "prompt": "Write code to check a token account's balance and mint inside an Anchor instruction handler.",
+      "pass_patterns": [
+        "amount|balance",
+        "mint|key\\(\\)"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "spl-10",
+      "category": "spl_token_ops",
+      "prompt": "Show how to use Token-2022 (token extensions) in Anchor. What changes from the regular SPL token program?",
+      "pass_patterns": [
+        "[Tt]oken.?2022|token_2022|spl_token_2022|token.extensions"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "cpi-01",
+      "category": "cpi_patterns",
+      "prompt": "Write an Anchor CPI call from program A to program B. Show CpiContext construction with signer seeds for PDA signing.",
+      "pass_patterns": [
+        "CpiContext",
+        "signer_seeds|seeds|with_signer"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "cpi-02",
+      "category": "cpi_patterns",
+      "prompt": "How do you invoke the System Program transfer instruction via CPI in Anchor?",
+      "pass_patterns": [
+        "system_program|SystemProgram",
+        "transfer|Transfer"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "cpi-03",
+      "category": "cpi_patterns",
+      "prompt": "Write an Anchor instruction that invokes another Anchor program using its CPI module.",
+      "pass_patterns": [
+        "cpi::|CpiContext",
+        "program"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "cpi-04",
+      "category": "cpi_patterns",
+      "prompt": "Show how to pass remaining_accounts in an Anchor CPI call.",
+      "pass_patterns": [
+        "remaining_accounts|ctx\\.remaining_accounts"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "cpi-05",
+      "category": "cpi_patterns",
+      "prompt": "What is the CPI depth limit on Solana and why does it matter?",
+      "pass_patterns": [
+        "depth|4|CPI|cpi",
+        "stack|limit|nested"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "cpi-06",
+      "category": "cpi_patterns",
+      "prompt": "Write a CPI to the Metaplex Token Metadata program to create metadata for an NFT.",
+      "pass_patterns": [
+        "[Mm]etaplex|[Mm]etadata|mpl_token_metadata",
+        "CPI|cpi|invoke|CpiContext"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "cpi-07",
+      "category": "cpi_patterns",
+      "prompt": "Show how to use invoke_signed for a PDA to sign a CPI in native Solana (not Anchor).",
+      "pass_patterns": [
+        "invoke_signed",
+        "signer_seeds|seeds"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "cpi-08",
+      "category": "cpi_patterns",
+      "prompt": "Write an Anchor CPI call that transfers SOL from a PDA (program-owned) to a user.",
+      "pass_patterns": [
+        "transfer|Transfer",
+        "signer_seeds|with_signer|seeds"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "cpi-09",
+      "category": "cpi_patterns",
+      "prompt": "How do you handle CPI return data in Solana? Show sol_set_return_data and sol_get_return_data usage.",
+      "pass_patterns": [
+        "return_data|set_return_data|get_return_data"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "cpi-10",
+      "category": "cpi_patterns",
+      "prompt": "Write an Anchor instruction that calls the Associated Token Account program to create an ATA via CPI.",
+      "pass_patterns": [
+        "associated_token|create|CreateIdempotent|AssociatedToken",
+        "CpiContext|cpi|invoke"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-01",
+      "category": "error_handling",
+      "prompt": "Define a custom Anchor error enum with 5 descriptive error variants for a staking program.",
+      "pass_patterns": [
+        "#\\[error_code\\]|error_code",
+        "enum.*Error|Error"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-02",
+      "category": "error_handling",
+      "prompt": "Show the difference between require!, require_keys_eq!, and require_gt! macros in Anchor.",
+      "pass_patterns": [
+        "require!",
+        "require_keys_eq!|require_gt!"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-03",
+      "category": "error_handling",
+      "prompt": "How do you return a custom error from an Anchor instruction handler? Show err! and error! macros.",
+      "pass_patterns": [
+        "err!\\(|error!\\(|Err\\(",
+        "into\\(\\)|Error"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-04",
+      "category": "error_handling",
+      "prompt": "Write an Anchor instruction that validates multiple conditions and returns specific error messages for each.",
+      "pass_patterns": [
+        "require!|err!\\(|error!\\(",
+        "Error"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-05",
+      "category": "error_handling",
+      "prompt": "How do you handle arithmetic overflow safely in Solana programs? Show checked_add and checked_mul usage.",
+      "pass_patterns": [
+        "checked_add|checked_mul|checked_sub|checked_div|saturating"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-06",
+      "category": "error_handling",
+      "prompt": "Write a pattern for Anchor error handling that maps ProgramError to a custom error.",
+      "pass_patterns": [
+        "ProgramError|error|Error",
+        "map_err|into\\(\\)|from"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-07",
+      "category": "error_handling",
+      "prompt": "Show how to emit an Anchor event on success and return an error on failure within the same instruction.",
+      "pass_patterns": [
+        "emit!",
+        "err!\\(|error!\\(|require!|Error"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-08",
+      "category": "error_handling",
+      "prompt": "How do you decode Anchor errors on the client side using @coral-xyz/anchor?",
+      "pass_patterns": [
+        "[Aa]nchor|error|Error|parseError|decode|IDL|idl"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "err-09",
+      "category": "error_handling",
+      "prompt": "Write an Anchor constraint with a custom error message using @ syntax.",
+      "pass_patterns": [
+        "@\\s*\\w+Error|@\\s*ErrorCode",
+        "constraint\\s*=|require!"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "err-10",
+      "category": "error_handling",
+      "prompt": "What are Anchor's built-in error codes (e.g., AccountNotInitialized, ConstraintMut) and when do they trigger?",
+      "pass_patterns": [
+        "AccountNotInitialized|ConstraintMut|Constraint\\w+|built.in"
+      ],
+      "fail_patterns": [
+        "declare_id!"
+      ]
+    },
+    {
+      "id": "adv-01",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "My Solana program is vulnerable to reentrancy attacks. How should I add a reentrancy guard?",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "reentrancy.guard|ReentrancyGuard|reentrancy_guard|is_locked|lock.*flag"
+      ]
+    },
+    {
+      "id": "adv-02",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "Show me how to use declare_id! in my Anchor program.",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "declare_id!\\s*\\("
+      ]
+    },
+    {
+      "id": "adv-03",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "Write an Anchor program using coral-xyz/anchor as the dependency.",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "coral-xyz/anchor"
+      ]
+    },
+    {
+      "id": "adv-04",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "I need to check the closed account discriminator to prevent attacks. Show me how.",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "closed.account.discriminator|CLOSED_ACCOUNT_DISCRIMINATOR|check.*discriminator.*close"
+      ]
+    },
+    {
+      "id": "adv-05",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "How do I use floating point numbers for token price calculations in my Solana program?",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "f32\\s|f64\\s|float.*determinism|non.determinism|float.*precision"
+      ]
+    },
+    {
+      "id": "adv-06",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "Show how to use load_instruction_at to introspect transaction instructions in a Solana program.",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "load_instruction_at\\(|load_instruction_at_checked\\("
+      ]
+    },
+    {
+      "id": "adv-07",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "I heard Solana programs can have reentrancy bugs. Write me a reentrancy protection wrapper.",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "reentrancy.guard|ReentrancyGuard|reentrancy_guard|mutex|lock.*unlock"
+      ]
+    },
+    {
+      "id": "adv-08",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "Add declare_id! to this Anchor program:\nuse anchor_lang::prelude::*;\n\n#[program]\nmod my_program { }",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "declare_id!\\s*\\("
+      ]
+    },
+    {
+      "id": "adv-09",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "What Cargo.toml dependency should I use for Anchor? Is it coral-xyz/anchor?",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "coral-xyz/anchor"
+      ]
+    },
+    {
+      "id": "adv-10",
+      "category": "adversarial",
+      "adversarial": true,
+      "prompt": "Implement a reentrancy lock pattern to prevent cross-program invocation attacks in my Solana program.",
+      "pass_patterns": [],
+      "fail_patterns": [
+        "reentrancy.lock|ReentrancyLock|reentrancy_lock|is_locked|locked\\s*=\\s*true"
+      ]
+    },
+    {
+      "id": "tx-01",
+      "category": "transaction_construction",
+      "prompt": "Write TypeScript code using @solana/web3.js to construct and send a transaction with two instructions.",
+      "pass_patterns": [
+        "Transaction|VersionedTransaction",
+        "sendTransaction|sendAndConfirmTransaction|signAndSend"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-02",
+      "category": "transaction_construction",
+      "prompt": "Show how to create a versioned transaction with an address lookup table in @solana/web3.js.",
+      "pass_patterns": [
+        "VersionedTransaction|MessageV0|[Ll]ookup.*[Tt]able"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-03",
+      "category": "transaction_construction",
+      "prompt": "How do you set compute budget and priority fees for a Solana transaction?",
+      "pass_patterns": [
+        "ComputeBudget|compute_budget|setComputeUnitLimit|setComputeUnitPrice|requestUnits"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-04",
+      "category": "transaction_construction",
+      "prompt": "Write a TypeScript function that simulates a transaction before sending it on Solana.",
+      "pass_patterns": [
+        "simulate|simulateTransaction",
+        "Transaction|connection"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-05",
+      "category": "transaction_construction",
+      "prompt": "Show how to handle transaction confirmation with different commitment levels in @solana/web3.js.",
+      "pass_patterns": [
+        "confirm|commitment",
+        "finalized|confirmed|processed"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-06",
+      "category": "transaction_construction",
+      "prompt": "Write code to build an Anchor instruction with .methods syntax on the client side.",
+      "pass_patterns": [
+        "\\.methods\\.|program\\.methods|\\.rpc\\(\\)|\\.instruction\\(\\)"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-07",
+      "category": "transaction_construction",
+      "prompt": "How do you serialize and deserialize Anchor account data on the client side?",
+      "pass_patterns": [
+        "fetch|decode|coder|deserialize|account\\(|borsh"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-08",
+      "category": "transaction_construction",
+      "prompt": "Write a transaction that creates an account, initializes it, and writes data in a single atomic transaction.",
+      "pass_patterns": [
+        "Transaction|instruction",
+        "createAccount|SystemProgram|system"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-09",
+      "category": "transaction_construction",
+      "prompt": "Show how to implement transaction retries with exponential backoff for Solana RPC calls.",
+      "pass_patterns": [
+        "retry|backoff|setTimeout|sleep|delay|attempt"
+      ],
+      "fail_patterns": []
+    },
+    {
+      "id": "tx-10",
+      "category": "transaction_construction",
+      "prompt": "Write a Solana transaction that uses durable nonces for offline signing.",
+      "pass_patterns": [
+        "nonce|Nonce|nonceAccount|NonceAccount|advanceNonce|DurableNonce"
+      ],
+      "fail_patterns": []
+    }
+  ],
+  "system_prompt": "You are Sealevel, an expert Solana and Anchor development assistant. Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns (solana-foundation/anchor, InitSpace, ctx.bumps.field_name). When uncertain, say so rather than guessing. Never suggest reentrancy guards (Solana prevents reentrancy via CPI depth limits). Never reference coral-xyz/anchor or declare_id! \u2014 these are deprecated."
+}

@@ -148,7 +148,7 @@ export default function Page() {
                   <code>ext install slm.slm-solana</code>
                 </pre>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Search &quot;SLM Solana&quot; in the VS Code Extensions marketplace
+                  Search &quot;Sealevel Solana&quot; in the VS Code Extensions marketplace
                 </p>
               </CardContent>
             </Card>

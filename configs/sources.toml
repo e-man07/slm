@@ -1,4 +1,4 @@
-# Data sources configuration for SLM pipeline
+# Data sources configuration for Sealevel pipeline
 # Each source has: type, url, license, training_permitted, collection_method
 
 [repos]
@@ -51,6 +51,55 @@ license = "Apache-2.0"
 training_permitted = true
 languages = ["md", "ts", "rust"]
 description = "Solana Cookbook tutorials"
+
+[repos.pinocchio]
+url = "https://github.com/anza-xyz/pinocchio"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust"]
+description = "Zero-copy, zero-dependency Solana framework for performance-critical programs"
+
+[repos.solana-sdk]
+url = "https://github.com/anza-xyz/solana-sdk"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust"]
+description = "Solana core SDK types, instruction builders, and serialization"
+
+[repos.whirlpools]
+url = "https://github.com/orca-so/whirlpools"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust", "ts"]
+description = "Orca Whirlpools AMM — concentrated liquidity patterns"
+
+[repos.marinade-staking]
+url = "https://github.com/marinade-finance/liquid-staking-program"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust"]
+description = "Marinade liquid staking program"
+
+[repos.mpl-token-metadata]
+url = "https://github.com/metaplex-foundation/mpl-token-metadata"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust"]
+description = "Metaplex NFT token metadata program"
+
+[repos.pinocchio-guide]
+url = "https://github.com/vict0rcarvalh0/pinocchio-guide"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust"]
+description = "Pinocchio framework tutorial programs and guide"
+
+[repos.awesome-pinocchio]
+url = "https://github.com/deltartificial/awesome-pinocchio"
+license = "Apache-2.0"
+training_permitted = true
+languages = ["rust"]
+description = "Curated Pinocchio projects and examples"
 
 [docs]
 

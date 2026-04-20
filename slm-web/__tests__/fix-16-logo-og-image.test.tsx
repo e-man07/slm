@@ -17,15 +17,15 @@ describe("Fix 16 - Logo SVG + OG image", () => {
     expect(existsSync(logoPath)).toBe(true)
     const content = readFileSync(logoPath, "utf-8")
     expect(content).toContain("<svg")
-    expect(content).toContain("SLM")
+    expect(content).toContain("Sealevel")
   })
 
-  it("public/og-image.svg exists and contains SLM branding", () => {
+  it("public/og-image.svg exists and contains Sealevel branding", () => {
     const ogPath = resolve(__dirname, "../public/og-image.svg")
     expect(existsSync(ogPath)).toBe(true)
     const content = readFileSync(ogPath, "utf-8")
     expect(content).toContain("<svg")
-    expect(content).toContain("SLM")
+    expect(content).toContain("Sealevel")
   })
 
   it("layout.tsx metadata references og-image", async () => {

@@ -37,9 +37,9 @@ size_categories:
   - {size_category}
 ---
 
-# SLM Training Data {version}
+# Sealevel Training Data {version}
 
-Training data for the Solana Language Model (SLM) — a Solana/Anchor-specialized coding LLM.
+Training data for Sealevel (Solana Language Model) — a Solana/Anchor-specialized coding LLM.
 
 ## Dataset Description
 

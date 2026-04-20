@@ -1,4 +1,4 @@
-"""SLM CLI - Command line interface for the Solana Language Model.
+"""Sealevel CLI - Command line interface for the Solana Language Model.
 
 Commands:
     slm chat "prompt"        - One-shot chat with streaming output
@@ -10,6 +10,7 @@ Commands:
 """
 from __future__ import annotations
 
+import json as _json
 import os
 import sys
 from typing import Annotated, Optional
@@ -17,6 +18,7 @@ from typing import Annotated, Optional
 import typer
 from rich.console import Console
 
+from slm_cli import __version__
 from slm_cli.client import SLMClient
 from slm_cli.config import get_value, load_config, set_value
 from slm_cli.display import (
@@ -28,11 +30,32 @@ from slm_cli.display import (
     print_streaming,
 )
 
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"slm-cli {__version__}")
+        raise typer.Exit()
+
+
 app = typer.Typer(
     name="slm",
-    help="SLM - Solana Language Model CLI. Chat, explain transactions, decode errors.",
+    help="Sealevel — Solana Language Model CLI. Chat, generate, review, migrate, decode.",
     no_args_is_help=True,
+    add_completion=True,
 )
+
+
+@app.callback()
+def _root(
+    version: Annotated[
+        Optional[bool],
+        typer.Option(
+            "--version", "-v", callback=_version_callback, is_eager=True, help="Show version and exit."
+        ),
+    ] = None,
+) -> None:
+    """Sealevel CLI — pass --help for commands."""
+    _ = version  # consumed by callback
 
 
 def _get_config_dir() -> str | None:
@@ -53,22 +76,37 @@ def chat(
         Optional[str],
         typer.Argument(help="Chat message (omit for interactive REPL)"),
     ] = None,
+    json_output: Annotated[
+        bool,
+        typer.Option("--json", help="Emit JSON to stdout (for scripting/piping to jq)."),
+    ] = False,
 ) -> None:
-    """Chat with SLM. Pass a prompt for one-shot, or omit for interactive REPL."""
+    """Chat with Sealevel. Pass a prompt for one-shot, or omit for interactive REPL."""
     client = _make_client()
 
     if prompt:
         # One-shot mode
         try:
-            for chunk in client.stream_chat(prompt):
-                print_streaming(chunk)
-            print_done()
+            if json_output:
+                chunks: list[str] = []
+                for chunk in client.stream_chat(prompt):
+                    chunks.append(chunk)
+                content = "".join(chunks)
+                sys.stdout.write(_json.dumps({"prompt": prompt, "content": content}) + "\n")
+                sys.stdout.flush()
+            else:
+                for chunk in client.stream_chat(prompt):
+                    print_streaming(chunk)
+                print_done()
         except Exception as e:
+            if json_output:
+                sys.stdout.write(_json.dumps({"error": str(e)}) + "\n")
+                sys.exit(1)
             console.print(f"[red]Error:[/red] {e}")
             raise typer.Exit(code=1)
     else:
         # Interactive REPL mode
-        console.print("[bold]SLM Interactive Chat[/bold] (type 'exit' or Ctrl+C to quit)\n")
+        console.print("[bold]Sealevel Interactive Chat[/bold] (type 'exit' or Ctrl+C to quit)\n")
         history: list[dict[str, str]] = []
         while True:
             try:
@@ -131,10 +169,151 @@ def explain(
 
 
 @app.command()
+def review(
+    file: Annotated[str, typer.Argument(help="Path to Rust/Anchor file to review")],
+) -> None:
+    """Review a local Solana/Anchor file for security issues and deprecated patterns."""
+    client = _make_client()
+
+    try:
+        with open(file, "r") as f:
+            code = f.read()
+    except FileNotFoundError:
+        console.print(f"[red]File not found:[/red] {file}")
+        raise typer.Exit(code=1)
+
+    prompt = (
+        f"Review this Solana/Anchor code for security issues, deprecated patterns, "
+        f"and common mistakes. Be specific and actionable.\n\n```rust\n{code}\n```"
+    )
+    try:
+        console.print(f"[dim]Reviewing {file}...[/dim]\n")
+        for chunk in client.stream_chat(prompt):
+            print_streaming(chunk)
+        print_done()
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def migrate(
+    file: Annotated[str, typer.Argument(help="Path to Rust/Anchor file to migrate")],
+    write: Annotated[
+        bool,
+        typer.Option("--write", "-w", help="Overwrite file with migrated code"),
+    ] = False,
+) -> None:
+    """Migrate old Anchor code to modern Anchor 0.30+ patterns."""
+    client = _make_client()
+
+    try:
+        with open(file, "r") as f:
+            code = f.read()
+    except FileNotFoundError:
+        console.print(f"[red]File not found:[/red] {file}")
+        raise typer.Exit(code=1)
+
+    prompt = (
+        "Migrate this Solana/Anchor code to modern Anchor 0.30+ patterns. "
+        "Update: declare_id! -> declare_program!, coral-xyz/anchor -> solana-foundation/anchor, "
+        "manual space calculation -> InitSpace derive, bumps.get() -> ctx.bumps.field_name. "
+        "Output ONLY the migrated code in a single ```rust block, no explanation.\n\n"
+        f"```rust\n{code}\n```"
+    )
+    try:
+        console.print(f"[dim]Migrating {file}...[/dim]\n")
+        full = ""
+        for chunk in client.stream_chat(prompt):
+            if not write:
+                print_streaming(chunk)
+            full += chunk
+        print_done()
+
+        if write:
+            # Extract code from ```rust block
+            import re
+            match = re.search(r"```(?:rust)?\n(.*?)```", full, re.DOTALL)
+            new_code = match.group(1) if match else full
+            with open(file, "w") as f:
+                f.write(new_code)
+            console.print(f"[green]✓[/green] Wrote migrated code to {file}")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def gen(
+    description: Annotated[str, typer.Argument(help="Program description, e.g. 'counter with increment and reset'")],
+    output: Annotated[
+        Optional[str],
+        typer.Option("--output", "-o", help="Write output to file instead of stdout"),
+    ] = None,
+) -> None:
+    """Generate a new Anchor program from a description."""
+    client = _make_client()
+
+    prompt = (
+        f"Write a complete, production-ready Anchor program for: {description}. "
+        "Use modern Anchor 0.30+ patterns. Include all necessary accounts, instructions, and account structs. "
+        "Output ONLY the Rust code in a single ```rust block, no explanation."
+    )
+    try:
+        console.print(f"[dim]Generating program: {description}[/dim]\n")
+        full = ""
+        for chunk in client.stream_chat(prompt):
+            if not output:
+                print_streaming(chunk)
+            full += chunk
+        print_done()
+
+        if output:
+            import re
+            match = re.search(r"```(?:rust)?\n(.*?)```", full, re.DOTALL)
+            code = match.group(1) if match else full
+            with open(output, "w") as f:
+                f.write(code)
+            console.print(f"[green]✓[/green] Wrote program to {output}")
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def tests(
+    file: Annotated[str, typer.Argument(help="Path to Anchor program to generate tests for")],
+) -> None:
+    """Generate TypeScript tests for an Anchor program."""
+    client = _make_client()
+
+    try:
+        with open(file, "r") as f:
+            code = f.read()
+    except FileNotFoundError:
+        console.print(f"[red]File not found:[/red] {file}")
+        raise typer.Exit(code=1)
+
+    prompt = (
+        "Write comprehensive TypeScript tests using @coral-xyz/anchor and mocha for this Anchor program. "
+        "Cover all instructions with happy path and error cases. Output ONLY the TypeScript code.\n\n"
+        f"```rust\n{code}\n```"
+    )
+    try:
+        console.print(f"[dim]Generating tests for {file}...[/dim]\n")
+        for chunk in client.stream_chat(prompt):
+            print_streaming(chunk)
+        print_done()
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def config(
     api_key: Annotated[
         Optional[str],
-        typer.Option("--api-key", help="Set your SLM API key"),
+        typer.Option("--api-key", help="Set your Sealevel API key"),
     ] = None,
     show: Annotated[
         bool,
@@ -149,7 +328,7 @@ def config(
         typer.Option("--mode", help="Set mode: 'quality' or 'fast'"),
     ] = None,
 ) -> None:
-    """Manage SLM CLI configuration."""
+    """Manage Sealevel CLI configuration."""
     config_dir = _get_config_dir()
 
     if show:

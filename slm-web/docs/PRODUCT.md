@@ -1,8 +1,8 @@
-# SLM Product Spec
+# Sealevel Product Spec
 
-## What is SLM?
+## What is Sealevel?
 
-SLM (Solana Language Model) is a Solana-specialized coding assistant. It's a fine-tuned Qwen3-Coder-30B-A3B model that scores 87.5% on 80 Solana-specific coding tasks, served through multiple interfaces: web chat, transaction explainer, error decoder, Python CLI, and VS Code extension.
+Sealevel (Solana Language Model) is a Solana-specialized coding assistant. It's a fine-tuned Qwen2.5-Coder-7B-Instruct model that scores 87.5% on 80 Solana-specific coding tasks, served through multiple interfaces: web chat, transaction explainer, error decoder, Python CLI, and VS Code extension.
 
 ## Target Users
 
@@ -41,7 +41,7 @@ SLM (Solana Language Model) is a Solana-specialized coding assistant. It's a fin
 
 ## Model Details
 
-- **Base**: Qwen3-Coder-30B-A3B-Instruct (MoE, 30B total / 3.3B active)
+- **Base**: Qwen2.5-Coder-7B-Instruct (7B dense)
 - **Training**: QLoRA SFT on 10K curated Solana instruction pairs
 - **Eval**: 87.5% (70/80) on custom Solana benchmark
 - **Serving**: SGLang on Akash A100/H100

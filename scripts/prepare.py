@@ -24,7 +24,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from schema import Record, read_jsonl, today_str
+from schema import Record, read_jsonl, today_str, is_pinocchio, detect_framework
 
 app = typer.Typer()
 console = Console()
@@ -150,7 +150,15 @@ def record_to_sft(record: Record) -> dict | None:
                 ]
             }
 
-    # Plain code records belong in CPT only.
+    # Code records with pre-formatted ChatML messages (from gen_sft_from_code.py)
+    if record.source_type in ("code", "synthetic"):
+        msgs = _try_parse_messages_json(record.content)
+        if msgs:
+            if not msgs or msgs[0].get("role") != "system":
+                msgs.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+            return {"messages": msgs}
+
+    # Plain code records without ChatML belong in CPT only.
     return None
 
 
@@ -177,7 +185,67 @@ def prepare(
         raise typer.Exit(1)
 
     records = read_jsonl(input_path)
-    console.print(f"[bold]Loaded {len(records)} filtered records[/bold]\n")
+    console.print(f"[bold]Loaded {len(records)} filtered records[/bold]")
+
+    # Also ingest SFT records from collected/ and validated/ directories
+    collected_dir = PROJECT_ROOT / "data" / "collected"
+    validated_dir = PROJECT_ROOT / "data" / "validated"
+    extra_sources = []
+
+    # Also load SFT variant files from processed/ that aren't in Record format
+    processed_dir = PROJECT_ROOT / "data" / "processed"
+
+    for extra_dir in [collected_dir, validated_dir, processed_dir]:
+        if not extra_dir.exists():
+            continue
+        for jsonl_file in sorted(extra_dir.glob("*.jsonl")):
+            # Skip DPO files (not SFT training data)
+            if "dpo-" in jsonl_file.name:
+                continue
+            try:
+                extra_records = read_jsonl(jsonl_file)
+                extra_sources.append((jsonl_file.name, len(extra_records)))
+                records.extend(extra_records)
+            except (TypeError, KeyError):
+                # File is raw ChatML format (not Record) — convert on the fly
+                try:
+                    chatml_count = 0
+                    with open(jsonl_file, encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line:
+                                continue
+                            parsed = json.loads(line)
+                            if "messages" in parsed:
+                                content = json.dumps(parsed["messages"], ensure_ascii=False)
+                                r = Record(
+                                    id=Record.make_id(content),
+                                    source=f"sft/{jsonl_file.stem}",
+                                    source_type="qa",
+                                    content=content,
+                                    language="rust",
+                                    license="Apache-2.0",
+                                    metadata={
+                                        "training_permitted": True,
+                                        "anchor_style": "modern",
+                                    },
+                                )
+                                records.append(r)
+                                chatml_count += 1
+                    if chatml_count > 0:
+                        extra_sources.append((jsonl_file.name, chatml_count))
+                except Exception as e2:
+                    console.print(f"  [yellow]Skipped {jsonl_file.name}: {e2}[/yellow]")
+            except Exception as e:
+                console.print(f"  [yellow]Skipped {jsonl_file.name}: {e}[/yellow]")
+
+    if extra_sources:
+        console.print(f"[bold]Extra SFT sources ingested:[/bold]")
+        for name, count in extra_sources:
+            console.print(f"  {name}: {count} records")
+        console.print(f"[bold]Total after merge: {len(records)} records[/bold]\n")
+    else:
+        console.print()
 
     # Stats
     lang_counts = Counter(r.language for r in records)
@@ -211,17 +279,42 @@ def prepare(
     if rag_only > 0:
         console.print(f"\n[yellow]{rag_only} records marked RAG-only (excluded from training)[/yellow]")
 
-    # Apply Anchor 0.30+ upweighting
+    # Apply multi-factor upweighting
     upweighted: list[Record] = []
     upweight_count = 0
+    pinocchio_count = 0
+    adversarial_count = 0
+    compilable_count = 0
     for r in training_records:
-        upweighted.append(r)
-        if r.metadata.get("anchor_style") == "modern" and upweight > 1:
-            for _ in range(upweight - 1):
-                upweighted.append(r)
-            upweight_count += 1
+        # Determine upweight multiplier (take the highest applicable)
+        multiplier = 1
+        framework = r.metadata.get("framework", "")
+        method = r.metadata.get("method", "")
+        compile_status = r.metadata.get("compile_status", "")
 
-    console.print(f"\n[bold]Upweighting:[/bold] {upweight_count} modern Anchor records × {upweight}")
+        if framework == "pinocchio" or is_pinocchio(r.content):
+            multiplier = max(multiplier, 3)  # Pinocchio: 3x (rarest, most valuable)
+            pinocchio_count += 1
+        if r.metadata.get("anchor_style") == "modern" and upweight > 1:
+            multiplier = max(multiplier, upweight)  # Modern Anchor: 2x default
+            upweight_count += 1
+        if method == "adversarial-refusal":
+            multiplier = max(multiplier, 2)  # Adversarial refusals: 2x
+            adversarial_count += 1
+        if compile_status == "pass":
+            compilable_count += 1
+            # Compilable code gets a slight boost (round up)
+            if multiplier == 1:
+                multiplier = 2  # 1.5x → round to 2x for simplicity
+
+        for _ in range(multiplier):
+            upweighted.append(r)
+
+    console.print(f"\n[bold]Upweighting:[/bold]")
+    console.print(f"  Modern Anchor records: {upweight_count} × {upweight}")
+    console.print(f"  Pinocchio records: {pinocchio_count} × 3")
+    console.print(f"  Adversarial refusals: {adversarial_count} × 2")
+    console.print(f"  Compilable code: {compilable_count}")
     console.print(f"After upweighting: {len(upweighted)} records")
 
     # Shuffle

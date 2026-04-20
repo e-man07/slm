@@ -10,11 +10,11 @@ describe("readSystemPromptResource", () => {
     expect(result.contents[0].mimeType).toBe("text/plain");
   });
 
-  it("contains the SLM system prompt text", async () => {
+  it("contains the Sealevel system prompt text", async () => {
     const result = await readSystemPromptResource();
     const text = result.contents[0].text as string;
 
-    expect(text).toContain("SLM");
+    expect(text).toContain("Sealevel");
     expect(text).toContain("Solana");
     expect(text).toContain("Anchor");
     expect(text).toContain("reentrancy");

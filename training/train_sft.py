@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SFT training for SLM — optimized for MoE + progressive validation.
+"""SFT training for Sealevel — optimized for progressive validation.
 
 Usage:
     # Phase 1: Quick validation (10K records, 1 epoch)
@@ -42,8 +42,8 @@ from trl import SFTTrainer, SFTConfig
 
 @dataclass
 class ModelConfig:
-    base_model: str = field(default="Qwen/Qwen3-Coder-30B-A3B-Instruct")
-    max_seq_length: int = field(default=4096)  # 4K is enough for most SFT pairs, doubles throughput
+    base_model: str = field(default="Qwen/Qwen3-Coder-8B-Instruct")
+    max_seq_length: int = field(default=8192)  # 8B model supports longer context
     load_in_4bit: bool = field(default=True)
     dtype: str = field(default="auto")
 
@@ -57,7 +57,7 @@ class DataConfig:
 class SFTRunConfig:
     output_dir: str = field(default="/workspace/checkpoints/sft")
     num_train_epochs: int = field(default=3)
-    per_device_train_batch_size: int = field(default=2)  # 2 fits with seq_len 4096 on A100
+    per_device_train_batch_size: int = field(default=4)  # 8B uses less VRAM, can fit larger batch
     gradient_accumulation_steps: int = field(default=4)  # effective batch = 8
     learning_rate: float = field(default=2e-5)  # higher for Phase 1, use 1e-5 for Phase 2
     lr_scheduler_type: str = field(default="cosine")
@@ -72,15 +72,15 @@ class SFTRunConfig:
     gradient_checkpointing: bool = field(default=True)
     resume_from: str = field(default="")
     seed: int = field(default=42)
-    lora_r: int = field(default=16)  # 16 is faster, minimal quality loss vs 32
-    lora_alpha: int = field(default=32)
+    lora_r: int = field(default=32)  # 32 for 8B model — can train more of the smaller model
+    lora_alpha: int = field(default=64)
     lora_dropout: float = field(default=0.0)
     report_to: str = field(default="none")
     run_name: str = field(default="slm-sft")
 
 
 SYSTEM_PROMPT = (
-    "You are SLM, an expert Solana and Anchor development assistant. "
+    "You are Sealevel, an expert Solana and Anchor development assistant. "
     "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns "
     "(solana-foundation/anchor, InitSpace, ctx.bumps.field_name). "
     "When uncertain, say so rather than guessing. "
@@ -199,7 +199,7 @@ def main():
     model_cfg, data_cfg, train_cfg = parser.parse_args_into_dataclasses()
 
     print("=" * 60)
-    print("  SLM - Supervised Fine-Tuning (SFT)")
+    print("  Sealevel - Supervised Fine-Tuning (SFT)")
     print("=" * 60)
     print(f"  Base:      {model_cfg.base_model}")
     print(f"  Data:      {data_cfg.data_path}")

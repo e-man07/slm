@@ -1,0 +1,170 @@
+{
+  "timestamp": "2026-04-19T18:03:39.118309+00:00",
+  "api_url": "http://e5um4g1h3pfa732v9gsi9crvvo.ingress.h100.wdc.hh.akash.pub/v1",
+  "model": "slm-solana",
+  "compiled": 19,
+  "total": 20,
+  "score": 0.95,
+  "results": [
+    {
+      "id": "comp-01",
+      "description": "Basic account creation with counter",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {\n        ctx.accounts.my_account.counter = 0;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct Initialize<'info> {\n    #[account(init, payer = signer, space = 8 + MyAccount::INIT_SPACE)]\n    pub my_account: Account<'info, MyAccount>,\n    #[account(mut)]\n    pub signer: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct MyAccount {\n    pub counter: u64,\n}",
+      "elapsed_s": 2.82
+    },
+    {
+      "id": "comp-02",
+      "description": "PDA counter increment",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn increment(ctx: Context<Increment>) -> Result<()> {\n        let counter = &mut ctx.accounts.counter;\n        counter.count += 1;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct Increment<'info> {\n    #[account(\n        mut,\n        seeds = [b\"counter\", user.key().as_ref()],\n        bump,\n    )]\n    pub counter: Account<'info, Counter>,\n    pub user: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[account]\npub struct Counter {\n    pub count: u64,\n    pub user: Pubkey,\n}",
+      "elapsed_s": 1.54
+    },
+    {
+      "id": "comp-03",
+      "description": "SOL transfer via system program CPI",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\nuse anchor_lang::system_program::{transfer, Transfer};\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn transfer_sol(ctx: Context<TransferSol>, amount: u64) -> Result<()> {\n        transfer(\n            CpiContext::new(\n                ctx.accounts.system_program.to_account_info(),\n                Transfer {\n                    from: ctx.accounts.sender.to_account_info(),\n                    to: ctx.accounts.recipient.to_account_info(),\n                },\n            ),\n            amount,\n        )\n    }\n}\n\n#[derive(Accounts)]\npub struct TransferSol<'info> {\n    #[account(mut)]\n    pub sender: Signer<'info>,\n    /// CHECK: can be any account\n    #[account(mut)]\n    pub recipient: UncheckedAccount<'info>,\n    pub system_program: Program<'info, System>,\n}",
+      "elapsed_s": 1.65
+    },
+    {
+      "id": "comp-04",
+      "description": "Custom errors with require!",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"BenchProject11111111111111111111111111111111\");\n\n#[error_code]\npub enum BenchError {\n    #[msg(\"The provided value is too small\")]\n    ValueTooSmall,\n    #[msg(\"The account has insufficient funds\")]\n    InsufficientFunds,\n    #[msg(\"The validation check failed\")]\n    ValidationFailed,\n}\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn initialize(ctx: Context<Initialize>, initial_value: u64) -> Result<()> {\n        ctx.accounts.bench_account.initial_value = initial_value;\n        ctx.accounts.bench_account.authority = ctx.accounts.authority.key();\n        Ok(())\n    }\n\n    pub fn validate(ctx: Context<Validate>, value: u64) -> Result<()> {\n        // Check if value is greater than zero\n        require!(value > 0, BenchError::ValueTooSmall);\n        \n        // Check if account has sufficient funds (assuming we're checking against a balance)\n        require!(ctx.accounts.bench_account.balance >= value, BenchError::InsufficientF",
+      "elapsed_s": 3.5
+    },
+    {
+      "id": "comp-05",
+      "description": "Vault with InitSpace",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn initialize_vault(ctx: Context<InitializeVault>, authority: Pubkey) -> Result<()> {\n        let vault = &mut ctx.accounts.vault;\n        vault.authority = authority;\n        vault.balance = 0;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct InitializeVault<'info> {\n    #[account(\n        init,\n        payer = signer,\n        space = 8 + Vault::INIT_SPACE,\n        seeds = [b\"vault\", signer.key().as_ref()],\n        bump,\n    )]\n    pub vault: Account<'info, Vault>,\n    #[account(mut)]\n    pub signer: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct Vault {\n    pub authority: Pubkey,\n    pub balance: u64,\n}",
+      "elapsed_s": 2.4
+    },
+    {
+      "id": "comp-06",
+      "description": "Deposit with has_one constraint",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {\n        // Increment the vault balance\n        ctx.accounts.vault.balance = ctx.accounts.vault.balance.checked_add(amount)\n            .ok_or(ErrorCode::Overflow)?;\n        \n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct Deposit<'info> {\n    #[account(\n        mut,\n        has_one = authority\n    )]\n    pub vault: Account<'info, Vault>,\n    pub authority: Signer<'info>,\n}\n\n#[account]\npub struct Vault {\n    pub authority: Pubkey,\n    pub balance: u64,\n}\n\n#[error_code]\npub enum ErrorCode {\n    #[msg(\"Overflow occurred\")]\n    Overflow,\n}",
+      "elapsed_s": 1.62
+    },
+    {
+      "id": "comp-07",
+      "description": "Account closing",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn initialize(ctx: Context<Initialize>, data: u64) -> Result<()> {\n        ctx.accounts.data_account.data = data;\n        Ok(())\n    }\n\n    pub fn close_account(ctx: Context<CloseAccount>) -> Result<()> {\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct Initialize<'info> {\n    #[account(init, payer = signer, space = 8 + DataAccount::INIT_SPACE)]\n    pub data_account: Account<'info, DataAccount>,\n    #[account(mut)]\n    pub signer: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[derive(Accounts)]\npub struct CloseAccount<'info> {\n    #[account(mut, close = destination)]\n    pub data_account: Account<'info, DataAccount>,\n    #[account(mut)]\n    pub destination: Signer<'info>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct DataAccount {\n    pub data: u64,\n}",
+      "elapsed_s": 1.88
+    },
+    {
+      "id": "comp-08",
+      "description": "String data update with constraint",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn update_data(ctx: Context<UpdateData>, new_data: String) -> Result<()> {\n        // Validate string length\n        require!(new_data.len() <= 200, MyError::StringTooLong);\n        \n        // Update the data field\n        ctx.accounts.my_account.data = new_data;\n        \n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct UpdateData<'info> {\n    #[account(mut, has_one = authority)]\n    pub my_account: Account<'info, MyAccount>,\n    pub authority: Signer<'info>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct MyAccount {\n    pub authority: Pubkey,\n    #[max_len(200)]\n    pub data: String,\n}\n\n#[error_code]\npub enum MyError {\n    #[msg(\"String exceeds maximum length of 200 characters\")]\n    StringTooLong,\n}",
+      "elapsed_s": 1.8
+    },
+    {
+      "id": "comp-09",
+      "description": "Event emission",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn emit_event(ctx: Context<EmitEvent>, amount: u64) -> Result<()> {\n        let clock = Clock::get()?;\n        emit!(TransferEvent {\n            from: ctx.accounts.signer.key(),\n            to: ctx.accounts.recipient.key(),\n            amount,\n            timestamp: clock.unix_timestamp,\n        });\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct EmitEvent<'info> {\n    #[account(mut)]\n    pub signer: Signer<'info>,\n    /// CHECK: can be any account\n    #[account(mut)]\n    pub recipient: UncheckedAccount<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[event]\npub struct TransferEvent {\n    pub from: Pubkey,\n    pub to: Pubkey,\n    pub amount: u64,\n    pub timestamp: i64,\n}",
+      "elapsed_s": 1.83
+    },
+    {
+      "id": "comp-10",
+      "description": "Profile PDA creation",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn create_profile(ctx: Context<CreateProfile>, name: String) -> Result<()> {\n        let profile = &mut ctx.accounts.profile;\n        profile.authority = ctx.accounts.user.key();\n        profile.name = name;\n        profile.score = 0;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CreateProfile<'info> {\n    #[account(\n        init,\n        payer = user,\n        space = 8 + Profile::INIT_SPACE,\n        seeds = [b\"profile\", user.key().as_ref()],\n        bump,\n    )]\n    pub profile: Account<'info, Profile>,\n    #[account(mut)]\n    pub user: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct Profile {\n    pub authority: Pubkey,\n    #[max_len(50)]\n    pub name: String,\n    pub score: u64,\n}",
+      "elapsed_s": 1.85
+    },
+    {
+      "id": "comp-11",
+      "description": "Two instructions with checked math",
+      "passed": false,
+      "reason": "error[E0124]: field `user` is already declared",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn register(ctx: Context<Register>, name: String) -> Result<()> {\n        let user = &mut ctx.accounts.user;\n        user.name = name;\n        user.points = 0;\n        Ok(())\n    }\n\n    pub fn add_points(ctx: Context<AddPoints>, amount: u64) -> Result<()> {\n        let user = &mut ctx.accounts.user;\n        user.points = user.points.checked_add(amount).unwrap();\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct Register<'info> {\n    #[account(init, payer = user, space = 8 + User::INIT_SPACE)]\n    pub user: Account<'info, User>,\n    #[account(mut)]\n    pub user: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[derive(Accounts)]\npub struct AddPoints<'info> {\n    #[account(mut)]\n    pub user: Account<'info, User>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct User {\n    #[max_len(32)]\n    pub name: String,\n    pub points: u6",
+      "elapsed_s": 2.11
+    },
+    {
+      "id": "comp-12",
+      "description": "Admin-only config with hardcoded key",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn set_config(ctx: Context<SetConfig>, fee_rate: u16, is_paused: bool) -> Result<()> {\n        let config = &mut ctx.accounts.config;\n        config.fee_rate = fee_rate;\n        config.is_paused = is_paused;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\n#[instruction(fee_rate: u16, is_paused: bool)]\npub struct SetConfig<'info> {\n    #[account(\n        mut,\n        seeds = [b\"config\"],\n        bump,\n        has_one = admin,\n    )]\n    pub config: Account<'info, Config>,\n    pub admin: Signer<'info>,\n}\n\n#[account]\npub struct Config {\n    pub fee_rate: u16,\n    pub is_paused: bool,\n    pub admin: Pubkey,\n}\n\nconst ADMIN: Pubkey = Pubkey::new_from_array([\n    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,\n    17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,\n]);\n\n#[error_code]\npub enum ErrorCode {\n    #[msg(\"Unauthorized access\")]",
+      "elapsed_s": 2.47
+    },
+    {
+      "id": "comp-13",
+      "description": "Marketplace listing PDA",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn create_listing(ctx: Context<CreateListing>, price: u64) -> Result<()> {\n        let listing = &mut ctx.accounts.listing;\n        listing.seller = ctx.accounts.seller.key();\n        listing.price = price;\n        listing.is_active = true;\n        \n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\n#[instruction(price: u64)]\npub struct CreateListing<'info> {\n    #[account(\n        init,\n        payer = seller,\n        space = 8 + 32 + 8 + 1,\n        seeds = [b\"listing\", seller.key().as_ref(), &price.to_le_bytes()],\n        bump,\n    )]\n    pub listing: Account<'info, Listing>,\n    #[account(mut)]\n    pub seller: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[account]\npub struct Listing {\n    pub seller: Pubkey,\n    pub price: u64,\n    pub is_active: bool,\n}",
+      "elapsed_s": 1.89
+    },
+    {
+      "id": "comp-14",
+      "description": "Time-locked withdrawal",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\nuse anchor_lang::system_program;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn initialize_vault(ctx: Context<InitializeVault>, unlock_time: i64) -> Result<()> {\n        let vault = &mut ctx.accounts.vault;\n        vault.authority = ctx.accounts.authority.key();\n        vault.unlock_time = unlock_time;\n        vault.balance = 0;\n        Ok(())\n    }\n\n    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {\n        let vault = &mut ctx.accounts.vault;\n        vault.balance = vault.balance.checked_add(amount).unwrap();\n        \n        system_program::transfer(\n            CpiContext::new(\n                ctx.accounts.system_program.to_account_info(),\n                system_program::Transfer {\n                    from: ctx.accounts.from.to_account_info(),\n                    to: ctx.accounts.vault.to_account_info(),\n                },\n            ),\n            amount,\n       ",
+      "elapsed_s": 3.78
+    },
+    {
+      "id": "comp-15",
+      "description": "Voting with bool parameter",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod vote_program {\n    use super::*;\n\n    pub fn vote(ctx: Context<Vote>, vote_type: bool) -> Result<()> {\n        let proposal = &mut ctx.accounts.proposal;\n        \n        if vote_type {\n            proposal.yes_votes = proposal.yes_votes.checked_add(1).unwrap();\n        } else {\n            proposal.no_votes = proposal.no_votes.checked_add(1).unwrap();\n        }\n        \n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct Vote<'info> {\n    #[account(mut)]\n    pub proposal: Account<'info, Proposal>,\n    pub voter: Signer<'info>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct Proposal {\n    pub yes_votes: u64,\n    pub no_votes: u64,\n}",
+      "elapsed_s": 1.67
+    },
+    {
+      "id": "comp-16",
+      "description": "Multisig initialization",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn initialize_multisig(ctx: Context<InitializeMultisig>, threshold: u8) -> Result<()> {\n        let multisig = &mut ctx.accounts.multisig;\n        multisig.signers = [\n            ctx.accounts.signer1.key(),\n            ctx.accounts.signer2.key(),\n            ctx.accounts.signer3.key(),\n        ];\n        multisig.threshold = threshold;\n        multisig.is_active = true;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct InitializeMultisig<'info> {\n    #[account(init, payer = signer, space = 8 + Multisig::INIT_SPACE)]\n    pub multisig: Account<'info, Multisig>,\n    #[account(mut)]\n    pub signer: Signer<'info>,\n    pub signer1: Signer<'info>,\n    pub signer2: Signer<'info>,\n    pub signer3: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[account]\n#[derive(InitSpace)]\npub struct Multisig {\n    #[max_len(3)]\n    pub signers",
+      "elapsed_s": 2.12
+    },
+    {
+      "id": "comp-17",
+      "description": "Escrow create and release",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn create_escrow(ctx: Context<CreateEscrow>, amount: u64) -> Result<()> {\n        let escrow = &mut ctx.accounts.escrow;\n        escrow.sender = ctx.accounts.sender.key();\n        escrow.receiver = ctx.accounts.receiver.key();\n        escrow.amount = amount;\n        escrow.is_released = false;\n        \n        Ok(())\n    }\n\n    pub fn release_escrow(ctx: Context<ReleaseEscrow>) -> Result<()> {\n        let escrow = &mut ctx.accounts.escrow;\n        require_keys_eq!(escrow.sender, ctx.accounts.sender.key(), ErrorCode::Unauthorized);\n        escrow.is_released = true;\n        \n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct CreateEscrow<'info> {\n    #[account(\n        init,\n        payer = sender,\n        space = 8 + 32 + 32 + 8 + 1,\n        seeds = [b\"escrow\", sender.key().as_ref(), receiver.key().as_ref()],\n        bump,\n    )]\n    pub esc",
+      "elapsed_s": 2.88
+    },
+    {
+      "id": "comp-18",
+      "description": "Game score recording with Clock",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn record_score(ctx: Context<RecordScore>, score: u64) -> Result<()> {\n        let score_record = &mut ctx.accounts.score_record;\n        let clock = Clock::get()?;\n\n        score_record.player = ctx.accounts.player.key();\n        score_record.score = score;\n        score_record.timestamp = clock.unix_timestamp;\n\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct RecordScore<'info> {\n    #[account(\n        init_if_needed,\n        payer = player,\n        space = 8 + 32 + 8 + 8, // discriminator + player + score + timestamp\n    )]\n    pub score_record: Account<'info, ScoreRecord>,\n    #[account(mut)]\n    pub player: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[account]\npub struct ScoreRecord {\n    pub player: Pubkey,\n    pub score: u64,\n    pub timestamp: i64,\n}",
+      "elapsed_s": 1.92
+    },
+    {
+      "id": "comp-19",
+      "description": "Vec parameter with sum",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"BenchProject11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn batch_update(ctx: Context<BatchUpdate>, values: Vec<u64>) -> Result<()> {\n        let sum = values\n            .iter()\n            .try_fold(0u64, |acc, &val| acc.checked_add(val).ok_or(ProgramError::ArithmeticOverflow))?;\n        \n        ctx.accounts.data.sum = sum;\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct BatchUpdate<'info> {\n    #[account(mut)]\n    pub data: Account<'info, DataAccount>,\n    pub signer: Signer<'info>,\n}\n\n#[account]\npub struct DataAccount {\n    pub sum: u64,\n    pub authority: Pubkey,\n}\n\n#[error_code]\npub enum ErrorCode {\n    #[msg(\"Arithmetic overflow occurred\")]\n    ArithmeticOverflow,\n}",
+      "elapsed_s": 1.73
+    },
+    {
+      "id": "comp-20",
+      "description": "Registry with add_entry",
+      "passed": true,
+      "reason": "Compiles successfully",
+      "code": "use anchor_lang::prelude::*;\n\n declare_id!(\"11111111111111111111111111111111\");\n\n#[program]\npub mod bench_project {\n    use super::*;\n\n    pub fn init_registry(ctx: Context<InitRegistry>, authority: Pubkey) -> Result<()> {\n        let registry = &mut ctx.accounts.registry;\n        registry.entries_count = 0;\n        registry.authority = authority;\n        Ok(())\n    }\n\n    pub fn add_entry(ctx: Context<AddEntry>) -> Result<()> {\n        let registry = &mut ctx.accounts.registry;\n        registry.entries_count = registry.entries_count.checked_add(1).unwrap();\n        Ok(())\n    }\n}\n\n#[derive(Accounts)]\npub struct InitRegistry<'info> {\n    #[account(\n        init,\n        payer = signer,\n        space = 8 + Registry::INIT_SPACE,\n        seeds = [b\"registry\"],\n        bump,\n    )]\n    pub registry: Account<'info, Registry>,\n    #[account(mut)]\n    pub signer: Signer<'info>,\n    pub system_program: Program<'info, System>,\n}\n\n#[derive(Accounts)]\npub struct AddEntry<'info> {\n    #[account(\n ",
+      "elapsed_s": 2.24
+    }
+  ]
+}

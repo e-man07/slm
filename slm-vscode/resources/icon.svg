@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect width="128" height="128" rx="24" fill="#0C0F14"/>
+  <text
+    x="64"
+    y="82"
+    text-anchor="middle"
+    font-family="'JetBrains Mono', 'SF Mono', 'Fira Code', monospace"
+    font-size="44"
+    font-weight="700"
+    letter-spacing="2"
+    fill="#9945FF"
+  >SLM</text>
+  <circle cx="18" cy="18" r="3" fill="#14F195"/>
+  <circle cx="110" cy="18" r="3" fill="#9945FF"/>
+  <circle cx="18" cy="110" r="3" fill="#9945FF"/>
+  <circle cx="110" cy="110" r="3" fill="#14F195"/>
+</svg>

@@ -1,0 +1,1621 @@
+{
+  "timestamp": "2026-04-19T19:52:22.430570+00:00",
+  "total_tasks": 230,
+  "produced_code": 169,
+  "compiled": 93,
+  "failed": 76,
+  "no_code": 61,
+  "compile_rate": 0.5503,
+  "results": [
+    {
+      "id": "pda-01",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "pda-02",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `seed` in this scope"
+    },
+    {
+      "id": "pda-03",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `user_pubkey` in this scope"
+    },
+    {
+      "id": "pda-04",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "pda-05",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "pda-06",
+      "category": "pda_derivation",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "pda-07",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0412]: cannot find type `Mint` in this scope"
+    },
+    {
+      "id": "pda-08",
+      "category": "pda_derivation",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "pda-09",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "pda-10",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "pda-11",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0716]: temporary value dropped while borrowed"
+    },
+    {
+      "id": "pda-12",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0412]: cannot find type `Mint` in this scope"
+    },
+    {
+      "id": "pda-13",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `new_len` in this scope"
+    },
+    {
+      "id": "pda-14",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: Expected max_len attribute."
+    },
+    {
+      "id": "pda-15",
+      "category": "pda_derivation",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `solana_program`"
+    },
+    {
+      "id": "anchor-01",
+      "category": "anchor_constraints",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "anchor-02",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "anchor-03",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "anchor-04",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "anchor-05",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "anchor-06",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "anchor-07",
+      "category": "anchor_constraints",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "anchor-08",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "anchor-09",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: the payer specified for an init constraint must be mutable."
+    },
+    {
+      "id": "anchor-10",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `authority` in this scope"
+    },
+    {
+      "id": "anchor-11",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0412]: cannot find type `Token` in this scope"
+    },
+    {
+      "id": "anchor-12",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: could not find `bytemuck` in the list of imported crates"
+    },
+    {
+      "id": "anchor-13",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0609]: no field `price` on type `anchor_lang::prelude::Account<'_, anchor_spl::token::Mint>`"
+    },
+    {
+      "id": "anchor-14",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "anchor-15",
+      "category": "anchor_constraints",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0428]: the name `entry` is defined multiple times"
+    },
+    {
+      "id": "spl-01",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "spl-02",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "spl-03",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "spl-04",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "spl-05",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "spl-06",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0609]: no field `name` on type `anchor_lang::prelude::Account<'_, anchor_spl::token::Mint>`"
+    },
+    {
+      "id": "spl-07",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: could not find `AuthorityType` in `token`"
+    },
+    {
+      "id": "spl-08",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0308]: mismatched types"
+    },
+    {
+      "id": "spl-09",
+      "category": "spl_token_ops",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "spl-10",
+      "category": "spl_token_ops",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "cpi-01",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: expected `=`"
+    },
+    {
+      "id": "cpi-02",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "cpi-03",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `other_program_cpi`"
+    },
+    {
+      "id": "cpi-04",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0061]: this function takes 3 arguments but 2 arguments were supplied"
+    },
+    {
+      "id": "cpi-05",
+      "category": "cpi_patterns",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "cpi-06",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: could not find `metadata` in `anchor_spl`"
+    },
+    {
+      "id": "cpi-07",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `solana_program`"
+    },
+    {
+      "id": "cpi-08",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find function `transfer` in module `system_program`"
+    },
+    {
+      "id": "cpi-09",
+      "category": "cpi_patterns",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "cpi-10",
+      "category": "cpi_patterns",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `ctx` in this scope"
+    },
+    {
+      "id": "err-01",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "err-02",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "err-03",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0308]: mismatched types"
+    },
+    {
+      "id": "err-04",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "err-05",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "err-06",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0119]: conflicting implementations of trait `TryFrom<anchor_lang::prelude::ProgramError>` for type `MyError`"
+    },
+    {
+      "id": "err-07",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "err-08",
+      "category": "error_handling",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "err-09",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "err-10",
+      "category": "error_handling",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "adv-01",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "adv-02",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "adv-03",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "adv-04",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "adv-05",
+      "category": "adversarial",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "adv-06",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0432]: unresolved import `anchor_lang::solana_program::instruction::get_instruction_data`"
+    },
+    {
+      "id": "adv-07",
+      "category": "adversarial",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "adv-08",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "adv-09",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "adv-10",
+      "category": "adversarial",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0277]: the trait bound `Counter: ZeroCopy` is not satisfied"
+    },
+    {
+      "id": "tx-01",
+      "category": "transaction_construction",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "tx-02",
+      "category": "transaction_construction",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: the payer specified for an init constraint must be mutable."
+    },
+    {
+      "id": "tx-03",
+      "category": "transaction_construction",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0432]: unresolved import `anchor_lang::solana_program::compute_budget`"
+    },
+    {
+      "id": "tx-04",
+      "category": "transaction_construction",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "tx-05",
+      "category": "transaction_construction",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "tx-06",
+      "category": "transaction_construction",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "tx-07",
+      "category": "transaction_construction",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: pubkey array is not 32 bytes long: len=33"
+    },
+    {
+      "id": "tx-08",
+      "category": "transaction_construction",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: Expected max_len attribute."
+    },
+    {
+      "id": "tx-09",
+      "category": "transaction_construction",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "tx-10",
+      "category": "transaction_construction",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: failed to decode base58 string"
+    },
+    {
+      "id": "ext-pda-01",
+      "category": "pda_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-pda-02",
+      "category": "pda_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-pda-03",
+      "category": "pda_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-pda-04",
+      "category": "pda_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-pda-05",
+      "category": "pda_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0609]: no field `authority` on type `&mut anchor_lang::prelude::Account<'_, anchor_spl::token::Mint>`"
+    },
+    {
+      "id": "ext-pda-06",
+      "category": "pda_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `price` in this scope"
+    },
+    {
+      "id": "ext-pda-07",
+      "category": "pda_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-pda-08",
+      "category": "pda_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-pda-09",
+      "category": "pda_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0277]: `?` couldn't convert the error to `anchor_lang::error::Error`"
+    },
+    {
+      "id": "ext-pda-10",
+      "category": "pda_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-anchor-01",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-anchor-02",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0422]: cannot find struct, variant or union type `Instruction` in this scope"
+    },
+    {
+      "id": "ext-anchor-03",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0609]: no field `token_account` on type `&mut TransferMultipleTokens<'_>`"
+    },
+    {
+      "id": "ext-anchor-04",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0326]: implemented const `DISCRIMINATOR` has an incompatible type for trait"
+    },
+    {
+      "id": "ext-anchor-05",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: could not find `bytemuck` in the list of imported crates"
+    },
+    {
+      "id": "ext-anchor-06",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: custom attribute panicked"
+    },
+    {
+      "id": "ext-anchor-07",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-anchor-08",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0502]: cannot borrow `ctx.accounts.vault` as immutable because it is also borrowed as mutable"
+    },
+    {
+      "id": "ext-anchor-09",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-anchor-10",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0609]: no field `upgrade_authority` on type `&mut Initialize<'_>`"
+    },
+    {
+      "id": "ext-anchor-11",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-anchor-12",
+      "category": "anchor_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-anchor-13",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `new_size` in this scope"
+    },
+    {
+      "id": "ext-anchor-14",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-anchor-15",
+      "category": "anchor_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: could not find `metadata` in `anchor_spl`"
+    },
+    {
+      "id": "ext-token-01",
+      "category": "token_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: space is not required for initializing an spl account"
+    },
+    {
+      "id": "ext-token-02",
+      "category": "token_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-token-03",
+      "category": "token_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-token-04",
+      "category": "token_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-token-05",
+      "category": "token_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-token-06",
+      "category": "token_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: expected `=`"
+    },
+    {
+      "id": "ext-token-07",
+      "category": "token_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-token-08",
+      "category": "token_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-token-09",
+      "category": "token_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-token-10",
+      "category": "token_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-cpi-01",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: failed to decode base58 string"
+    },
+    {
+      "id": "ext-cpi-02",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-cpi-03",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-cpi-04",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-cpi-05",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0428]: the name `entry` is defined multiple times"
+    },
+    {
+      "id": "ext-cpi-06",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: pubkey array is not 32 bytes long: len=33"
+    },
+    {
+      "id": "ext-cpi-07",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-cpi-08",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: proc-macro derive panicked"
+    },
+    {
+      "id": "ext-cpi-09",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: could not find `metadata` in `anchor_spl`"
+    },
+    {
+      "id": "ext-cpi-10",
+      "category": "cpi_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0432]: unresolved import `anchor_spl::memo`"
+    },
+    {
+      "id": "ext-err-01",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-err-02",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-err-03",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-err-04",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0502]: cannot borrow `ctx.accounts.vault` as immutable because it is also borrowed as mutable"
+    },
+    {
+      "id": "ext-err-05",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `token`"
+    },
+    {
+      "id": "ext-err-06",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0609]: no field `count` on type `&anchor_lang::prelude::UncheckedAccount<'_>`"
+    },
+    {
+      "id": "ext-err-07",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-err-08",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-err-09",
+      "category": "error_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-err-10",
+      "category": "error_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-tx-01",
+      "category": "tx_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-tx-02",
+      "category": "tx_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0432]: unresolved import `anchor_lang::solana_program::compute_budget`"
+    },
+    {
+      "id": "ext-tx-03",
+      "category": "tx_advanced",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-tx-04",
+      "category": "tx_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-tx-05",
+      "category": "tx_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-tx-06",
+      "category": "tx_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0432]: unresolved import `solana_program`"
+    },
+    {
+      "id": "ext-tx-07",
+      "category": "tx_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-tx-08",
+      "category": "tx_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0596]: cannot borrow `*nonce_account` as mutable, as it is behind a `&` reference"
+    },
+    {
+      "id": "ext-tx-09",
+      "category": "tx_advanced",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `solana_program`"
+    },
+    {
+      "id": "ext-tx-10",
+      "category": "tx_advanced",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-sec-01",
+      "category": "security",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-sec-02",
+      "category": "security",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0609]: no field `signer` on type `&mut UpdateData<'_>`"
+    },
+    {
+      "id": "ext-sec-03",
+      "category": "security",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-sec-04",
+      "category": "security",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-sec-05",
+      "category": "security",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0599]: no method named `data_len` found for reference `&anchor_lang::prelude::Account<'_, Vault>` in the current "
+    },
+    {
+      "id": "ext-sec-06",
+      "category": "security",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-sec-07",
+      "category": "security",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-sec-08",
+      "category": "security",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-sec-09",
+      "category": "security",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-sec-10",
+      "category": "security",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `data` in this scope"
+    },
+    {
+      "id": "ext-defi-01",
+      "category": "defi",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-defi-02",
+      "category": "defi",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-defi-03",
+      "category": "defi",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-defi-04",
+      "category": "defi",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-defi-05",
+      "category": "defi",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-defi-06",
+      "category": "defi",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-defi-07",
+      "category": "defi",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-defi-08",
+      "category": "defi",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: failed to decode base58 string"
+    },
+    {
+      "id": "ext-defi-09",
+      "category": "defi",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `token`"
+    },
+    {
+      "id": "ext-defi-10",
+      "category": "defi",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-nft-01",
+      "category": "nft_metaplex",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-nft-02",
+      "category": "nft_metaplex",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-nft-03",
+      "category": "nft_metaplex",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: could not find `metadata` in `anchor_spl`"
+    },
+    {
+      "id": "ext-nft-04",
+      "category": "nft_metaplex",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-nft-05",
+      "category": "nft_metaplex",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-nft-06",
+      "category": "nft_metaplex",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0433]: failed to resolve: use of unresolved module or unlinked crate `mpl_token_metadata`"
+    },
+    {
+      "id": "ext-nft-07",
+      "category": "nft_metaplex",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0432]: unresolved import `anchor_spl::metadata`"
+    },
+    {
+      "id": "ext-nft-08",
+      "category": "nft_metaplex",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-nft-09",
+      "category": "nft_metaplex",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-nft-10",
+      "category": "nft_metaplex",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-web3-01",
+      "category": "web3_client",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-web3-02",
+      "category": "web3_client",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-web3-03",
+      "category": "web3_client",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-web3-04",
+      "category": "web3_client",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-web3-05",
+      "category": "web3_client",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-web3-06",
+      "category": "web3_client",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-web3-07",
+      "category": "web3_client",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-web3-08",
+      "category": "web3_client",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-web3-09",
+      "category": "web3_client",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-web3-10",
+      "category": "web3_client",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0308]: mismatched types"
+    },
+    {
+      "id": "ext-test-01",
+      "category": "testing",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-test-02",
+      "category": "testing",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-test-03",
+      "category": "testing",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-test-04",
+      "category": "testing",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-test-05",
+      "category": "testing",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-test-06",
+      "category": "testing",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-test-07",
+      "category": "testing",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: the payer specified for an init constraint must be mutable."
+    },
+    {
+      "id": "ext-test-08",
+      "category": "testing",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error: Expected max_len attribute."
+    },
+    {
+      "id": "ext-test-09",
+      "category": "testing",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-test-10",
+      "category": "testing",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-perf-01",
+      "category": "performance",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-perf-02",
+      "category": "performance",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-perf-03",
+      "category": "performance",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0432]: unresolved import `anchor_spl::address_lookup_table`"
+    },
+    {
+      "id": "ext-perf-04",
+      "category": "performance",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-perf-05",
+      "category": "performance",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `new_len` in this scope"
+    },
+    {
+      "id": "ext-adv-01",
+      "category": "adversarial_extended",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-adv-02",
+      "category": "adversarial_extended",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-adv-03",
+      "category": "adversarial_extended",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-adv-04",
+      "category": "adversarial_extended",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0425]: cannot find value `ID` in this scope"
+    },
+    {
+      "id": "ext-adv-05",
+      "category": "adversarial_extended",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0308]: mismatched types"
+    },
+    {
+      "id": "ext-adv-06",
+      "category": "adversarial_extended",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-adv-07",
+      "category": "adversarial_extended",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-adv-08",
+      "category": "adversarial_extended",
+      "has_code": false,
+      "compiled": false,
+      "reason": "no rust code"
+    },
+    {
+      "id": "ext-adv-09",
+      "category": "adversarial_extended",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "ext-adv-10",
+      "category": "adversarial_extended",
+      "has_code": true,
+      "compiled": false,
+      "reason": "error[E0599]: no method named `load_instruction_at` found for struct `anchor_lang::prelude::UncheckedAccount<'_>` in the"
+    },
+    {
+      "id": "comp-01",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-02",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-03",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-04",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-05",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-06",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-07",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-08",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-09",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-10",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-11",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-12",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-13",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-14",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-15",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-16",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-17",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-18",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-19",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    },
+    {
+      "id": "comp-20",
+      "category": "",
+      "has_code": true,
+      "compiled": true,
+      "reason": "ok"
+    }
+  ]
+}

@@ -90,10 +90,20 @@ def dedup(
         console.print(f"[red]No JSONL files found in {input_dir}[/red]")
         raise typer.Exit(1)
 
+    skipped_files: list[str] = []
     for f in jsonl_files:
-        records = read_jsonl(f)
-        console.print(f"  {f.name}: {len(records)} records")
-        all_records.extend(records)
+        try:
+            records = read_jsonl(f)
+            console.print(f"  {f.name}: {len(records)} records")
+            all_records.extend(records)
+        except (TypeError, KeyError) as exc:
+            # Skip files that aren't in Record format (e.g., raw ChatML SFT variants)
+            # These will be ingested directly by prepare.py from collected/validated dirs
+            skipped_files.append(f.name)
+            console.print(f"  [dim]{f.name}: skipped (not Record format)[/dim]")
+
+    if skipped_files:
+        console.print(f"\n[yellow]Skipped {len(skipped_files)} non-Record files (handled by prepare.py)[/yellow]")
 
     total_before = len(all_records)
     console.print(f"\n[bold]Total records: {total_before}[/bold]")

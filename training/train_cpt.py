@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stage 1: Continued Pre-Training (CPT) on Solana corpus.
 
-Trains Qwen3-Coder-30B-A3B on the full Solana corpus (code, docs, Q&A)
+Trains Qwen3-Coder-8B-Instruct on the full Solana corpus (code, docs, Q&A)
 using causal language modeling. This teaches the model Solana domain knowledge.
 
 Usage:
@@ -31,7 +31,7 @@ from unsloth import FastLanguageModel, UnslothTrainer, UnslothTrainingArguments
 
 @dataclass
 class ModelConfig:
-    model_name: str = field(default="Qwen/Qwen3-Coder-30B-A3B-Instruct")
+    model_name: str = field(default="Qwen/Qwen3-Coder-8B-Instruct")
     max_seq_length: int = field(default=8192)
     load_in_4bit: bool = field(default=True)
     dtype: str = field(default="auto")  # auto, float16, bfloat16
@@ -86,7 +86,7 @@ def main():
     model_cfg, data_cfg, train_cfg = parser.parse_args_into_dataclasses()
 
     print("=" * 60)
-    print("  SLM — Continued Pre-Training (CPT)")
+    print("  Sealevel — Continued Pre-Training (CPT)")
     print("=" * 60)
     print(f"  Model:     {model_cfg.model_name}")
     print(f"  Data:      {data_cfg.data_path}")

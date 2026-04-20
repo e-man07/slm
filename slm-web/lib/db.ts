@@ -1,126 +1,47 @@
 /**
- * Database utilities for Neon Postgres.
- * Uses the native pg-compatible fetch driver via neon serverless.
- * Falls back to no-op in test/build environments where DATABASE_URL is unset.
+ * Database layer — Prisma + Neon Postgres.
+ * Users, API usage tracking, and chat session persistence.
  */
-
 import { generateApiKey } from "./auth"
+import { prisma } from "./prisma"
 
-// ---- Migration SQL ----
-export const MIGRATION_SQL = `
-CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  github_id TEXT UNIQUE NOT NULL,
-  name TEXT NOT NULL DEFAULT '',
-  email TEXT NOT NULL DEFAULT '',
-  api_key TEXT UNIQUE NOT NULL,
-  tier TEXT NOT NULL DEFAULT 'free',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_users_github_id ON users(github_id);
-CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key);
-
-CREATE TABLE IF NOT EXISTS api_usage (
-  id SERIAL PRIMARY KEY,
-  api_key TEXT NOT NULL,
-  endpoint TEXT NOT NULL,
-  tokens_used INTEGER NOT NULL DEFAULT 0,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_api_usage_api_key ON api_usage(api_key);
-CREATE INDEX IF NOT EXISTS idx_api_usage_created_at ON api_usage(created_at);
-`
-
-// ---- Types ----
-export interface User {
-  id: number
-  github_id: string
-  name: string
-  email: string
-  api_key: string
-  tier: string
-  created_at: Date
-}
-
-export interface UsageRecord {
-  id: number
-  api_key: string
-  endpoint: string
-  tokens_used: number
-  created_at: Date
-}
-
-// ---- Database Connection ----
-
-/**
- * Execute a raw SQL query against Neon Postgres.
- * Uses fetch-based Neon serverless driver for edge compatibility.
- */
-export async function query<T = Record<string, unknown>>(
-  sql: string,
-  params: unknown[] = [],
-): Promise<T[]> {
-  const databaseUrl = process.env.DATABASE_URL
-  if (!databaseUrl) {
-    console.warn("DATABASE_URL not set, skipping query")
-    return []
-  }
-
-  // Use neon serverless HTTP query protocol with .query() for parameterized SQL
-  const { neon } = await import("@neondatabase/serverless")
-  const sql_fn = neon(databaseUrl)
-  const result = await sql_fn.query(sql, params)
-  return result as T[]
-}
+// ---- Types (re-exported from Prisma for convenience) ----
+export type { User, ApiUsage, ChatSession, ChatMessage } from "@prisma/client"
 
 // ---- User Management ----
 
 /**
- * Get or create a user by GitHub ID. Generates an API key on first login.
+ * Get or create a user by OAuth provider + id. Generates an API key on first login.
  */
 export async function getOrCreateUser(
-  githubId: string,
+  provider: "github" | "google",
+  providerId: string,
   name: string,
   email: string,
-): Promise<User | null> {
-  // Try to find existing user
-  const existing = await query<User>(
-    "SELECT * FROM users WHERE github_id = $1 LIMIT 1",
-    [githubId],
-  )
+) {
+  const existing = await prisma.user.findUnique({
+    where: { provider_providerId: { provider, providerId } },
+  })
+  if (existing) return existing
 
-  if (existing.length > 0) {
-    return existing[0]
-  }
-
-  // Create new user with a generated API key
-  const apiKey = generateApiKey()
-  const created = await query<User>(
-    `INSERT INTO users (github_id, name, email, api_key, tier)
-     VALUES ($1, $2, $3, $4, 'free')
-     RETURNING *`,
-    [githubId, name, email, apiKey],
-  )
-
-  return created[0] ?? null
+  return prisma.user.create({
+    data: {
+      provider,
+      providerId,
+      name,
+      email,
+      apiKey: generateApiKey(),
+      tier: "free",
+    },
+  })
 }
 
 /**
  * Look up a user by API key.
  */
-export async function getUserByApiKey(apiKey: string): Promise<User | null> {
-  if (!apiKey || !apiKey.startsWith("slm_")) {
-    return null
-  }
-
-  const result = await query<User>(
-    "SELECT * FROM users WHERE api_key = $1 LIMIT 1",
-    [apiKey],
-  )
-
-  return result[0] ?? null
+export async function getUserByApiKey(apiKey: string) {
+  if (!apiKey || !apiKey.startsWith("slm_")) return null
+  return prisma.user.findUnique({ where: { apiKey } })
 }
 
 /**
@@ -131,40 +52,113 @@ export async function logUsage(
   endpoint: string,
   tokensUsed: number,
 ): Promise<void> {
-  await query(
-    `INSERT INTO api_usage (api_key, endpoint, tokens_used)
-     VALUES ($1, $2, $3)`,
-    [apiKey, endpoint, tokensUsed],
-  )
+  await prisma.apiUsage.create({
+    data: { apiKey, endpoint, tokensUsed },
+  })
 }
 
 /**
  * Get usage stats for the last N days.
  */
-export async function getUsageStats(
-  apiKey: string,
-  days: number = 7,
-): Promise<{ date: string; requests: number; tokens: number }[]> {
-  const result = await query<{
-    date: string
-    requests: string
-    tokens: string
-  }>(
-    `SELECT
-       DATE(created_at) as date,
-       COUNT(*) as requests,
-       COALESCE(SUM(tokens_used), 0) as tokens
-     FROM api_usage
-     WHERE api_key = $1
-       AND created_at >= NOW() - INTERVAL '1 day' * $2
-     GROUP BY DATE(created_at)
-     ORDER BY date DESC`,
-    [apiKey, days],
-  )
+export async function getUsageStats(apiKey: string, days = 7) {
+  const since = new Date(Date.now() - days * 86_400_000)
+  const rows = await prisma.apiUsage.findMany({
+    where: { apiKey, createdAt: { gte: since } },
+    select: { createdAt: true, tokensUsed: true },
+  })
 
-  return result.map((r) => ({
-    date: r.date,
-    requests: parseInt(r.requests, 10),
-    tokens: parseInt(r.tokens, 10),
-  }))
+  const byDate = new Map<string, { requests: number; tokens: number }>()
+  for (const r of rows) {
+    const date = r.createdAt.toISOString().slice(0, 10)
+    const entry = byDate.get(date) ?? { requests: 0, tokens: 0 }
+    entry.requests += 1
+    entry.tokens += r.tokensUsed
+    byDate.set(date, entry)
+  }
+
+  return Array.from(byDate.entries())
+    .map(([date, v]) => ({ date, ...v }))
+    .sort((a, b) => b.date.localeCompare(a.date))
+}
+
+// ---- Chat Sessions ----
+
+/**
+ * List chat sessions for a user, most recent first.
+ */
+export async function listChatSessions(userId: number) {
+  return prisma.chatSession.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      createdAt: true,
+      updatedAt: true,
+      _count: { select: { messages: true } },
+    },
+  })
+}
+
+/**
+ * Get a chat session with all its messages.
+ */
+export async function getChatSession(sessionId: string, userId?: number) {
+  const session = await prisma.chatSession.findUnique({
+    where: { id: sessionId },
+    include: { messages: { orderBy: { createdAt: "asc" } } },
+  })
+  if (!session) return null
+  // Ownership check — if userId provided, must match
+  if (userId !== undefined && session.userId !== userId) return null
+  return session
+}
+
+/**
+ * Create a new chat session.
+ */
+export async function createChatSession(userId: number | null, title = "New chat") {
+  return prisma.chatSession.create({
+    data: { userId, title },
+  })
+}
+
+/**
+ * Append a message to a session. Updates session.updatedAt.
+ */
+export async function addChatMessage(
+  sessionId: string,
+  role: "user" | "assistant" | "system",
+  content: string,
+) {
+  const [message] = await prisma.$transaction([
+    prisma.chatMessage.create({
+      data: { sessionId, role, content },
+    }),
+    prisma.chatSession.update({
+      where: { id: sessionId },
+      data: { updatedAt: new Date() },
+    }),
+  ])
+  return message
+}
+
+/**
+ * Rename or delete a session.
+ */
+export async function updateChatSession(
+  sessionId: string,
+  userId: number,
+  title: string,
+) {
+  return prisma.chatSession.updateMany({
+    where: { id: sessionId, userId },
+    data: { title },
+  })
+}
+
+export async function deleteChatSession(sessionId: string, userId: number) {
+  return prisma.chatSession.deleteMany({
+    where: { id: sessionId, userId },
+  })
 }

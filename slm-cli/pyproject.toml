@@ -5,19 +5,46 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "slm-cli"
 version = "0.1.0"
-description = "CLI for SLM - Solana Language Model"
+description = "CLI for Sealevel — the Solana-specialized coding LLM. Chat, generate Anchor programs, review code, decode errors."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
+authors = [
+    {name = "Sealevel Contributors", email = "hi@slm.dev"}
+]
+keywords = ["solana", "anchor", "llm", "ai", "blockchain", "cli", "copilot"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "typer>=0.12.0",
     "httpx>=0.27.0",
     "rich>=13.0.0",
+    "keyring>=24.0.0",
 ]
+
+[project.urls]
+Homepage = "https://slm.dev"
+Documentation = "https://slm.dev/docs"
+Repository = "https://github.com/kshitij-hash/slm"
+Issues = "https://github.com/kshitij-hash/slm/issues"
+Changelog = "https://github.com/kshitij-hash/slm/releases"
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "build>=1.0.0",
+    "twine>=5.0.0",
 ]
 
 [project.scripts]

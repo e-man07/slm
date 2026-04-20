@@ -1,18 +1,54 @@
-"""Configuration management for SLM CLI.
+"""Configuration management for Sealevel CLI.
 
-Stores config in ~/.slm/config.toml (or SLM_CONFIG_DIR env var).
-Uses simple TOML format for human readability.
+Non-secret config lives in ~/.slm/config.toml (or SLM_CONFIG_DIR env var).
+API key is stored in the OS keyring (macOS Keychain, Windows Credential Locker,
+GNOME keyring, KWallet) when `keyring` is installed. Falls back to TOML otherwise.
 """
 import os
 from pathlib import Path
-
-# We avoid tomllib for writing since it's read-only in stdlib.
-# Use a simple key=value format compatible with TOML.
 
 DEFAULT_CONFIG: dict[str, str] = {
     "api_url": "https://slm.dev/api",
     "mode": "quality",
 }
+
+# Key for OS keyring storage
+_KEYRING_SERVICE = "slm-cli"
+_KEYRING_USER = "default"
+_SECRET_KEYS = {"api_key"}
+
+
+def _keyring_available() -> bool:
+    try:
+        import keyring  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
+def _keyring_get() -> str | None:
+    try:
+        import keyring
+        return keyring.get_password(_KEYRING_SERVICE, _KEYRING_USER)
+    except Exception:
+        return None
+
+
+def _keyring_set(value: str) -> bool:
+    try:
+        import keyring
+        keyring.set_password(_KEYRING_SERVICE, _KEYRING_USER, value)
+        return True
+    except Exception:
+        return False
+
+
+def _keyring_delete() -> None:
+    try:
+        import keyring
+        keyring.delete_password(_KEYRING_SERVICE, _KEYRING_USER)
+    except Exception:
+        pass
 
 
 def _get_config_dir(config_dir: str | None = None) -> Path:
@@ -74,13 +110,34 @@ def save_config(data: dict[str, str], config_dir: str | None = None) -> None:
 
 
 def get_value(key: str, config_dir: str | None = None) -> str | None:
-    """Get a single config value."""
+    """Get a single config value. Secrets prefer the OS keyring."""
+    if key in _SECRET_KEYS and _keyring_available():
+        v = _keyring_get()
+        if v:
+            return v
     config = load_config(config_dir)
     return config.get(key)
 
 
 def set_value(key: str, value: str, config_dir: str | None = None) -> None:
-    """Set a single config value and persist to disk."""
+    """Set a single config value. Secrets go to the OS keyring when available."""
+    if key in _SECRET_KEYS and _keyring_available() and _keyring_set(value):
+        # Remove any stale plaintext copy
+        config = load_config(config_dir)
+        if key in config:
+            del config[key]
+            save_config(config, config_dir)
+        return
     config = load_config(config_dir)
     config[key] = value
     save_config(config, config_dir)
+
+
+def clear_value(key: str, config_dir: str | None = None) -> None:
+    """Remove a config value from both keyring and TOML."""
+    if key in _SECRET_KEYS and _keyring_available():
+        _keyring_delete()
+    config = load_config(config_dir)
+    if key in config:
+        del config[key]
+        save_config(config, config_dir)

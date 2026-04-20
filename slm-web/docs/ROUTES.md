@@ -99,7 +99,7 @@ slm-web/
     error-table.json              # Static error lookup (1,914 errors)
 
   public/
-    logo.svg                      # SLM logo/wordmark
+    logo.svg                      # Sealevel logo/wordmark
     og-image.png                  # Social preview
 
   docs/                           # Product documentation (this directory)

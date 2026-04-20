@@ -1,11 +1,11 @@
-# SLM - Solana Language Model
+# Sealevel - Solana Language Model
 
 Expert Solana and Anchor development assistant powered by a fine-tuned language model (87.5% eval score).
 
 ## Available Tools
 
 ### slm_chat
-Ask SLM any question about Solana or Anchor development. Provides accurate, up-to-date guidance using modern Anchor 0.30+ patterns.
+Ask Sealevel any question about Solana or Anchor development. Provides accurate, up-to-date guidance using modern Anchor 0.30+ patterns.
 
 ### slm_decode_error
 Look up any Solana or Anchor error code (decimal or hex). Returns the program name, error name, and human-readable message. Works offline with a bundled error table covering 324+ errors.
@@ -22,8 +22,8 @@ Automatically migrate old Solana/Anchor code to modern Anchor 0.30+ patterns. Ha
 ## Resources
 
 - `solana://errors` - Complete Solana/Anchor error table
-- `solana://eval-results` - SLM model evaluation results
-- `solana://system-prompt` - SLM guardrail rules
+- `solana://eval-results` - Sealevel model evaluation results
+- `solana://system-prompt` - Sealevel guardrail rules
 
 ## Prompts
 
@@ -33,4 +33,4 @@ Automatically migrate old Solana/Anchor code to modern Anchor 0.30+ patterns. Ha
 
 ## Configuration
 
-Set `SLM_API_KEY` environment variable for authenticated access to the SLM API. The decode error and review code tools work fully offline.
+Set `SLM_API_KEY` environment variable for authenticated access to the Sealevel API. The decode error and review code tools work fully offline.
