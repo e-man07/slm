@@ -161,7 +161,7 @@ function ChatPageInner() {
                     <span className="text-muted-foreground">Solana &amp; Anchor</span>.
                   </h2>
                   <p className="mt-3 text-[13px] text-muted-foreground">
-                    Uses the model fine-tuned on 741K Solana records. Streams responses, cites docs, suggests fixes.{" "}
+                    Uses the model fine-tuned on 270K Solana records. Streams responses, cites docs, suggests fixes.{" "}
                     <span className="kbd">&thinsp;&#x2318;K&thinsp;</span> to focus.
                   </p>
                   <div className="mt-8 grid grid-cols-1 border-l border-t border-border sm:grid-cols-2">
