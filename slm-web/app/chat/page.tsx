@@ -172,7 +172,21 @@ function ChatPageInner() {
             ) : (
               <div className="mx-auto flex max-w-[760px] flex-col gap-8">
                 {messages.map((message) => (
-                  <ChatMessage key={message.id} message={message} />
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                    onFeedback={(_, feedback) => {
+                      if (!feedback || message.role !== "assistant" || !message.content) return
+                      fetch("/api/feedback", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          responsePrefix: message.content.slice(0, 100),
+                          signal: feedback,
+                        }),
+                      }).catch(() => {})
+                    }}
+                  />
                 ))}
               </div>
             )}
