@@ -11,10 +11,15 @@ function useSidebarUsage(isAuthenticated: boolean) {
 
   React.useEffect(() => {
     if (!isAuthenticated) return
-    fetch("/api/usage")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setData(d?.today ?? null))
-      .catch(() => setData(null))
+    const fetchUsage = () => {
+      fetch("/api/usage")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => setData(d?.today ?? null))
+        .catch(() => setData(null))
+    }
+    fetchUsage()
+    const interval = setInterval(fetchUsage, 30_000) // refresh every 30s
+    return () => clearInterval(interval)
   }, [isAuthenticated])
 
   return data
@@ -208,8 +213,12 @@ export function ChatSidebar({
               <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2.5">Usage</div>
               <div className="text-[11px] text-muted-foreground leading-[1.8]">
                 <div className="flex justify-between">
-                  <span>Today</span>
-                  <span className="mono-num">{usage?.requests ?? 0} / {tierLimits.requestsPerMin} req/min</span>
+                  <span>Requests today</span>
+                  <span className="mono-num">{usage?.requests ?? 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tokens today</span>
+                  <span className="mono-num">{(usage?.tokens ?? 0).toLocaleString()}</span>
                 </div>
                 <div className="relative my-1.5 h-0.5 bg-muted">
                   <div
@@ -220,9 +229,9 @@ export function ChatSidebar({
                     }}
                   />
                 </div>
-                <div className="flex justify-between">
-                  <span>Tokens</span>
-                  <span className="mono-num">{(usage?.tokens ?? 0).toLocaleString()} / {(tierLimits.tokensPerDay / 1000).toFixed(0)}K</span>
+                <div className="flex justify-between" style={{ fontSize: 10, opacity: 0.6 }}>
+                  <span>Limit</span>
+                  <span className="mono-num">{(tierLimits.tokensPerDay / 1000).toFixed(0)}K tokens/day</span>
                 </div>
               </div>
             </div>

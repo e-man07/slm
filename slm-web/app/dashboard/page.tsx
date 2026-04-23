@@ -96,13 +96,17 @@ function useUsageData(isAuthenticated: boolean) {
 
   React.useEffect(() => {
     if (!isAuthenticated) return
-    setLoading(true)
-    // Session cookie is sent automatically — no Bearer token needed
-    fetch("/api/usage")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setData(d ?? null))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false))
+    const fetchUsage = () => {
+      setLoading(true)
+      fetch("/api/usage")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => setData(d ?? null))
+        .catch(() => setData(null))
+        .finally(() => setLoading(false))
+    }
+    fetchUsage()
+    const interval = setInterval(fetchUsage, 30_000) // refresh every 30s
+    return () => clearInterval(interval)
   }, [isAuthenticated])
 
   return { data, loading }
