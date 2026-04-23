@@ -17,7 +17,7 @@ Use it in your **browser**, **terminal**, **VS Code**, or via **Claude Code / Cu
 
 ### Web
 ```
-https://slm.dev
+https://sealevel.tech
 ```
 
 ### CLI
