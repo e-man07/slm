@@ -1,28 +1,28 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=77.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "slm-cli"
+name = "sealevel"
 version = "0.1.0"
 description = "CLI for Sealevel — the Solana-specialized coding LLM. Chat, generate Anchor programs, review code, decode errors."
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
-    {name = "Sealevel Contributors", email = "hi@slm.dev"}
+    {name = "Sealevel Contributors", email = "hi@sealevel.tech"}
 ]
 keywords = ["solana", "anchor", "llm", "ai", "blockchain", "cli", "copilot"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Code Generators",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -31,27 +31,27 @@ dependencies = [
     "httpx>=0.27.0",
     "rich>=13.0.0",
     "keyring>=24.0.0",
+    "prompt_toolkit>=3.0.0",
 ]
 
 [project.urls]
-Homepage = "https://slm.dev"
-Documentation = "https://slm.dev/docs"
-Repository = "https://github.com/kshitij-hash/slm"
-Issues = "https://github.com/kshitij-hash/slm/issues"
-Changelog = "https://github.com/kshitij-hash/slm/releases"
+Homepage = "https://sealevel.tech"
+Documentation = "https://sealevel.tech/docs"
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "pytest-mock>=3.14.0",
     "build>=1.0.0",
     "twine>=5.0.0",
 ]
 
 [project.scripts]
-slm = "slm_cli.main:app"
+slm = "sealevel_cli.main:app"
 
 [tool.setuptools.packages.find]
-include = ["slm_cli*"]
+include = ["sealevel_cli*"]
+exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

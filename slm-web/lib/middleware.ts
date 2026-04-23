@@ -53,6 +53,36 @@ export async function resolveCallerForUsage(
 }
 
 /**
+ * Resolve the userId from either Bearer token or NextAuth session.
+ * Used by session/key endpoints that need user identity but not full rate limiting.
+ */
+export async function resolveUserId(request: Request): Promise<number | null> {
+  const apiKey = extractApiKey(request)
+  if (apiKey) {
+    try {
+      const user = await getUserByApiKey(apiKey)
+      return user?.id ?? null
+    } catch {
+      return null
+    }
+  }
+
+  try {
+    const { auth } = await import("./auth-next")
+    const sess = await auth()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const user = sess?.user as any
+    if (user?.userId) {
+      return user.userId
+    }
+  } catch {
+    // Session unavailable
+  }
+
+  return null
+}
+
+/**
  * Get the client IP from request headers (supports proxies).
  */
 export function getClientIp(request: Request): string {

@@ -1,6 +1,6 @@
 """Configuration management for Sealevel CLI.
 
-Non-secret config lives in ~/.slm/config.toml (or SLM_CONFIG_DIR env var).
+Non-secret config lives in ~/.sealevel/config.toml (or SEALEVEL_CONFIG_DIR env var).
 API key is stored in the OS keyring (macOS Keychain, Windows Credential Locker,
 GNOME keyring, KWallet) when `keyring` is installed. Falls back to TOML otherwise.
 """
@@ -8,12 +8,12 @@ import os
 from pathlib import Path
 
 DEFAULT_CONFIG: dict[str, str] = {
-    "api_url": "https://api.sealevel.tech",
+    "api_url": "https://www.sealevel.tech",
     "mode": "quality",
 }
 
 # Key for OS keyring storage
-_KEYRING_SERVICE = "slm-cli"
+_KEYRING_SERVICE = "sealevel"
 _KEYRING_USER = "default"
 _SECRET_KEYS = {"api_key"}
 
@@ -55,10 +55,10 @@ def _get_config_dir(config_dir: str | None = None) -> Path:
     """Get the config directory path."""
     if config_dir:
         return Path(config_dir)
-    env_dir = os.environ.get("SLM_CONFIG_DIR")
+    env_dir = os.environ.get("SEALEVEL_CONFIG_DIR")
     if env_dir:
         return Path(env_dir)
-    return Path.home() / ".slm"
+    return Path.home() / ".sealevel"
 
 
 def _config_file(config_dir: str | None = None) -> Path:

@@ -1,125 +1,136 @@
-# slm-cli
+# Sealevel CLI
 
-Command-line interface for [Sealevel](https://slm.dev) — the Solana-specialized coding LLM.
+Command-line interface for [Sealevel](https://sealevel.tech) — the Solana-specialized coding AI.
 
-Chat, generate Anchor programs, review code, migrate to modern patterns, decode errors, and explain transactions — all from your terminal.
+Interactive session with slash commands for chatting, generating Anchor programs, reviewing code, migrating to modern patterns, decoding errors, and explaining transactions.
 
 ## Install
 
 ```bash
-pip install slm-cli
-```
-
-Or from source:
-
-```bash
-git clone https://github.com/kshitij-hash/slm && cd slm/slm-cli
-pip install -e .
+pip install sealevel
 ```
 
 ## Quick Start
 
 ```bash
-# Set your API key (get one at https://slm.dev/dashboard)
+# Set your API key (get one at https://sealevel.tech/dashboard)
 slm config --api-key slm_xxxxxxxxxxxx
 
-# Ask a question
-slm chat "How do I derive a PDA for a user's token account in Anchor?"
-
-# Interactive REPL
-slm chat
+# Start interactive session
+slm
 ```
 
-## Commands
+Inside the session, type to chat or use `/` commands:
 
-### Chat
+```
+❯ How do I derive a PDA in Anchor?
+◆ SEALEVEL
+[streaming response with markdown rendering]
+
+❯ /review src/lib.rs
+◆ REVIEWING  src/lib.rs
+[security + deprecated pattern analysis]
+
+❯ /explain-error 0x1771
+[error decode + fix suggestion]
+
+❯ /gen "escrow with atomic token swap"
+[generates full Anchor program]
+```
+
+## Modes
 
 ```bash
-slm chat "Write an Anchor counter program"       # One-shot
-slm chat                                           # Interactive REPL
+slm                    # Interactive session (default)
+slm -p "prompt"        # One-shot mode — print response and exit
+slm -c                 # Continue most recent session
+slm config --show      # View configuration
 ```
 
-### Generate
-
-Scaffold a new Anchor program from a description:
+### Pipe mode
 
 ```bash
-slm gen "escrow with atomic token swap"
-slm gen "staking vault with time-based rewards" -o programs/stake/src/lib.rs
+slm -p "What is a PDA?"
+cat src/lib.rs | slm -p "review this code"
+echo "0x1771" | slm -p "explain this Solana error"
 ```
 
-### Review
+## Session Commands
 
-Security + deprecated-pattern review of a local file:
+Type `/` to see all commands with live filtering. Type `/help` for the full list.
 
-```bash
-slm review programs/my_program/src/lib.rs
-```
+### Chat & Code
 
-### Migrate
-
-Rewrite old Anchor code to modern 0.30+ patterns (`declare_id!` → `declare_program!`, manual space → `InitSpace`, etc.):
-
-```bash
-slm migrate src/lib.rs            # Show migrated code
-slm migrate src/lib.rs --write    # Overwrite file
-```
-
-### Tests
-
-Generate TypeScript tests for an Anchor program:
-
-```bash
-slm tests programs/counter/src/lib.rs > tests/counter.ts
-```
+| Command | Description |
+|---------|-------------|
+| (plain text) | Chat with Sealevel |
+| `/review <file>` | Review code for security issues |
+| `/migrate <file> [--write]` | Migrate to modern Anchor 0.30+ |
+| `/gen "description" [-o file]` | Generate an Anchor program |
+| `/tests <file>` | Generate TypeScript tests |
 
 ### Explain
 
-```bash
-slm explain --tx 5U3...abc        # Explain a transaction
-slm explain --error 0x1771        # Decode an error code
-```
+| Command | Description |
+|---------|-------------|
+| `/explain-tx <signature>` | Explain a Solana transaction |
+| `/explain-error <code>` | Decode an error code |
 
-### Config
+### Session
+
+| Command | Description |
+|---------|-------------|
+| `/sessions` | List past sessions |
+| `/resume <id>` | Resume a past session |
+| `/rename <name>` | Rename current session |
+| `/compact [N]` | Trim history to last N turns |
+| `/export [file]` | Export session as markdown |
+| `/history` | Show conversation history |
+| `/clear` | Clear conversation |
+
+### System
+
+| Command | Description |
+|---------|-------------|
+| `/status` | Show API health and config |
+| `/usage` | Show token usage and limits |
+| `/copy` | Copy last response to clipboard |
+| `/rotate-key` | Rotate API key |
+| `/config [--show]` | View or set configuration |
+| `/help` | Show all commands |
+| `/exit` | Exit session |
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `/` | Open command dropdown (live filter as you type) |
+| `Tab` | Accept suggestion |
+| `Ctrl+R` | Search input history |
+| `Ctrl+L` | Clear screen |
+| `Ctrl+J` | Newline (multiline input) |
+| `Esc Esc` | Undo last turn |
+| `Ctrl+C` | Cancel current operation |
+| `Ctrl+D` | Exit |
+
+## Configuration
 
 ```bash
 slm config --api-key slm_xxxx     # Set API key
-slm config --api-url https://...  # Custom endpoint (self-hosted)
+slm config --api-url https://...  # Custom endpoint
 slm config --mode quality         # 'quality' or 'fast'
 slm config --show                 # Show current config
 ```
 
-Config is stored at `~/.slm/config.toml`. Override with `SLM_CONFIG_DIR=/path/to/dir`.
+Config stored at `~/.sealevel/config.toml`. API key stored in OS keyring (macOS Keychain / Windows Credential Locker / GNOME Keyring).
 
-## Environment Variables
-
-| Variable | Purpose |
-|---|---|
-| `SLM_CONFIG_DIR` | Config directory (default `~/.slm/`) |
-
-## Examples
-
-### Review a whole crate
-
-```bash
-for f in programs/*/src/lib.rs; do
-  echo "=== $f ==="
-  slm review "$f"
-done
-```
-
-### Generate + save + review
-
-```bash
-slm gen "NFT marketplace with royalties" -o src/lib.rs
-slm review src/lib.rs
-```
+Override config dir: `SEALEVEL_CONFIG_DIR=/path/to/dir`
 
 ## Uninstall
 
 ```bash
-pip uninstall slm-cli
-rm -rf ~/.slm
+pip uninstall sealevel
+rm -rf ~/.sealevel
 ```
 
 ## License
@@ -128,6 +139,5 @@ MIT
 
 ## Links
 
-- [Sealevel web](https://slm.dev)
-- [API docs](https://slm.dev/docs)
-- [GitHub](https://github.com/kshitij-hash/slm)
+- [Sealevel](https://sealevel.tech)
+- [API docs](https://sealevel.tech/docs)

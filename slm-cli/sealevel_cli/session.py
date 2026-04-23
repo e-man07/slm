@@ -1,0 +1,257 @@
+"""Interactive session for Sealevel CLI.
+
+Provides a unified REPL where plain text is chat and /commands invoke tools.
+Uses prompt_toolkit for live autocomplete, multiline input, and status bar.
+"""
+from __future__ import annotations
+
+import shlex
+import time
+from typing import Generator
+
+from prompt_toolkit.formatted_text import HTML
+
+from sealevel_cli.client import (
+    SealevelClient,
+    SealevelError,
+    clean_model_response,
+    fix_anchor_code,
+)
+from sealevel_cli.commands import (
+    SlashCommand,
+    build_command_registry,
+)
+from sealevel_cli.display import (
+    console,
+    print_error,
+    print_info,
+    print_repl_timing,
+    print_response_separator,
+    print_session_header,
+    stream_with_spinner,
+)
+from sealevel_cli.input import (
+    create_prompt_session,
+    make_bottom_toolbar,
+)
+
+
+class Session:
+    """Interactive Sealevel session with chat + slash commands."""
+
+    def __init__(
+        self,
+        client: SealevelClient,
+        session_id: str | None = None,
+        history: list[dict[str, str]] | None = None,
+    ) -> None:
+        self.client = client
+        self.session_id = session_id
+        self.history: list[dict[str, str]] = history or []
+        self.commands = build_command_registry()
+        self.turns = 0
+        self.total_tokens = 0
+
+    def run(self) -> None:
+        """Main REPL loop."""
+        print_session_header()
+        self._create_server_session()
+
+        # Create prompt_toolkit session with live autocomplete
+        prompt_session = create_prompt_session(self.commands)
+
+        while True:
+            try:
+                raw = prompt_session.prompt(
+                    HTML("<prompt>❯ </prompt>"),
+                    bottom_toolbar=lambda: make_bottom_toolbar(self),
+                )
+            except (KeyboardInterrupt, EOFError):
+                self._goodbye()
+                return
+
+            line = raw.strip()
+            if not line:
+                continue
+
+            # Plain text exit commands
+            if line.lower() in ("exit", "quit", "/quit"):
+                self._goodbye()
+                return
+
+            # Undo last turn (Esc+Esc sends "/undo")
+            if line == "/undo":
+                self._undo_last_turn()
+                continue
+
+            if line == "/":
+                self._dispatch_command("/help")
+            elif line.startswith("/"):
+                self._dispatch_command(line)
+            elif line.startswith("slm "):
+                converted = "/" + line[4:]
+                print_info(f"Tip: inside session, use {converted}")
+                self._dispatch_command(converted)
+            elif line in self._bare_command_names():
+                print_info(f"Tip: use /{line}")
+                self._dispatch_command(f"/{line}")
+            else:
+                self._handle_chat(line)
+
+    def _create_server_session(self) -> None:
+        """Create a server-side session (best-effort, non-blocking)."""
+        if self.session_id:
+            return
+        try:
+            info = self.client.create_session()
+            self.session_id = info.get("id")
+        except SealevelError:
+            pass
+
+    def _save_message(self, role: str, content: str) -> None:
+        """Save a message to server (best-effort)."""
+        if not self.session_id:
+            return
+        try:
+            self.client.save_message(self.session_id, role, content)
+        except SealevelError:
+            pass
+
+    def _dispatch_command(self, line: str) -> None:
+        """Parse and execute a slash command."""
+        try:
+            parts = shlex.split(line)
+        except ValueError:
+            parts = line.split()
+
+        name = parts[0]
+        args = parts[1:]
+
+        cmd = self.commands.get(name)
+        if not cmd:
+            matches = [c for c in self.commands if c.startswith(name)]
+            if len(matches) == 1:
+                cmd = self.commands[matches[0]]
+            else:
+                print_error(f"Unknown command: {name}  (type /help)")
+                return
+
+        try:
+            t0 = time.monotonic()
+            result = cmd.handler(args, self)
+            elapsed = time.monotonic() - t0
+
+            if cmd.adds_to_history and result:
+                self.history.append({"role": "user", "content": result.user_msg})
+                self.history.append({"role": "assistant", "content": result.assistant_msg})
+                self._save_message("user", result.user_msg)
+                self._save_message("assistant", result.assistant_msg)
+                self.turns += 1
+                tokens = self._capture_tokens()
+                print_repl_timing(elapsed, tokens)
+            print_response_separator()
+        except SystemExit:
+            self._goodbye()
+            raise
+        except SealevelError as e:
+            print_error(str(e))
+            console.print()
+        except KeyboardInterrupt:
+            console.print("\n[muted](cancelled)[/muted]")
+            console.print()
+
+    def _handle_chat(self, text: str) -> None:
+        """Send plain text as chat with full history."""
+        self.history.append({"role": "user", "content": text})
+        console.print()
+
+        try:
+            t0 = time.monotonic()
+            full = stream_with_spinner(
+                self.client.stream_chat(text, history=self.history[:-1]),
+            )
+            elapsed = time.monotonic() - t0
+            full = fix_anchor_code(clean_model_response(full))
+            self.history.append({"role": "assistant", "content": full})
+            self._save_message("user", text)
+            self._save_message("assistant", full)
+            self.turns += 1
+            tokens = self._capture_tokens()
+            print_repl_timing(elapsed, tokens)
+            print_response_separator()
+        except SealevelError as e:
+            self.history.pop()
+            print_error(str(e))
+            console.print()
+        except KeyboardInterrupt:
+            self.history.pop()
+            console.print("\n[muted](cancelled)[/muted]")
+            console.print()
+
+    def stream_response(self, prompt: str, label: bool = True, render_md: bool = True) -> str | None:
+        """Stream a chat response for a slash command."""
+        try:
+            full = stream_with_spinner(
+                self.client.stream_chat(prompt),
+                label=label,
+                render_md=render_md,
+            )
+            return fix_anchor_code(clean_model_response(full))
+        except SealevelError as e:
+            print_error(str(e))
+            return None
+        except KeyboardInterrupt:
+            console.print("\n[muted](cancelled)[/muted]")
+            return None
+
+    def stream_response_raw(self, chunks: Generator[str, None, None]) -> str | None:
+        """Stream raw chunks (for explain-tx/explain-error)."""
+        try:
+            return stream_with_spinner(chunks)
+        except SealevelError as e:
+            print_error(str(e))
+            return None
+        except KeyboardInterrupt:
+            console.print("\n[muted](cancelled)[/muted]")
+            return None
+
+    def _capture_tokens(self) -> int | None:
+        """Capture token count from last API call."""
+        usage = self.client.last_usage
+        if usage:
+            tokens = usage.get("total_tokens", 0)
+            self.total_tokens += tokens
+            return tokens
+        return None
+
+    def _undo_last_turn(self) -> None:
+        """Remove last user+assistant pair from history."""
+        from sealevel_cli.display import print_success
+        if (
+            len(self.history) >= 2
+            and self.history[-1]["role"] == "assistant"
+            and self.history[-2]["role"] == "user"
+        ):
+            self.history.pop()  # assistant
+            self.history.pop()  # user
+            self.turns = max(0, self.turns - 1)
+            print_success("Undid last turn.")
+        else:
+            print_info("Nothing to undo.")
+
+    @classmethod
+    def from_server(cls, client: SealevelClient, session_id: str) -> "Session":
+        """Load a session from the server."""
+        detail = client.get_session(session_id)
+        messages = detail.get("messages", [])
+        history = [{"role": m["role"], "content": m["content"]} for m in messages]
+        session = cls(client, session_id=session_id, history=history)
+        session.turns = len([m for m in history if m["role"] == "assistant"])
+        return session
+
+    def _bare_command_names(self) -> set[str]:
+        return {name.lstrip("/") for name in self.commands}
+
+    def _goodbye(self) -> None:
+        from sealevel_cli.display import print_repl_goodbye
+        print_repl_goodbye(self.turns)
