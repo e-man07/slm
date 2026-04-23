@@ -54,6 +54,7 @@ export const POST = withRateLimit(async function POST(request: Request) {
               stream: true,
               max_tokens: 1024,
               temperature: 0.0,
+              stream_options: { include_usage: true },
             }),
             signal: AbortSignal.timeout(9000),
           })
