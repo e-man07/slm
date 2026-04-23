@@ -3,8 +3,8 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { lookupError } from "../lib/errors.js";
 
 export const decodeErrorInputSchema = {
-  error_code: z.string().describe("Error code in decimal (e.g. 2003) or hex (e.g. 0x7D3)"),
-  program_id: z.string().optional().describe("Optional program ID to narrow the search"),
+  error_code: z.string().describe("Solana error code in decimal (e.g. 2003, 6000) or hex (e.g. 0x7D3, 0x1771). Found in transaction error messages or program logs"),
+  program_id: z.string().optional().describe("Optional Solana program ID (base58 pubkey) to narrow the search to a specific program's error codes"),
 };
 
 interface DecodeErrorInput {

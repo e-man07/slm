@@ -57,7 +57,7 @@ export function createServer(): McpServer {
   server.registerTool("slm_chat", {
     title: "Sealevel Chat",
     description:
-      "Ask Sealevel (Solana Language Model) a question about Solana or Anchor development",
+      "Ask Sealevel, a Solana-specialized 7B coding LLM, any question about Solana or Anchor development. Use this for: writing Anchor programs, explaining Solana concepts (PDAs, CPIs, SPL tokens, accounts), generating Rust code for on-chain programs, answering Solana architecture questions, and debugging Solana-specific issues. Trained on 270K Solana records from 500+ repos. Enforces modern Anchor 0.30+ patterns. Pass surrounding code as context for better answers.",
     inputSchema: chatInputSchema,
   }, async (args) => {
     return handleChat(args);
@@ -66,7 +66,7 @@ export function createServer(): McpServer {
   server.registerTool("slm_decode_error", {
     title: "Decode Solana Error",
     description:
-      "Look up a Solana/Anchor error code and get the error name, message, and program",
+      "Look up a Solana or Anchor program error code and get the error name, message, and originating program. Accepts decimal (e.g. 2003, 6000) or hex (e.g. 0x7D3, 0x1771) error codes. Covers 1,914 errors across 41 programs including SPL Token, System Program, Anchor framework errors, Metaplex, and more. Use this when you encounter a Solana transaction error, program error code, or need to understand what a specific error means and how to fix it.",
     inputSchema: decodeErrorInputSchema,
   }, async (args) => {
     return handleDecodeError(args);
@@ -75,7 +75,7 @@ export function createServer(): McpServer {
   server.registerTool("slm_explain_tx", {
     title: "Explain Transaction",
     description:
-      "Explain a Solana transaction by its signature — shows what happened and why",
+      "Explain a Solana transaction by its signature in human-readable terms. Fetches on-chain data (instructions, token transfers, SOL transfers, fee, accounts involved) and provides an AI-generated explanation of what the transaction did and why. Use this when you have a transaction signature and need to understand its purpose, debug a failed transaction, or analyze on-chain activity.",
     inputSchema: explainTxInputSchema,
   }, async (args) => {
     return handleExplainTx(args);
@@ -84,7 +84,7 @@ export function createServer(): McpServer {
   server.registerTool("slm_migrate_code", {
     title: "Migrate Anchor Code",
     description:
-      "Migrate old Solana/Anchor code to modern Anchor 0.30+ patterns",
+      "Migrate old Solana/Anchor code to modern Anchor 0.30+ patterns. Handles: declare_id! to declare_program!, coral-xyz to solana-foundation imports, ctx.bumps.get() to ctx.bumps.name, removing unnecessary lifetimes on #[account] structs, ProgramResult to Result<()>, and other deprecated patterns. Pass the full Rust source code (up to 64KB) and get back the migrated version.",
     inputSchema: migrateCodeInputSchema,
   }, async (args) => {
     return handleMigrateCode(args);
@@ -93,7 +93,7 @@ export function createServer(): McpServer {
   server.registerTool("slm_review_code", {
     title: "Review Solana Code",
     description:
-      "Review Solana/Anchor code for deprecated patterns and common mistakes",
+      "Review Solana/Anchor Rust code for deprecated patterns, security issues, and common mistakes. Checks for: deprecated declare_id! macro, old coral-xyz/project-serum imports, missing signer/owner checks, unsafe arithmetic, PDA seed collisions, missing close constraints, reentrancy anti-patterns, and other Solana-specific issues. Returns a list of findings with line references and suggested fixes. Pass up to 64KB of Rust code.",
     inputSchema: reviewCodeInputSchema,
   }, async (args) => {
     return handleReviewCode(args);
@@ -143,7 +143,6 @@ if (isDirectRun) {
   if (mode === "http") {
     // HTTP transport — for remote deployment (GCP, Akash, etc.)
     const port = parseInt(process.env.PORT ?? "8080", 10);
-    const server = createServer();
 
     const ALLOWED_ORIGINS = new Set([
       "https://sealevel.tech",
@@ -177,12 +176,13 @@ if (isDirectRun) {
         return;
       }
 
-      // MCP endpoint — extract user's Bearer token and pass through to API calls
+      // MCP endpoint — create a fresh server per request, extract user's Bearer token
       if (req.url === "/mcp" || req.url === "/") {
         const authHeader = req.headers.authorization ?? "";
         const authToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
 
         await requestContext.run({ authToken }, async () => {
+          const server = createServer();
           const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
           res.on("close", () => { transport.close(); });
           await server.connect(transport);

@@ -185,26 +185,37 @@ slm explain --error 0x1771`}
     slug: "mcp",
     label: "MCP Server",
     section: "Clients",
-    description: "Use SLM from Claude Code, Cursor, Windsurf, or Claude Desktop via Model Context Protocol.",
+    description: "Use Sealevel from Claude Code, Cursor, Windsurf, or Codex via Model Context Protocol.",
     content: (
       <>
+        <section>
+          <h2>Prerequisites</h2>
+          <p>
+            You need a Sealevel API key. <a href="/sign-in">Sign in</a>, then generate one from the{" "}
+            <a href="/dashboard">Dashboard</a>.
+          </p>
+        </section>
         <section>
           <h2>Add to Claude Code</h2>
           <CodeBlock
             language="bash"
-            code={`claude mcp add --transport http sealevel https://mcp.sealevel.tech/mcp  # hosted endpoint coming soon`}
+            code={`claude mcp add --transport http sealevel https://mcp.sealevel.tech/mcp \\
+  --header "Authorization: Bearer slm_YOUR_KEY"`}
           />
-          <p>That&apos;s it — no npm install, no config file. Claude Code picks it up immediately.</p>
+          <p>Replace <code>slm_YOUR_KEY</code> with your API key. Claude Code picks it up immediately.</p>
         </section>
         <section>
           <h2>Add to Cursor</h2>
-          <p>In Cursor Settings → MCP Servers, add:</p>
+          <p>Open Cursor Settings → MCP Servers, add:</p>
           <CodeBlock
             language="json"
             code={`{
   "mcpServers": {
     "sealevel": {
-      "url": "https://mcp.sealevel.tech/mcp"
+      "url": "https://mcp.sealevel.tech/mcp",
+      "headers": {
+        "Authorization": "Bearer slm_YOUR_KEY"
+      }
     }
   }
 }`}
@@ -212,31 +223,15 @@ slm explain --error 0x1771`}
         </section>
         <section>
           <h2>Add to Windsurf</h2>
-          <p>In Windsurf Settings → MCP, add the same config:</p>
+          <p>Open Windsurf Settings → MCP, add:</p>
           <CodeBlock
             language="json"
             code={`{
   "mcpServers": {
     "sealevel": {
-      "url": "https://mcp.sealevel.tech/mcp"
-    }
-  }
-}`}
-          />
-        </section>
-        <section>
-          <h2>Add to Claude Desktop</h2>
-          <p>Edit <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%/Claude/claude_desktop_config.json</code> (Windows):</p>
-          <CodeBlock
-            language="json"
-            code={`{
-  "mcpServers": {
-    "sealevel": {
-      "command": "npx",
-      "args": ["@slm/mcp"],
-      "env": {
-        "SLM_API_URL": "https://api.sealevel.tech",
-        "SLM_API_KEY": "slm_YOUR_KEY"
+      "url": "https://mcp.sealevel.tech/mcp",
+      "headers": {
+        "Authorization": "Bearer slm_YOUR_KEY"
       }
     }
   }
@@ -245,37 +240,15 @@ slm explain --error 0x1771`}
         </section>
         <section>
           <h2>Add to OpenAI Codex</h2>
-          <p>In your project&apos;s <code>codex.json</code> or via the Codex CLI:</p>
+          <p>Add to your project&apos;s <code>.codex/config.json</code>:</p>
           <CodeBlock
             language="json"
             code={`{
   "mcpServers": {
     "sealevel": {
-      "url": "https://mcp.sealevel.tech/mcp"
-    }
-  }
-}`}
-          />
-        </section>
-        <section>
-          <h2>Local / stdio install</h2>
-          <p>For offline work or custom deployments:</p>
-          <CodeBlock
-            language="bash"
-            code={`npm install -g @slm/mcp  # npm publish coming soon — install from source:
-# git clone https://github.com/e-man07/slm && cd slm/slm-mcp && npm install && npm run build`}
-          />
-          <p>Then in <code>~/.claude/settings.json</code>:</p>
-          <CodeBlock
-            language="json"
-            code={`{
-  "mcpServers": {
-    "slm": {
-      "command": "npx",
-      "args": ["@slm/mcp"],
-      "env": {
-        "SLM_API_URL": "https://api.sealevel.tech",
-        "SLM_API_KEY": "slm_YOUR_KEY"
+      "url": "https://mcp.sealevel.tech/mcp",
+      "headers": {
+        "Authorization": "Bearer slm_YOUR_KEY"
       }
     }
   }

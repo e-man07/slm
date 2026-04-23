@@ -5,7 +5,7 @@ import { callExplainTx } from "../lib/api-client.js";
 export const explainTxInputSchema = {
   signature: z
     .string()
-    .describe("Solana transaction signature to explain"),
+    .describe("Solana transaction signature (base58 string, typically 87-88 characters). Example: '5U3..abc'. Found in explorer URLs, wallet history, or program logs"),
 };
 
 interface ExplainTxInput {
