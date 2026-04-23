@@ -387,9 +387,9 @@ export default function DashboardPage() {
               <CardHead title="Your limits" right="free plan" />
               <div className="grid grid-cols-2">
                 <div style={{ borderRight: "1px solid var(--border)" }}>
-                  <MeterBar value={totalReqs7d > 0 ? todayReqs : 0} max={Math.max(todayReqs, 1)} label="Requests today" />
+                  <MeterBar value={todayReqs} max={tierLimits.requestsPerMin * 1440} label="Requests today" />
                   <p style={{ padding: "0 20px 14px", fontSize: 10, color: "var(--muted-foreground)" }}>
-                    Rate limit: {tierLimits.requestsPerMin} req/min
+                    Rate limit: {tierLimits.requestsPerMin} req/min ({fmtNum(tierLimits.requestsPerMin * 1440)}/day max)
                   </p>
                 </div>
                 <div>
