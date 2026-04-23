@@ -1,6 +1,6 @@
 import { SYSTEM_PROMPT, API_URLS, MAX_TOKENS_CAP, MAX_MESSAGES, MAX_MESSAGE_LENGTH } from "@/lib/constants"
 import { withRateLimit } from "@/lib/middleware"
-import { logUsage } from "@/lib/db"
+import { logUsage, logInteraction } from "@/lib/db"
 
 async function fetchRAGContext(query: string): Promise<string> {
   try {
@@ -21,6 +21,14 @@ async function fetchRAGContext(query: string): Promise<string> {
     // RAG is optional — if it fails, proceed without context
   }
   return ""
+}
+
+function detectSource(callerSource: "web" | "api", request: Request): "web" | "mcp" | "cli" {
+  if (callerSource === "web") return "web"
+  const hint = request.headers.get("x-slm-source")
+  if (hint === "mcp") return "mcp"
+  if (hint === "cli") return "cli"
+  return "cli"
 }
 
 export const POST = withRateLimit(async function POST(request: Request) {
@@ -118,6 +126,9 @@ export const POST = withRateLimit(async function POST(request: Request) {
           const reader = sniffStream.getReader()
           const decoder = new TextDecoder()
           let buffer = ""
+          let fullResponse = ""
+          let usageData: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null = null
+
           while (true) {
             const { done, value } = await reader.read()
             if (done) break
@@ -128,15 +139,29 @@ export const POST = withRateLimit(async function POST(request: Request) {
               if (!line.startsWith("data: ") || line.endsWith("[DONE]")) continue
               try {
                 const chunk = JSON.parse(line.slice(6))
-                const usage = chunk?.usage
-                if (usage?.total_tokens) {
-                  await recordUsage(usage.total_tokens)
-                  return
-                }
+                const delta = chunk?.choices?.[0]?.delta?.content
+                if (delta) fullResponse += delta
+                if (chunk?.usage?.total_tokens) usageData = chunk.usage
               } catch {
                 // Ignore malformed chunks
               }
             }
+          }
+
+          if (usageData?.total_tokens) await recordUsage(usageData.total_tokens)
+
+          // Log interaction for retraining data collection
+          if (fullResponse && caller.userId) {
+            logInteraction({
+              userId: caller.userId,
+              source: detectSource(caller.source, request),
+              promptMessages: JSON.stringify(messages),
+              response: fullResponse,
+              promptTokens: usageData?.prompt_tokens ?? 0,
+              completionTokens: usageData?.completion_tokens ?? 0,
+              totalTokens: usageData?.total_tokens ?? 0,
+              ragContext: ragContext || null,
+            }).catch(() => {})
           }
         } catch {
           // Sniffer errors are non-fatal
@@ -155,6 +180,20 @@ export const POST = withRateLimit(async function POST(request: Request) {
     const data = await response.json()
     if (data?.usage?.total_tokens) {
       void recordUsage(data.usage.total_tokens)
+    }
+    // Log interaction for non-streaming responses
+    const assistantContent = data?.choices?.[0]?.message?.content ?? ""
+    if (assistantContent && caller.userId) {
+      logInteraction({
+        userId: caller.userId,
+        source: detectSource(caller.source, request),
+        promptMessages: JSON.stringify(messages),
+        response: assistantContent,
+        promptTokens: data?.usage?.prompt_tokens ?? 0,
+        completionTokens: data?.usage?.completion_tokens ?? 0,
+        totalTokens: data?.usage?.total_tokens ?? 0,
+        ragContext: ragContext || null,
+      }).catch(() => {})
     }
     return Response.json(data)
   } catch (error) {

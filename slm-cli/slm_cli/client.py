@@ -120,6 +120,7 @@ class SLMClient:
         """Build request headers, optionally including auth."""
         headers: dict[str, str] = {
             "Content-Type": "application/json",
+            "X-SLM-Source": "cli",
         }
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"

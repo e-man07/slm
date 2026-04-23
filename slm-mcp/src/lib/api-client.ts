@@ -46,6 +46,7 @@ function fixAnchorCode(code: string): string {
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "X-SLM-Source": "mcp",
   };
   const apiKey = getRequestApiKey();
   if (apiKey) {

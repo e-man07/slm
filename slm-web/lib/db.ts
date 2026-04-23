@@ -104,6 +104,46 @@ export async function getTodayTokensByUserId(userId: number): Promise<number> {
 }
 
 /**
+ * Log a full prompt-response interaction for retraining data collection.
+ */
+export async function logInteraction(data: {
+  userId: number | null
+  source: string
+  promptMessages: string
+  response: string
+  promptTokens?: number
+  completionTokens?: number
+  totalTokens?: number
+  ragContext?: string | null
+}): Promise<string | null> {
+  if (!data.userId) return null
+  const row = await prisma.interaction.create({
+    data: {
+      userId: data.userId,
+      source: data.source,
+      promptMessages: data.promptMessages,
+      response: data.response,
+      promptTokens: data.promptTokens ?? 0,
+      completionTokens: data.completionTokens ?? 0,
+      totalTokens: data.totalTokens ?? 0,
+      ragContext: data.ragContext ?? null,
+    },
+  })
+  return row.id
+}
+
+/**
+ * Save feedback (thumbs up/down) for an interaction.
+ */
+export async function saveFeedback(interactionId: string, signal: "up" | "down") {
+  return prisma.feedback.upsert({
+    where: { interactionId },
+    update: { signal },
+    create: { interactionId, signal },
+  })
+}
+
+/**
  * Get usage stats for the last N days, queried by userId.
  */
 export async function getUsageStats(userId: number, days = 7) {

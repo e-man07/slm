@@ -18,8 +18,10 @@ model User {
   apiKey     String?       @unique @map("api_key")
   tier       String        @default("free")
   createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  trainingConsent Boolean @default(true) @map("training_consent")
   usage      ApiUsage[]
   sessions   ChatSession[]
+  interactions Interaction[]
 
   @@unique([provider, providerId])
   @@index([provider, providerId])
@@ -68,4 +70,34 @@ model ChatMessage {
   @@index([sessionId])
   @@index([createdAt])
   @@map("chat_messages")
+}
+
+model Interaction {
+  id               String    @id @default(cuid())
+  userId           Int?      @map("user_id")
+  source           String    // "web" | "mcp" | "cli"
+  promptMessages   String    @map("prompt_messages") @db.Text // JSON array of {role, content}
+  response         String    @db.Text
+  promptTokens     Int       @default(0) @map("prompt_tokens")
+  completionTokens Int       @default(0) @map("completion_tokens")
+  totalTokens      Int       @default(0) @map("total_tokens")
+  ragContext       String?   @map("rag_context") @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  user             User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  feedback         Feedback?
+
+  @@index([userId])
+  @@index([source])
+  @@index([createdAt])
+  @@map("interactions")
+}
+
+model Feedback {
+  id            String      @id @default(cuid())
+  interactionId String      @unique @map("interaction_id")
+  signal        String      // "up" | "down"
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  interaction   Interaction @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+
+  @@map("feedback")
 }
