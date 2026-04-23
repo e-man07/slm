@@ -19,7 +19,7 @@ import typer
 from rich.console import Console
 
 from slm_cli import __version__
-from slm_cli.client import SLMClient
+from slm_cli.client import SLMClient, clean_model_response, fix_anchor_code
 from slm_cli.config import get_value, load_config, set_value
 from slm_cli.display import (
     console,
@@ -29,6 +29,22 @@ from slm_cli.display import (
     print_markdown,
     print_streaming,
 )
+
+
+def _validate_file_path(file_path: str) -> str:
+    """Resolve and validate a file path. Reject path traversal and sensitive files."""
+    resolved = os.path.realpath(file_path)
+    if not os.path.isfile(resolved):
+        console.print(f"[red]File not found: {file_path}[/red]")
+        raise typer.Exit(code=1)
+    if os.path.getsize(resolved) > 1_000_000:
+        console.print(f"[red]File too large (max 1MB): {file_path}[/red]")
+        raise typer.Exit(code=1)
+    basename = os.path.basename(resolved).lower()
+    if basename in {'.env', '.env.local', 'credentials.json', 'id_rsa', 'id_ed25519', '.netrc'}:
+        console.print(f"[red]Cannot read sensitive file: {basename}[/red]")
+        raise typer.Exit(code=1)
+    return resolved
 
 
 def _version_callback(value: bool) -> None:
@@ -66,7 +82,7 @@ def _make_client() -> SLMClient:
     """Create an SLMClient from stored config."""
     config_dir = _get_config_dir()
     api_key = get_value("api_key", config_dir=config_dir)
-    api_url = get_value("api_url", config_dir=config_dir) or "https://slm.dev/api"
+    api_url = get_value("api_url", config_dir=config_dir) or "https://api.sealevel.tech"
     return SLMClient(base_url=api_url, api_key=api_key)
 
 
@@ -91,7 +107,7 @@ def chat(
                 chunks: list[str] = []
                 for chunk in client.stream_chat(prompt):
                     chunks.append(chunk)
-                content = "".join(chunks)
+                content = fix_anchor_code(clean_model_response("".join(chunks)))
                 sys.stdout.write(_json.dumps({"prompt": prompt, "content": content}) + "\n")
                 sys.stdout.flush()
             else:
@@ -122,6 +138,7 @@ def chat(
                     print_streaming(chunk)
                     full_response += chunk
                 print_done()
+                full_response = fix_anchor_code(clean_model_response(full_response))
                 history.append({"role": "assistant", "content": full_response})
                 console.print()
             except (KeyboardInterrupt, EOFError):
@@ -175,12 +192,9 @@ def review(
     """Review a local Solana/Anchor file for security issues and deprecated patterns."""
     client = _make_client()
 
-    try:
-        with open(file, "r") as f:
-            code = f.read()
-    except FileNotFoundError:
-        console.print(f"[red]File not found:[/red] {file}")
-        raise typer.Exit(code=1)
+    validated = _validate_file_path(file)
+    with open(validated, "r") as f:
+        code = f.read()
 
     prompt = (
         f"Review this Solana/Anchor code for security issues, deprecated patterns, "
@@ -207,12 +221,9 @@ def migrate(
     """Migrate old Anchor code to modern Anchor 0.30+ patterns."""
     client = _make_client()
 
-    try:
-        with open(file, "r") as f:
-            code = f.read()
-    except FileNotFoundError:
-        console.print(f"[red]File not found:[/red] {file}")
-        raise typer.Exit(code=1)
+    validated = _validate_file_path(file)
+    with open(validated, "r") as f:
+        code = f.read()
 
     prompt = (
         "Migrate this Solana/Anchor code to modern Anchor 0.30+ patterns. "
@@ -229,6 +240,8 @@ def migrate(
                 print_streaming(chunk)
             full += chunk
         print_done()
+
+        full = fix_anchor_code(clean_model_response(full))
 
         if write:
             # Extract code from ```rust block
@@ -254,6 +267,12 @@ def gen(
     """Generate a new Anchor program from a description."""
     client = _make_client()
 
+    if output:
+        output_dir = os.path.dirname(os.path.realpath(output)) or "."
+        if not os.path.isdir(output_dir):
+            console.print(f"[red]Output directory does not exist: {output_dir}[/red]")
+            raise typer.Exit(code=1)
+
     prompt = (
         f"Write a complete, production-ready Anchor program for: {description}. "
         "Use modern Anchor 0.30+ patterns. Include all necessary accounts, instructions, and account structs. "
@@ -267,6 +286,8 @@ def gen(
                 print_streaming(chunk)
             full += chunk
         print_done()
+
+        full = fix_anchor_code(clean_model_response(full))
 
         if output:
             import re
@@ -287,12 +308,9 @@ def tests(
     """Generate TypeScript tests for an Anchor program."""
     client = _make_client()
 
-    try:
-        with open(file, "r") as f:
-            code = f.read()
-    except FileNotFoundError:
-        console.print(f"[red]File not found:[/red] {file}")
-        raise typer.Exit(code=1)
+    validated = _validate_file_path(file)
+    with open(validated, "r") as f:
+        code = f.read()
 
     prompt = (
         "Write comprehensive TypeScript tests using @coral-xyz/anchor and mocha for this Anchor program. "
@@ -347,6 +365,9 @@ def config(
         return
 
     if api_key:
+        if not api_key.startswith("slm_") or len(api_key) < 16:
+            console.print("[red]Invalid API key format. Keys must start with 'slm_' and be at least 16 characters.[/red]")
+            raise typer.Exit(code=1)
         set_value("api_key", api_key, config_dir=config_dir)
         console.print(f"API key saved: {api_key[:8]}...{api_key[-4:]}")
 

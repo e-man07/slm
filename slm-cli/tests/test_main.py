@@ -37,6 +37,6 @@ def test_config_set_api_key():
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as tmpdir:
         env = {**os.environ, "SLM_CONFIG_DIR": tmpdir}
-        result = runner.invoke(app, ["config", "--api-key", "slm_test999"], env=env)
+        result = runner.invoke(app, ["config", "--api-key", "slm_test999abcdef1234"], env=env)
         assert result.exit_code == 0
-        assert "saved" in result.stdout.lower() or "set" in result.stdout.lower() or "slm_test999" in result.stdout
+        assert "saved" in result.stdout.lower() or "set" in result.stdout.lower() or "slm_test999abcdef1234" in result.stdout

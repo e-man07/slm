@@ -122,8 +122,127 @@
     }
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
     }
   html {
     @apply font-mono;
+    font-size: 14px;
     }
+  ::selection {
+    background: var(--chart-1);
+    color: var(--background);
+    }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.01em;
+    }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 22%); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
 }
+
+/* ---- DESIGN SYSTEM: olive-mono ---- */
+
+/* Accent color (chartreuse) - maps to chart-1 */
+:root {
+  --slm-accent: oklch(0.648 0.2 131.684);
+  --slm-accent-2: oklch(0.532 0.157 131.589);
+  --slm-accent-dim: oklch(0.453 0.124 130.933);
+  --slm-terminal-bg: oklch(0.97 0.003 106.5);
+  --slm-border: oklch(0 0 0 / 12%);
+  --slm-border-strong: oklch(0 0 0 / 22%);
+}
+.dark {
+  --slm-accent: oklch(0.897 0.196 126.665);
+  --slm-accent-2: oklch(0.768 0.233 130.85);
+  --slm-accent-dim: oklch(0.648 0.2 131.684);
+  --slm-terminal-bg: oklch(0.11 0.005 107);
+  --slm-border: oklch(1 0 0 / 12%);
+  --slm-border-strong: oklch(1 0 0 / 22%);
+}
+
+/* All custom utility classes MUST be in @layer utilities for Tailwind v4 specificity */
+@layer utilities {
+  .slm-accent { color: var(--slm-accent) !important; }
+  .slm-accent-2 { color: var(--slm-accent-2) !important; }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    margin-bottom: 20px;
+  }
+
+  .mono-num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: 500;
+    background: var(--muted);
+    border: 1px solid var(--slm-border-strong);
+    color: var(--muted-foreground);
+  }
+
+  .cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--slm-accent);
+    vertical-align: text-bottom;
+    animation: blink 1s steps(1) infinite;
+    margin-left: 2px;
+  }
+
+  .terminal-bg {
+    background: var(--slm-terminal-bg) !important;
+  }
+
+  /* Terminal syntax coloring */
+  .t-prompt { color: var(--slm-accent) !important; margin-right: 8px; }
+  .t-muted { color: oklch(0.6 0.02 107) !important; }
+  .t-key { color: oklch(0.85 0.08 80) !important; }
+  .t-str { color: oklch(0.85 0.14 140) !important; }
+  .t-comment { color: oklch(0.5 0.02 107) !important; }
+}
+
+/* Pseudo-elements and child selectors need to be outside @layer for specificity */
+.eyebrow::before {
+  content: "";
+  width: 20px;
+  height: 1px;
+  background: currentColor;
+}
+
+.section-label .idx {
+  color: var(--slm-accent);
+  font-weight: 600;
+}
+.section-label .line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }

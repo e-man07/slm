@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
 interface FooterProps {
@@ -10,26 +9,38 @@ export function Footer({ className }: FooterProps) {
   return (
     <footer
       data-slot="footer"
-      className={cn("border-t border-border py-8", className)}
+      className={cn("py-8 text-xs text-muted-foreground", className)}
     >
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 text-sm text-muted-foreground md:flex-row md:justify-between">
-        <span>Built for Solana</span>
-        <span>Powered by Solana Foundation</span>
-        <div className="flex items-center gap-4">
+      <div className="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-4 px-6">
+        <div>
+          Built for Solana &middot;{" "}
+          <span className="text-foreground">MIT</span>
+        </div>
+        <div className="inline-flex items-center gap-1">
+          <span className="inline-block size-1 bg-current" />
+          <span className="inline-block size-1 bg-current" />
+          <span className="inline-block size-1 bg-current" />
+        </div>
+        <div className="flex items-center gap-1">
           <a
             href="https://github.com/kshitij-hash/slm"
             target="_blank"
             rel="noopener noreferrer"
             className="transition-colors hover:text-foreground"
           >
-            GitHub
+            github
           </a>
-          <Separator orientation="vertical" className="h-4" />
-          <Link
-            href="/docs"
-            className="transition-colors hover:text-foreground"
-          >
-            Docs
+          <span className="opacity-40">/</span>
+          <Link href="/docs" className="transition-colors hover:text-foreground">
+            docs
+          </Link>
+          <span className="opacity-40">/</span>
+          <Link href="/eval" className="transition-colors hover:text-foreground">
+            dataset card
+          </Link>
+          <span className="opacity-40">/</span>
+          <Link href="/eval" className="transition-colors hover:text-foreground">
+            model card
           </Link>
         </div>
       </div>

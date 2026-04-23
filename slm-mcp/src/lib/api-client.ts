@@ -1,10 +1,53 @@
 import { API_BASE_URL } from "./constants.js";
+import { getRequestApiKey } from "./request-context.js";
+
+/**
+ * Clean deprecated Solana/Anchor patterns from model responses.
+ * Applied as a post-processing step before returning to MCP clients.
+ */
+function cleanModelResponse(text: string): string {
+  return text
+    // Remove declare_id!("..."); lines entirely
+    .replace(/^\s*declare_id!\s*\(\s*"[^"]*"\s*\)\s*;?\s*$/gm, "// Program ID is set in Anchor.toml")
+    // Replace text mentions of declare_id! with declare_program!
+    .replace(/declare_id!/g, "declare_program!")
+    // Replace old GitHub org references
+    .replace(/coral-xyz\/anchor/g, "solana-foundation/anchor")
+    .replace(/project-serum\/anchor/g, "solana-foundation/anchor")
+    // Replace deprecated ProgramResult
+    .replace(/ProgramResult/g, "Result<()>")
+    // Replace deprecated #[error] with #[error_code]
+    .replace(/#\[error\]\n/g, "#[error_code]\n");
+}
+
+/**
+ * Fix common Anchor compilation issues in model output.
+ * Applied as a post-processing step after cleanModelResponse.
+ */
+function fixAnchorCode(code: string): string {
+  // Fix ctx.bumps.get("name") → ctx.bumps.name
+  code = code.replace(/ctx\.bumps\.get\(\s*"(\w+)"\s*\)\.?unwrap\(\)/g, 'ctx.bumps.$1');
+  code = code.replace(/ctx\.bumps\.get\(\s*"(\w+)"\s*\)/g, 'ctx.bumps.$1');
+
+  // Fix crate:: imports
+  code = code.replace(/use crate::[^;]+;\n?/g, '');
+  code = code.replace(/crate::\w+::/g, '');
+
+  // Fix lifetime on #[account] structs
+  code = code.replace(/(#\[account\])\s*pub struct (\w+)<'info>/g, '$1\npub struct $2');
+  code = code.replace(/(#\[account\])\s*pub struct (\w+)<'\w+>/g, '$1\npub struct $2');
+
+  // Fix lifetime on error enums
+  code = code.replace(/pub enum (\w+)<'\w+>/g, 'pub enum $1');
+
+  return code;
+}
 
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const apiKey = process.env.SLM_API_KEY;
+  const apiKey = getRequestApiKey();
   if (apiKey) {
     headers["Authorization"] = `Bearer ${apiKey}`;
   }
@@ -18,9 +61,8 @@ function getBaseUrl(): string {
 async function assertOk(response: Response, context: string): Promise<void> {
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    throw new Error(
-      `Sealevel API error (${context}): ${response.status} ${response.statusText}${body ? ` - ${body}` : ""}`,
-    );
+    console.error(`API error (${context}): ${response.status} ${body}`);
+    throw new Error(`Sealevel API error: ${response.status} ${response.statusText}`);
   }
 }
 
@@ -41,6 +83,7 @@ export async function callChat(
       max_tokens: 1024,
       temperature: 0.0,
     }),
+    signal: AbortSignal.timeout(30000),
   });
 
   await assertOk(response, "chat");
@@ -48,7 +91,8 @@ export async function callChat(
     choices?: Array<{ message: { content: string } }>;
     text?: string;
   };
-  return data.choices?.[0]?.message?.content ?? data.text ?? "";
+  const raw = data.choices?.[0]?.message?.content ?? data.text ?? "";
+  return fixAnchorCode(cleanModelResponse(raw));
 }
 
 export async function callExplainTx(
@@ -58,6 +102,7 @@ export async function callExplainTx(
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify({ signature }),
+    signal: AbortSignal.timeout(30000),
   });
 
   await assertOk(response, "explain/tx");
@@ -65,7 +110,7 @@ export async function callExplainTx(
     txData: unknown;
     explanation: string;
   };
-  return data;
+  return { ...data, explanation: fixAnchorCode(cleanModelResponse(data.explanation)) };
 }
 
 export async function callDecodeError(
@@ -81,6 +126,7 @@ export async function callDecodeError(
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30000),
   });
 
   await assertOk(response, "explain/error");
@@ -88,5 +134,5 @@ export async function callDecodeError(
     lookup: unknown;
     explanation: string;
   };
-  return data;
+  return { ...data, explanation: fixAnchorCode(cleanModelResponse(data.explanation)) };
 }

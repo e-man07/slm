@@ -3,7 +3,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { DEPRECATED_PATTERNS } from "../lib/constants.js";
 
 export const reviewCodeInputSchema = {
-  code: z.string().describe("Solana/Anchor code to review for deprecated patterns"),
+  code: z.string().max(64000).describe("Solana/Anchor code to review for deprecated patterns"),
 };
 
 interface ReviewCodeInput {

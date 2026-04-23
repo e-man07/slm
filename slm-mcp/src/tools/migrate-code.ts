@@ -5,6 +5,7 @@ import { callChat } from "../lib/api-client.js";
 export const migrateCodeInputSchema = {
   code: z
     .string()
+    .max(64000)
     .describe("Solana/Anchor code to migrate to modern patterns"),
 };
 

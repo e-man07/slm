@@ -689,5 +689,89 @@ async def reingest():
     return {"status": "ok", "points": info.points_count}
 
 
+# ── Inference Proxy with declare_id! cleanup ──────────────────────────────────
+
+SGLANG_URL = os.environ.get("SGLANG_URL", "http://inference:30000/v1")
+
+SYSTEM_PROMPT = (
+    "You are Sealevel, an expert Solana and Anchor development assistant. "
+    "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ "
+    "patterns (solana-foundation/anchor, InitSpace, ctx.bumps.field_name). "
+    "When uncertain, say so rather than guessing. Never suggest reentrancy "
+    "guards (Solana prevents reentrancy via CPI depth limits). Never reference "
+    "coral-xyz/anchor or declare_id! — these are deprecated."
+)
+
+DEPRECATED_PATTERNS = [
+    # (pattern, replacement)
+    ('declare_id!("', '#[program]\n// Program ID set in Anchor.toml\n// declare_program!("'),
+    ("declare_id!(\"", '#[program]\n// Program ID set in Anchor.toml\n// declare_program!("'),
+]
+
+import re
+
+def clean_response(text: str) -> str:
+    """Remove declare_id! and other deprecated patterns from model output."""
+    # Remove declare_id!("..."); lines in code
+    text = re.sub(
+        r'declare_id!\s*\(\s*"[A-Za-z0-9]+"\s*\)\s*;?\s*\n?',
+        '// Program ID is set in Anchor.toml\n',
+        text,
+    )
+    # Remove backtick-wrapped `declare_id!` mentions in text
+    text = text.replace("`declare_id!`", "`declare_program!`")
+    # Remove plain declare_id! mentions in text
+    text = re.sub(r'declare_id!', 'declare_program!', text)
+    # Replace coral-xyz/anchor with solana-foundation/anchor
+    text = text.replace("coral-xyz/anchor", "solana-foundation/anchor")
+    # Replace project-serum/anchor with solana-foundation/anchor
+    text = text.replace("project-serum/anchor", "solana-foundation/anchor")
+    # Replace ProgramResult with Result<()>
+    text = text.replace("ProgramResult", "Result<()>")
+    # Replace #[error] with #[error_code]
+    text = re.sub(r'#\[error\]\s*\n', '#[error_code]\n', text)
+    return text
+
+
+class ChatRequest(BaseModel):
+    model: str = "slm-solana"
+    messages: list = []
+    max_tokens: int = 4096
+    temperature: float = 0.7
+    stream: bool = False
+
+
+@app.post("/v1/chat/completions")
+async def chat_completions(request: Request):
+    """Proxy to SGLang with system prompt injection and output cleanup."""
+    body = await request.json()
+    messages = body.get("messages", [])
+
+    # Inject system prompt if missing
+    if not messages or messages[0].get("role") != "system":
+        messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+
+    body["messages"] = messages
+
+    # Forward to SGLang
+    sglang_endpoint = f"{SGLANG_URL}/chat/completions"
+    async with httpx.AsyncClient(timeout=120) as client:
+        try:
+            resp = await client.post(sglang_endpoint, json=body)
+            data = resp.json()
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"SGLang error: {e}")
+
+    # Post-process: clean deprecated patterns
+    if "choices" in data:
+        for choice in data["choices"]:
+            if "message" in choice and "content" in choice["message"]:
+                choice["message"]["content"] = clean_response(
+                    choice["message"]["content"]
+                )
+
+    return data
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)

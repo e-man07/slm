@@ -1,6 +1,42 @@
-export const SYSTEM_PROMPT = `You are Sealevel, an expert Solana and Anchor development assistant.
-Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns
-(solana-foundation/anchor, InitSpace, ctx.bumps.field_name).
+export const SYSTEM_PROMPT = `You are Sealevel, an expert Solana and Anchor development assistant. Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns.
+
+When writing Anchor programs, follow this pattern:
+
+\`\`\`rust
+use anchor_lang::prelude::*;
+
+declare_id!("11111111111111111111111111111111");
+
+#[program]
+pub mod example {
+    use super::*;
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        ctx.accounts.my_account.data = 0;
+        ctx.accounts.my_account.authority = ctx.accounts.user.key();
+        ctx.accounts.my_account.bump = ctx.bumps.my_account;
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(init, payer = user, space = 8 + 8 + 32 + 1, seeds = [b"seed", user.key().as_ref()], bump)]
+    pub my_account: Account<'info, MyAccount>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[account]
+pub struct MyAccount {
+    pub data: u64,
+    pub authority: Pubkey,
+    pub bump: u8,
+}
+\`\`\`
+
+Key rules: space = 8 + field sizes, ctx.bumps.field_name (not .get()), #[account] structs have no lifetime, use Result<()>, #[error_code], single file with no crate:: imports.
+
 When uncertain, say so rather than guessing.
 Never suggest reentrancy guards (Solana prevents reentrancy via CPI depth limits).
 Never reference coral-xyz/anchor or declare_id! - these are deprecated.
@@ -27,11 +63,15 @@ export interface RateLimitConfig {
 }
 
 export const RATE_LIMITS: Record<RateLimitTier, RateLimitConfig> = {
-  anonymous: { requestsPerMin: 5, tokensPerDay: 10_000 },
-  free: { requestsPerMin: 10, tokensPerDay: 50_000 },
-  standard: { requestsPerMin: 30, tokensPerDay: 500_000 },
+  anonymous: { requestsPerMin: 3, tokensPerDay: 5_000 },
+  free: { requestsPerMin: 5, tokensPerDay: 100_000 },
+  standard: { requestsPerMin: 15, tokensPerDay: 500_000 },
   admin: { requestsPerMin: 100, tokensPerDay: Infinity },
 }
+
+export const MAX_TOKENS_CAP = 4096
+export const MAX_MESSAGES = 50
+export const MAX_MESSAGE_LENGTH = 32_000
 
 export const DEFAULT_MODEL_PARAMS = {
   maxTokens: 1024,
@@ -40,6 +80,48 @@ export const DEFAULT_MODEL_PARAMS = {
 } as const
 
 export const HELIUS_API_KEY = process.env.HELIUS_API_KEY ?? ""
+
+/**
+ * Clean deprecated Solana/Anchor patterns from model responses.
+ * Applied as a post-processing step before displaying to users.
+ */
+export function cleanModelResponse(text: string): string {
+  return text
+    // Remove declare_id!("..."); lines entirely
+    .replace(/^\s*declare_id!\s*\(\s*"[^"]*"\s*\)\s*;?\s*$/gm, "// Program ID is set in Anchor.toml")
+    // Replace text mentions of declare_id! with declare_program!
+    .replace(/declare_id!/g, "declare_program!")
+    // Replace old GitHub org references
+    .replace(/coral-xyz\/anchor/g, "solana-foundation/anchor")
+    .replace(/project-serum\/anchor/g, "solana-foundation/anchor")
+    // Replace deprecated ProgramResult
+    .replace(/ProgramResult/g, "Result<()>")
+    // Replace deprecated #[error] with #[error_code]
+    .replace(/#\[error\]\n/g, "#[error_code]\n")
+}
+
+/**
+ * Fix common Anchor compilation issues in model output.
+ * Applied as a post-processing step after cleanModelResponse.
+ */
+export function fixAnchorCode(code: string): string {
+  // Fix ctx.bumps.get("name") → ctx.bumps.name
+  code = code.replace(/ctx\.bumps\.get\(\s*"(\w+)"\s*\)\.?unwrap\(\)/g, 'ctx.bumps.$1');
+  code = code.replace(/ctx\.bumps\.get\(\s*"(\w+)"\s*\)/g, 'ctx.bumps.$1');
+
+  // Fix crate:: imports
+  code = code.replace(/use crate::[^;]+;\n?/g, '');
+  code = code.replace(/crate::\w+::/g, '');
+
+  // Fix lifetime on #[account] structs
+  code = code.replace(/(#\[account\])\s*pub struct (\w+)<'info>/g, '$1\npub struct $2');
+  code = code.replace(/(#\[account\])\s*pub struct (\w+)<'\w+>/g, '$1\npub struct $2');
+
+  // Fix lifetime on error enums
+  code = code.replace(/pub enum (\w+)<'\w+>/g, 'pub enum $1');
+
+  return code;
+}
 
 export const SUGGESTED_PROMPTS = [
   "How do I create a PDA in Anchor?",

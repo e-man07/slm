@@ -2,59 +2,66 @@ import { extractApiKey } from "@/lib/middleware"
 import { getUserByApiKey, getUsageStats } from "@/lib/db"
 
 export async function GET(request: Request) {
-  const apiKey = extractApiKey(request)
+  let userId: number | null = null
+  let tier = "free"
 
-  if (!apiKey) {
+  // 1. Try Bearer token (API caller checking usage)
+  const bearerKey = extractApiKey(request)
+  if (bearerKey) {
+    const user = await getUserByApiKey(bearerKey)
+    if (!user) {
+      return Response.json(
+        { error: { code: "unauthorized", message: "Invalid API key.", status: 401 } },
+        { status: 401 },
+      )
+    }
+    userId = user.id
+    tier = user.tier
+  }
+
+  // 2. Fall back to NextAuth session (web user on dashboard)
+  if (!userId) {
+    try {
+      const { auth } = await import("@/lib/auth-next")
+      const sess = await auth()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sessionUser = sess?.user as any
+      if (sessionUser?.userId) {
+        userId = sessionUser.userId
+        tier = sessionUser.tier ?? "free"
+      }
+    } catch {
+      // Session unavailable
+    }
+  }
+
+  if (!userId) {
     return Response.json(
-      {
-        error: {
-          code: "unauthorized",
-          message: "API key required. Include Authorization: Bearer slm_xxx header.",
-          status: 401,
-        },
-      },
+      { error: { code: "unauthorized", message: "Sign in or provide API key.", status: 401 } },
       { status: 401 },
     )
   }
 
   try {
-    const user = await getUserByApiKey(apiKey)
-    if (!user) {
-      return Response.json(
-        {
-          error: {
-            code: "unauthorized",
-            message: "Invalid API key.",
-            status: 401,
-          },
-        },
-        { status: 401 },
-      )
-    }
+    const { daily, endpoints, web, api } = await getUsageStats(userId, 7)
 
-    const stats = await getUsageStats(apiKey, 7)
-
-    // Calculate today's totals
     const today = new Date().toISOString().slice(0, 10)
-    const todayStats = stats.find((s) => s.date === today)
+    const todayStats = daily.find((s) => s.date === today)
 
     return Response.json({
-      user: {
-        name: user.name,
-        email: user.email,
-        tier: user.tier,
-        created_at: user.createdAt,
-      },
+      user: { tier },
       today: {
         requests: todayStats?.requests ?? 0,
         tokens: todayStats?.tokens ?? 0,
       },
-      last_7_days: stats,
+      last_7_days: daily,
+      by_endpoint: endpoints,
+      by_source: { web, api },
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
+    console.error("Usage route error:", error)
     return Response.json(
-      { error: { code: "internal_error", message, status: 500 } },
+      { error: { code: "internal_error", message: "Failed to fetch usage stats", status: 500 } },
       { status: 500 },
     )
   }

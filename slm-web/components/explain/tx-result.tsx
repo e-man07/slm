@@ -1,15 +1,6 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { StreamingText } from "@/components/chat/streaming-text"
+import { MarkdownContent } from "@/components/shared/markdown-content"
 import { shortenAddress, formatSolAmount } from "@/lib/helius"
 import type { TxData } from "@/lib/sse"
 
@@ -25,148 +16,134 @@ interface TxResultProps {
   isStreaming: boolean
 }
 
-function InstructionsList({ instructions }: { instructions: TxInstruction[] }) {
-  // Only show instructions that have at least a programId
-  const validInstructions = instructions.filter((ix) => ix.programId)
-  if (validInstructions.length === 0) return null
-
-  return (
-    <>
-      <Separator />
-      <div>
-        <span className="text-muted-foreground">Instructions</span>
-        <Accordion type="multiple" className="mt-2">
-          {validInstructions.map((ix, i) => {
-            const accounts = ix.accounts ?? []
-            return (
-              <AccordionItem key={i} value={`ix-${i}`}>
-                <AccordionTrigger>
-                  <div className="flex flex-col items-start gap-1">
-                    <span className="font-mono text-xs">
-                      {shortenAddress(ix.programId!)}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {accounts.length} {accounts.length === 1 ? "account" : "accounts"}
-                    </span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <span className="text-muted-foreground">Program ID: </span>
-                      <span className="font-mono">{ix.programId}</span>
-                    </div>
-                    {accounts.length > 0 && (
-                      <div>
-                        <span className="text-muted-foreground">Accounts: </span>
-                        <span className="font-mono">
-                          {accounts.map((a) => shortenAddress(a)).join(", ")}
-                        </span>
-                      </div>
-                    )}
-                    {ix.data && (
-                      <div>
-                        <span className="text-muted-foreground">Data: </span>
-                        <span className="font-mono break-all">
-                          {ix.data.length > 64
-                            ? `${ix.data.slice(0, 64)}...`
-                            : ix.data}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            )
-          })}
-        </Accordion>
-      </div>
-    </>
-  )
-}
-
 export function TxResult({ txData, explanation, isStreaming }: TxResultProps) {
+  const instructions = (txData?.instructions ?? []) as TxInstruction[]
+  const validInstructions = instructions.filter((ix) => ix.programId)
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       {txData && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Transaction Details</CardTitle>
-              <Badge variant={txData.status === "success" ? "default" : "destructive"}>
-                {txData.status}
-              </Badge>
+        <div className="grid border border-border md:grid-cols-[1fr_1.4fr]">
+          {/* Left: metadata */}
+          <aside className="flex flex-col gap-5 border-b border-border p-6 md:border-b-0 md:border-r">
+            {/* Status */}
+            <div className="flex items-center gap-2.5 text-[11px] uppercase tracking-[0.14em] slm-accent">
+              <span
+                className="inline-block size-2 rounded-full"
+                style={{
+                  background: txData.status === "success" ? "var(--slm-accent)" : "var(--destructive)",
+                  animation: "pulse-dot 2s infinite",
+                }}
+              />
+              {txData.status === "success" ? "Success" : "Failed"} &middot; Mainnet
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <span className="text-muted-foreground">Type</span>
-                <p className="font-medium">{txData.type}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Fee</span>
-                <p className="font-medium">{formatSolAmount(txData.fee * 1e9)} SOL</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Fee Payer</span>
-                <p className="font-mono text-xs">{shortenAddress(txData.feePayer, 6)}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Instructions</span>
-                <p className="font-medium">{txData.instructions.length}</p>
-              </div>
+
+            {/* Key-value rows */}
+            <div>
+              <KeyRow label="Type" value={txData.type} first />
+              <KeyRow label="Fee" value={`${formatSolAmount(txData.fee * 1e9)} SOL`} />
+              <KeyRow label="Fee Payer" value={shortenAddress(txData.feePayer, 6)} />
+              <KeyRow label="Instructions" value={String(txData.instructions.length)} />
               {txData.blockTime && (
-                <div>
-                  <span className="text-muted-foreground">Block Time</span>
-                  <p className="font-medium">
-                    {new Date(txData.blockTime * 1000).toLocaleString()}
-                  </p>
-                </div>
+                <KeyRow
+                  label="Block time"
+                  value={new Date(txData.blockTime * 1000).toLocaleString()}
+                />
               )}
             </div>
 
+            {/* Token transfers */}
             {txData.tokenTransfers.length > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <span className="text-muted-foreground">Token Transfers</span>
-                  <div className="mt-1 space-y-1">
-                    {txData.tokenTransfers.map((t, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs">
-                        <span className="font-mono">
-                          {shortenAddress(t.fromUserAccount ?? "unknown")} →{" "}
-                          {shortenAddress(t.toUserAccount ?? "unknown")}
-                        </span>
-                        <span className="font-medium">
-                          {t.tokenAmount} {shortenAddress(t.mint)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+              <div>
+                <div className="eyebrow" style={{ color: "var(--muted-foreground)" }}>token transfers</div>
+                <div className="mt-2 space-y-1">
+                  {txData.tokenTransfers.map((t, i) => (
+                    <div key={i} className="flex items-center justify-between text-[11px]">
+                      <span className="text-muted-foreground">
+                        {shortenAddress(t.fromUserAccount ?? "unknown")} &rarr;{" "}
+                        {shortenAddress(t.toUserAccount ?? "unknown")}
+                      </span>
+                      <span className="font-medium">
+                        {t.tokenAmount} {shortenAddress(t.mint)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </>
+              </div>
             )}
+          </aside>
 
-            <InstructionsList
-              instructions={txData.instructions as TxInstruction[]}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {(explanation || isStreaming) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">AI Explanation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm leading-relaxed">
-              <StreamingText text={explanation} isStreaming={isStreaming} />
+          {/* Right: explanation */}
+          <div className="p-6">
+            <div className="mb-3.5 flex items-center justify-between">
+              <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Plain english</span>
+              {isStreaming && (
+                <span className="flex items-center gap-1.5 text-[10px] slm-accent">
+                  <span
+                    className="inline-block size-1.5"
+                    style={{ background: "var(--slm-accent)", animation: "pulse-dot 1s infinite" }}
+                  />
+                  streaming
+                </span>
+              )}
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-[13.5px] leading-[1.7]">
+              <MarkdownContent content={explanation} isStreaming={isStreaming} />
+            </div>
+          </div>
+        </div>
       )}
+
+      {/* Instructions list */}
+      {txData && validInstructions.length > 0 && (
+        <div className="border border-border">
+          <div className="flex items-center justify-between border-b border-border px-5 py-3.5 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            <span>Instructions &middot; {validInstructions.length}</span>
+          </div>
+          {validInstructions.map((ix, i) => (
+            <div
+              key={i}
+              className="grid items-center gap-5 border-b border-border px-5 py-4 text-[12.5px] transition-colors hover:bg-muted last:border-b-0"
+              style={{ gridTemplateColumns: "32px 160px 1fr auto" }}
+            >
+              <span className="text-[11px] text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+              <span className="slm-accent">{shortenAddress(ix.programId!, 8)}</span>
+              <span className="text-foreground">{(ix.accounts?.length ?? 0)} accounts</span>
+              <span className="text-muted-foreground">&rsaquo;</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Standalone explanation when no txData */}
+      {!txData && (explanation || isStreaming) && (
+        <div className="border border-border">
+          <div className="flex items-center justify-between border-b border-border px-5 py-3">
+            <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">AI Explanation</span>
+            {isStreaming && (
+              <span className="flex items-center gap-1.5 text-[10px] slm-accent">
+                <span
+                  className="inline-block size-1.5"
+                  style={{ background: "var(--slm-accent)", animation: "pulse-dot 1s infinite" }}
+                />
+                streaming
+              </span>
+            )}
+          </div>
+          <div className="p-5 text-[13.5px] leading-[1.7]">
+            <MarkdownContent content={explanation} isStreaming={isStreaming} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function KeyRow({ label, value, first }: { label: string; value: string; first?: boolean }) {
+  return (
+    <div className={`flex items-baseline justify-between py-2.5 text-xs ${first ? "" : "border-t border-dashed border-border"}`}>
+      <span className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{label}</span>
+      <span className="mono-num">{value}</span>
     </div>
   )
 }

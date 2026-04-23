@@ -133,7 +133,7 @@ def main():
     print(f"  Tasks:     {len(tasks)} ({solana_count} Solana" + (f" + {len(HUMANEVAL_TASKS)} HumanEval" if args.humaneval else "") + ")")
     print("=" * 60)
 
-    client = httpx.Client()
+    client = httpx.Client(verify=False)
     results = []
     category_stats: dict[str, dict] = {}
 

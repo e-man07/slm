@@ -49,11 +49,27 @@ export const authConfig: NextAuthConfig = {
           const user = await getOrCreateUser(provider, providerId, name, email)
           if (user) {
             token.userId = user.id
-            token.apiKey = user.apiKey
+            token.apiKey = user.apiKey ?? null
             token.tier = user.tier
           }
         } catch (err) {
           console.warn("getOrCreateUser failed", err)
+        }
+      } else if (token.userId) {
+        // Refresh tier and apiKey from DB on subsequent requests
+        // so changes (key generation, tier upgrades) are reflected without re-login
+        try {
+          const { prisma } = await import("./prisma")
+          const user = await prisma.user.findUnique({
+            where: { id: token.userId as number },
+            select: { apiKey: true, tier: true },
+          })
+          if (user) {
+            token.apiKey = user.apiKey ?? null
+            token.tier = user.tier
+          }
+        } catch {
+          // DB unavailable — keep existing token values
         }
       }
       return token

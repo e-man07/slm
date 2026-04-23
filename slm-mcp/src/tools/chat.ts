@@ -3,9 +3,10 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { callChat } from "../lib/api-client.js";
 
 export const chatInputSchema = {
-  message: z.string().describe("Message to send to Sealevel"),
+  message: z.string().max(32000).describe("Message to send to Sealevel"),
   context: z
     .string()
+    .max(32000)
     .optional()
     .describe("Optional context (e.g. surrounding code, error logs)"),
 };

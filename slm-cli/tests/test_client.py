@@ -15,7 +15,7 @@ def test_client_module_importable():
 def test_client_default_base_url():
     from slm_cli.client import SLMClient
     c = SLMClient()
-    assert c.base_url == "https://slm.dev/api"
+    assert c.base_url == "https://api.sealevel.tech"
 
 
 def test_client_custom_base_url():

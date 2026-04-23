@@ -1,6 +1,7 @@
 import { SYSTEM_PROMPT, API_URLS } from "@/lib/constants"
 import { fetchEnhancedTransaction } from "@/lib/helius"
-import { withRateLimit } from "@/lib/middleware"
+import { withRateLimit, resolveCallerForUsage } from "@/lib/middleware"
+import { logUsage } from "@/lib/db"
 
 export const POST = withRateLimit(async function POST(request: Request) {
   try {
@@ -60,6 +61,7 @@ export const POST = withRateLimit(async function POST(request: Request) {
 
     // Stream the response
     const sglangUrl = `${API_URLS.SGLANG_BASE}${API_URLS.CHAT}`
+    const caller = await resolveCallerForUsage(request)
 
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
@@ -83,6 +85,7 @@ export const POST = withRateLimit(async function POST(request: Request) {
               max_tokens: 1024,
               temperature: 0.0,
             }),
+            signal: AbortSignal.timeout(9000),
           })
 
           if (!llmResponse.ok || !llmResponse.body) {
@@ -98,6 +101,7 @@ export const POST = withRateLimit(async function POST(request: Request) {
 
           const reader = llmResponse.body.pipeThrough(new TextDecoderStream()).getReader()
           let buffer = ""
+          let totalTokens = 0
 
           while (true) {
             const { done, value } = await reader.read()
@@ -113,6 +117,10 @@ export const POST = withRateLimit(async function POST(request: Request) {
 
               const data = trimmed.slice(6)
               if (data === "[DONE]") {
+                // Log usage before closing
+                if ((caller.userId || caller.apiKey) && totalTokens > 0) {
+                  logUsage({ userId: caller.userId, apiKey: caller.apiKey }, "/api/explain/tx", totalTokens, caller.source).catch(() => {})
+                }
                 controller.enqueue(encoder.encode("data: [DONE]\n\n"))
                 controller.close()
                 return
@@ -128,12 +136,20 @@ export const POST = withRateLimit(async function POST(request: Request) {
                     ),
                   )
                 }
+                // Track usage from final chunk
+                if (parsed.usage?.total_tokens) {
+                  totalTokens = parsed.usage.total_tokens
+                }
               } catch {
                 // Skip unparseable lines
               }
             }
           }
 
+          // Log usage if stream ended without [DONE]
+          if ((caller.userId || caller.apiKey) && totalTokens > 0) {
+            logUsage({ userId: caller.userId, apiKey: caller.apiKey }, "/api/explain/tx", totalTokens, caller.source).catch(() => {})
+          }
           controller.enqueue(encoder.encode("data: [DONE]\n\n"))
           controller.close()
         } catch {

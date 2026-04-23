@@ -15,7 +15,7 @@ model User {
   providerId String        @map("provider_id") // OAuth subject/id from provider
   name       String        @default("")
   email      String        @default("")
-  apiKey     String        @unique @map("api_key")
+  apiKey     String?       @unique @map("api_key")
   tier       String        @default("free")
   createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   usage      ApiUsage[]
@@ -29,13 +29,16 @@ model User {
 
 model ApiUsage {
   id         Int      @id @default(autoincrement())
-  apiKey     String   @map("api_key")
+  apiKey     String?  @map("api_key")
+  userId     Int?     @map("user_id")
   endpoint   String
+  source     String   @default("api") // "web" | "api"
   tokensUsed Int      @default(0) @map("tokens_used")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  user       User?    @relation(fields: [apiKey], references: [apiKey], onDelete: SetNull)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([apiKey])
+  @@index([userId])
   @@index([createdAt])
   @@map("api_usage")
 }

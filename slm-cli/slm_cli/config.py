@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 DEFAULT_CONFIG: dict[str, str] = {
-    "api_url": "https://slm.dev/api",
+    "api_url": "https://api.sealevel.tech",
     "mode": "quality",
 }
 

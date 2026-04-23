@@ -3,10 +3,9 @@
 import * as React from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { CopyButton } from "@/components/shared/copy-button"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ThumbsUpIcon, ThumbsDownIcon } from "@hugeicons/core-free-icons"
 import type { ChatMessage as ChatMessageType } from "@/hooks/use-chat"
 
 interface ChatMessageProps {
@@ -16,25 +15,25 @@ interface ChatMessageProps {
 
 function CodeBlockClient({ code, language }: { code: string; language: string }) {
   const languageLabels: Record<string, string> = {
-    rust: "Rust",
-    typescript: "TypeScript",
-    ts: "TypeScript",
-    javascript: "JavaScript",
-    js: "JavaScript",
+    rust: "RUST",
+    typescript: "TYPESCRIPT",
+    ts: "TYPESCRIPT",
+    javascript: "JAVASCRIPT",
+    js: "JAVASCRIPT",
     toml: "TOML",
     json: "JSON",
-    bash: "Bash",
+    bash: "BASH",
   }
 
   return (
-    <div className="group relative my-3 border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-4 py-2">
-        <span className="text-xs text-muted-foreground">
-          {languageLabels[language] ?? language}
+    <div className="group relative my-3.5 border border-border terminal-bg">
+      <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
+        <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+          {languageLabels[language] ?? language.toUpperCase()}
         </span>
         <CopyButton value={code} />
       </div>
-      <pre className="overflow-x-auto p-4 text-sm">
+      <pre className="overflow-x-auto p-3.5 text-xs leading-[1.7]">
         <code>{code}</code>
       </pre>
     </div>
@@ -44,15 +43,15 @@ function CodeBlockClient({ code, language }: { code: string; language: string })
 function TypingIndicator() {
   return (
     <div data-testid="typing-indicator" className="flex items-center gap-1 py-1">
-      <span className="inline-block h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:0ms]" />
-      <span className="inline-block h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
-      <span className="inline-block h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
+      <span className="inline-block h-2 w-2 animate-bounce bg-muted-foreground [animation-delay:0ms]" />
+      <span className="inline-block h-2 w-2 animate-bounce bg-muted-foreground [animation-delay:150ms]" />
+      <span className="inline-block h-2 w-2 animate-bounce bg-muted-foreground [animation-delay:300ms]" />
     </div>
   )
 }
 
 function FeedbackButtons({
-  messageId,
+  messageId: _messageId,
   feedback,
   onFeedbackChange,
 }: {
@@ -61,36 +60,32 @@ function FeedbackButtons({
   onFeedbackChange: (feedback: "up" | "down" | null) => void
 }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 mt-2.5">
       <button
         aria-label="Thumbs up"
         data-active={feedback === "up" ? "true" : undefined}
         onClick={() => onFeedbackChange(feedback === "up" ? null : "up")}
         className={cn(
-          "rounded p-1 transition-colors hover:bg-muted",
+          "grid size-6 place-items-center transition-colors",
           feedback === "up"
-            ? "text-chart-1"
-            : feedback === "down"
-              ? "text-muted-foreground/30"
-              : "text-muted-foreground",
+            ? "text-[var(--slm-accent)]"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
-        <HugeiconsIcon icon={ThumbsUpIcon} size={14} />
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-6 0v4M5 11h4l-1 9h8l-1-9h4l-5-7h-4l-5 7z" /></svg>
       </button>
       <button
         aria-label="Thumbs down"
         data-active={feedback === "down" ? "true" : undefined}
         onClick={() => onFeedbackChange(feedback === "down" ? null : "down")}
         className={cn(
-          "rounded p-1 transition-colors hover:bg-muted",
+          "grid size-6 place-items-center transition-colors",
           feedback === "down"
             ? "text-destructive"
-            : feedback === "up"
-              ? "text-muted-foreground/30"
-              : "text-muted-foreground",
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
-        <HugeiconsIcon icon={ThumbsDownIcon} size={14} />
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 15v4a3 3 0 0 0 6 0v-4m5-2h-4l1-9H10l1 9H7l5 7h4l5-7z" /></svg>
       </button>
     </div>
   )
@@ -108,7 +103,7 @@ function MessageContent({
   }
 
   return (
-    <div className="prose-sm max-w-none">
+    <div className="text-[13.5px] leading-[1.7]">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -116,35 +111,24 @@ function MessageContent({
             const match = /language-(\w+)/.exec(className || "")
             const codeString = String(children).replace(/\n$/, "")
 
-            // Fenced code block (has language class from markdown)
             if (match) {
-              return (
-                <CodeBlockClient code={codeString} language={match[1]} />
-              )
+              return <CodeBlockClient code={codeString} language={match[1]} />
             }
 
-            // Check if this is a block-level code (inside <pre>)
-            // react-markdown wraps fenced code blocks in <pre><code>
-            // For inline code, there's no <pre> wrapper
             const isBlock =
-              className !== undefined ||
-              codeString.includes("\n")
+              className !== undefined || codeString.includes("\n")
 
             if (isBlock) {
-              return (
-                <CodeBlockClient code={codeString} language="text" />
-              )
+              return <CodeBlockClient code={codeString} language="text" />
             }
 
-            // Inline code
             return (
-              <code className="rounded bg-muted px-1.5 py-0.5 text-sm" {...props}>
+              <code className="bg-muted px-1.5 py-0.5 text-xs text-foreground" {...props}>
                 {children}
               </code>
             )
           },
           pre({ children }) {
-            // Let the code component handle rendering
             return <>{children}</>
           },
           a({ href, children, ...props }) {
@@ -153,7 +137,7 @@ function MessageContent({
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary underline underline-offset-2 hover:text-primary/80"
+                className="slm-accent underline underline-offset-2"
                 {...props}
               >
                 {children}
@@ -162,17 +146,26 @@ function MessageContent({
           },
           ul({ children, ...props }) {
             return (
-              <ul className="my-2 ml-4 list-disc space-y-1" {...props}>
+              <ul className="my-2 ml-5 list-disc space-y-1" {...props}>
                 {children}
               </ul>
             )
           },
           ol({ children, ...props }) {
             return (
-              <ol className="my-2 ml-4 list-decimal space-y-1" {...props}>
+              <ol className="my-2 ml-5 list-decimal space-y-1" {...props}>
                 {children}
               </ol>
             )
+          },
+          strong({ children, ...props }) {
+            return <strong className="text-foreground font-semibold" {...props}>{children}</strong>
+          },
+          p({ children, ...props }) {
+            return <p className="mb-2.5 last:mb-0" {...props}>{children}</p>
+          },
+          li({ children, ...props }) {
+            return <li className="my-1" {...props}>{children}</li>
           },
           h1({ children, ...props }) {
             return <h1 className="mb-2 mt-4 text-lg font-bold" {...props}>{children}</h1>
@@ -183,18 +176,32 @@ function MessageContent({
           h3({ children, ...props }) {
             return <h3 className="mb-1 mt-2 text-sm font-bold" {...props}>{children}</h3>
           },
-          p({ children, ...props }) {
-            return <p className="my-1" {...props}>{children}</p>
-          },
         }}
       >
         {content}
       </ReactMarkdown>
       {isStreaming && (
-        <span className="ml-0.5 inline-block h-4 w-[2px] animate-pulse bg-foreground" />
+        <span className="cursor-blink ml-0.5" />
       )}
     </div>
   )
+}
+
+function UserAvatar() {
+  const { data: session } = useSession()
+  const image = session?.user?.image
+  if (image) {
+    return <img src={image} alt="" width={28} height={28} className="rounded-full" />
+  }
+  return (
+    <div className="grid size-7 place-items-center bg-muted text-[10px] font-bold text-muted-foreground rounded-full">
+      U
+    </div>
+  )
+}
+
+function SealevelAvatar() {
+  return <img src="/sealevel.png" alt="Sealevel" width={28} height={28} />
 }
 
 export function ChatMessage({ message, onFeedback }: ChatMessageProps) {
@@ -214,25 +221,19 @@ export function ChatMessage({ message, onFeedback }: ChatMessageProps) {
   return (
     <div
       data-slot="chat-message"
-      className={cn(
-        "flex w-full gap-3",
-        isUser ? "justify-end" : "justify-start",
-      )}
+      className="grid gap-4"
+      style={{ gridTemplateColumns: "32px 1fr" }}
     >
-      <div
-        className={cn(
-          "max-w-[85%] px-4 py-3 text-sm leading-relaxed",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-card border border-border",
-        )}
-      >
+      <div className="pt-0.5">
+        {isUser ? <UserAvatar /> : <SealevelAvatar />}
+      </div>
+      <div className={isUser ? "text-muted-foreground" : ""}>
         <MessageContent
           content={message.content}
           isStreaming={message.isStreaming}
         />
         {!isUser && !message.isStreaming && message.content && (
-          <div className="mt-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <FeedbackButtons
               messageId={message.id}
               feedback={localFeedback ?? undefined}

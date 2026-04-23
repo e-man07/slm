@@ -1,10 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ClipboardIcon, Search01Icon } from "@hugeicons/core-free-icons"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface TxSignatureInputProps {
@@ -60,45 +56,51 @@ export function TxSignatureInput({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Input
+      <div
+        className="border bg-card"
+        style={{ borderColor: "var(--slm-border-strong)" }}
+      >
+        <div className="flex items-center gap-2 px-3.5 py-1.5">
+          <span className="font-semibold slm-accent">$</span>
+          <input
             value={value}
-            onChange={(e) => {
-              setValue(e.target.value)
-              setError("")
-            }}
+            onChange={(e) => { setValue(e.target.value); setError("") }}
             onKeyDown={handleKeyDown}
-            placeholder="Paste a Solana transaction signature..."
-            className={cn(error && "border-destructive")}
+            placeholder="5UfDuX7WXYxjng1PYLJmzGRq..."
+            className="flex-1 bg-transparent border-0 outline-none text-[13px] py-2.5 px-1.5 placeholder:text-muted-foreground"
             disabled={isLoading}
           />
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            onClick={handlePaste}
-            className="absolute right-2 top-1/2 -translate-y-1/2"
-            aria-label="Paste from clipboard"
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || !value.trim()}
+            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium tracking-[0.02em] transition-all disabled:opacity-50"
+            style={{
+              background: "var(--slm-accent)",
+              color: "oklch(0.153 0.006 107.1)",
+            }}
           >
-            <HugeiconsIcon icon={ClipboardIcon} size={14} />
-          </Button>
+            Explain <span>&rarr;</span>
+          </button>
         </div>
-        <Button onClick={handleSubmit} disabled={isLoading || !value.trim()}>
-          <HugeiconsIcon icon={Search01Icon} size={16} />
-          Explain
-        </Button>
+        <div className="flex items-center justify-between border-t border-border px-3.5 py-2 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span>{value.length} chars &middot; base58</span>
+            <button
+              onClick={() => { setValue(EXAMPLE_SIGNATURE); setError("") }}
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              try example
+            </button>
+            <button onClick={handlePaste} className="hover:text-foreground">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ verticalAlign: "-1px", display: "inline" }}>
+                <rect x="9" y="9" width="13" height="13" /><path d="M5 15V4a2 2 0 0 1 2-2h11" />
+              </svg>{" "}paste
+            </button>
+          </div>
+          <span><span className="kbd">&thinsp;&crarr;&thinsp;</span> to submit</span>
+        </div>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <button
-        type="button"
-        onClick={() => {
-          setValue(EXAMPLE_SIGNATURE)
-          setError("")
-        }}
-        className="text-xs text-muted-foreground underline-offset-4 hover:underline"
-      >
-        Try an example transaction
-      </button>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }

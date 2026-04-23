@@ -1,10 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowUp01Icon, StopIcon } from "@hugeicons/core-free-icons"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface ChatInputProps {
@@ -27,7 +23,6 @@ export function ChatInput({
     if (!value.trim() || isLoading) return
     onSend(value)
     setValue("")
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto"
     }
@@ -43,7 +38,6 @@ export function ChatInput({
     [handleSend],
   )
 
-  // Auto-resize textarea
   const handleInput = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setValue(e.target.value)
@@ -55,42 +49,65 @@ export function ChatInput({
   )
 
   return (
-    <div className={cn("border-t border-border bg-background p-4", className)}>
-      <div className="mx-auto flex max-w-3xl items-end gap-2">
-        <Textarea
-          ref={textareaRef}
-          value={value}
-          onChange={handleInput}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask about Solana development..."
-          className="min-h-[44px] max-h-[200px] resize-none"
-          rows={1}
-          disabled={isLoading}
-        />
-        {isLoading ? (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onStop}
-            aria-label="Stop generating"
-          >
-            <HugeiconsIcon icon={StopIcon} size={18} />
-          </Button>
-        ) : (
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!value.trim()}
-            aria-label="Send message"
-          >
-            <HugeiconsIcon icon={ArrowUp01Icon} size={18} />
-          </Button>
-        )}
+    <div className={cn("border-t border-border bg-background px-7 pt-4 pb-6", className)}>
+      <div className="mx-auto max-w-[760px]">
+        <div
+          className="border bg-card transition-colors focus-within:border-[var(--slm-accent)]"
+          style={{ borderColor: "var(--slm-border-strong)" }}
+        >
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask about Solana development\u2026"
+            className="block w-full min-h-[52px] max-h-[200px] resize-none border-0 bg-transparent px-4 py-3.5 text-[13.5px] leading-relaxed outline-none placeholder:text-muted-foreground"
+            rows={1}
+            disabled={isLoading}
+          />
+          <div className="flex items-center justify-between border-t border-border px-3 py-2">
+            <div className="flex gap-0.5">
+              <button className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 11L12 20a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8" /></svg>
+                attach
+              </button>
+              <button className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4" /></svg>
+                slm-7b
+              </button>
+              <button className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
+                rag &middot; on
+              </button>
+            </div>
+            {isLoading ? (
+              <button
+                onClick={onStop}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold tracking-[0.04em] text-muted-foreground border border-border transition-colors hover:text-foreground"
+                aria-label="Stop generating"
+              >
+                STOP <span>&times;</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={!value.trim()}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold tracking-[0.04em] transition-colors disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                style={{
+                  background: value.trim() ? "var(--slm-accent)" : undefined,
+                  color: value.trim() ? "oklch(0.153 0.006 107.1)" : undefined,
+                }}
+                aria-label="Send message"
+              >
+                SEND <span>&crarr;</span>
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+          <span><span className="kbd">&thinsp;&#x2318;&crarr;&thinsp;</span> to send &middot; <span className="kbd">&thinsp;&#x21E7;&crarr;&thinsp;</span> for new line</span>
+          <span>Model may hallucinate. Verify critical code.</span>
+        </div>
       </div>
-      <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
-        <kbd className="rounded border border-border px-1">&#x2318;Enter</kbd> to
-        send
-      </p>
     </div>
   )
 }

@@ -1,0 +1,2361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SLM — Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---- TOKENS (matches current theme: olive mono, zero radius, dark default) ---- */
+  :root {
+    --bg: oklch(0.153 0.006 107.1);
+    --fg: oklch(0.988 0.003 106.5);
+    --card: oklch(0.228 0.013 107.4);
+    --muted: oklch(0.286 0.016 107.4);
+    --muted-fg: oklch(0.737 0.021 106.9);
+    --border: oklch(1 0 0 / 12%);
+    --border-strong: oklch(1 0 0 / 22%);
+    --accent: oklch(0.897 0.196 126.665);   /* chartreuse chart-1 */
+    --accent-2: oklch(0.768 0.233 130.85);
+    --accent-dim: oklch(0.648 0.2 131.684);
+    --destructive: oklch(0.704 0.191 22.216);
+
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .light {
+    --bg: oklch(1 0 0);
+    --fg: oklch(0.153 0.006 107.1);
+    --card: oklch(0.988 0.003 106.5);
+    --muted: oklch(0.966 0.005 106.5);
+    --muted-fg: oklch(0.48 0.025 107.3);
+    --border: oklch(0 0 0 / 12%);
+    --border-strong: oklch(0 0 0 / 22%);
+    --accent: oklch(0.648 0.2 131.684);
+    --accent-2: oklch(0.532 0.157 131.589);
+    --accent-dim: oklch(0.453 0.124 130.933);
+  }
+
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  html { font-family: var(--font-mono); font-size: 14px; color: var(--fg); background: var(--bg); }
+  body { min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+  input, textarea { font: inherit; color: inherit; }
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  /* scrollbars — thin, mono */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted-fg); }
+
+  /* ---- SHARED LAYOUT ---- */
+  .app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .container {
+    width: 100%;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---- NAVBAR ---- */
+  .nav {
+    position: sticky; top: 0; z-index: 40;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in oklab, var(--bg) 80%, transparent);
+    backdrop-filter: blur(12px);
+  }
+  .nav-inner {
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+  }
+  .logo {
+    display: flex; align-items: baseline; gap: 8px;
+    font-weight: 700; letter-spacing: 2px; font-size: 15px;
+  }
+  .logo .dot { width: 8px; height: 8px; background: var(--accent); display: inline-block; align-self: center; }
+  .nav-links { display: flex; gap: 2px; }
+  .nav-link {
+    font-size: 12px; letter-spacing: 0.04em;
+    padding: 8px 12px;
+    color: var(--muted-fg);
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .nav-link .num { color: var(--border-strong); font-size: 10px; }
+  .nav-link:hover { color: var(--fg); }
+  .nav-link.active { color: var(--fg); border-bottom-color: var(--accent); }
+  .nav-link.active .num { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 4px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    color: var(--muted-fg);
+    transition: color .15s, background .15s;
+  }
+  .icon-btn:hover { color: var(--fg); background: var(--muted); }
+
+  /* ---- TYPE ---- */
+  h1,h2,h3,h4 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-fg);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .eyebrow::before {
+    content: ""; width: 20px; height: 1px; background: currentColor;
+  }
+
+  .section-label {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+    margin-bottom: 20px;
+  }
+  .section-label .idx { color: var(--accent); font-weight: 600; }
+  .section-label .line { flex: 1; height: 1px; background: var(--border); }
+
+  .mono-num { font-variant-numeric: tabular-nums; }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--fg);
+    transition: all .15s;
+    letter-spacing: 0.02em;
+  }
+  .btn:hover { border-color: var(--fg); background: var(--muted); }
+  .btn-primary {
+    background: var(--accent);
+    color: oklch(0.153 0.006 107.1);
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: oklch(0.153 0.006 107.1); }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .btn-arrow { transition: transform .15s; }
+  .btn:hover .btn-arrow { transform: translateX(3px); }
+
+  .kbd {
+    display: inline-grid; place-items: center;
+    min-width: 18px; height: 18px;
+    padding: 0 4px;
+    font-size: 10px; font-weight: 500;
+    background: var(--muted);
+    border: 1px solid var(--border-strong);
+    color: var(--muted-fg);
+  }
+
+  /* ---- LANDING ---- */
+
+  /* hero */
+  .hero {
+    padding: 80px 0 56px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 5.4vw, 64px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    font-weight: 700;
+    margin-top: 20px;
+    text-wrap: balance;
+  }
+  .hero h1 .tint { color: var(--accent); }
+  .hero p.lede {
+    margin-top: 24px;
+    font-size: 16px; line-height: 1.55;
+    color: var(--muted-fg);
+    max-width: 44ch;
+  }
+  .hero-ctas { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .hero-meta {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+  .stat {
+    padding: 20px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat:nth-child(2n) { border-right: 0; }
+  .stat:nth-last-child(-n+2) { border-bottom: 0; }
+  .stat .label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-fg); }
+  .stat .value { font-size: 28px; font-weight: 700; margin-top: 8px; letter-spacing: -0.02em; }
+  .stat .value .unit { font-size: 14px; color: var(--muted-fg); font-weight: 400; margin-left: 2px; }
+  .stat .sub { font-size: 11px; color: var(--muted-fg); margin-top: 4px; }
+  .stat.accent .value { color: var(--accent); }
+
+  /* terminal demo */
+  .terminal {
+    margin-top: 28px;
+    border: 1px solid var(--border);
+    background: oklch(0.11 0.005 107);
+  }
+  .light .terminal { background: oklch(0.15 0.005 107); color: oklch(0.988 0.003 106.5); }
+  .terminal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; color: var(--muted-fg);
+  }
+  .term-dots { display: flex; gap: 6px; }
+  .term-dots span { width: 8px; height: 8px; background: var(--border-strong); }
+  .terminal-body {
+    padding: 16px 18px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    min-height: 220px;
+  }
+  .t-prompt { color: var(--accent); margin-right: 8px; }
+  .t-muted { color: oklch(0.6 0.02 107); }
+  .t-key { color: oklch(0.85 0.08 80); }
+  .t-str { color: oklch(0.85 0.14 140); }
+  .t-comment { color: oklch(0.5 0.02 107); }
+  .cursor-blink {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--accent);
+    vertical-align: text-bottom;
+    animation: blink 1s steps(1) infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* surfaces strip */
+  .surfaces {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .surfaces-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-left: 1px solid var(--border);
+  }
+  .surface {
+    padding: 28px 24px;
+    border-right: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    transition: background .15s;
+    cursor: pointer;
+  }
+  .surface:hover { background: var(--muted); }
+  .surface .idx {
+    font-size: 10px; letter-spacing: 0.14em;
+    color: var(--muted-fg);
+    font-weight: 500;
+  }
+  .surface h3 {
+    font-size: 18px; margin-top: 16px; letter-spacing: -0.01em;
+  }
+  .surface p {
+    margin: 8px 0 0;
+    font-size: 12px; line-height: 1.6;
+    color: var(--muted-fg);
+  }
+  .surface .arrow {
+    position: absolute; right: 24px; top: 28px;
+    color: var(--muted-fg);
+    transition: color .15s, transform .15s;
+  }
+  .surface:hover .arrow { color: var(--accent); transform: translate(2px, -2px); }
+
+  /* bench table */
+  .bench {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .bench-grid {
+    display: grid; grid-template-columns: 1fr 1.4fr; gap: 64px;
+    align-items: start;
+  }
+  .bench-overall {
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .bench-overall .big {
+    font-size: 84px; font-weight: 700; line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+  }
+  .bench-overall .big .pct { font-size: 36px; color: var(--muted-fg); }
+  .bench-overall .meta {
+    font-size: 12px; color: var(--muted-fg);
+    margin-top: 8px;
+  }
+  .bench-overall .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .bench-overall .key-line { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+  .bench-overall .key-line .k { color: var(--muted-fg); }
+
+  .bench-list { display: grid; gap: 1px; background: var(--border); }
+  .bench-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 80px 180px 60px;
+    gap: 16px; align-items: center;
+    padding: 14px 16px;
+    background: var(--bg);
+    font-size: 13px;
+  }
+  .bench-row .ix { color: var(--muted-fg); font-size: 11px; }
+  .bench-row .name { font-weight: 500; }
+  .bench-row .ratio { font-variant-numeric: tabular-nums; color: var(--muted-fg); font-size: 12px; }
+  .bench-row .bar {
+    height: 4px; background: var(--muted); position: relative;
+  }
+  .bench-row .bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+  .bench-row.low .bar .fill { background: var(--accent-dim); }
+  .bench-row.weak .bar .fill { background: oklch(0.65 0.14 60); }
+  .bench-row .pct { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+
+  /* install matrix */
+  .install {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .install-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; gap: 24px; }
+  .install-head h2 { font-size: 28px; letter-spacing: -0.02em; }
+  .install-tabs { display: flex; gap: 0; border: 1px solid var(--border); }
+  .install-tab {
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--muted-fg);
+    border-right: 1px solid var(--border);
+    transition: all .15s;
+  }
+  .install-tab:last-child { border-right: 0; }
+  .install-tab.active { color: var(--fg); background: var(--muted); }
+  .install-tab:hover:not(.active) { color: var(--fg); }
+  .install-panel {
+    border: 1px solid var(--border);
+    display: grid; grid-template-columns: 1fr 1fr;
+  }
+  .install-code {
+    padding: 28px;
+    border-right: 1px solid var(--border);
+    background: oklch(0.11 0.005 107);
+    font-size: 13px;
+    line-height: 1.8;
+    min-height: 200px;
+  }
+  .install-info { padding: 28px; }
+  .install-info h3 { font-size: 16px; }
+  .install-info p { margin: 10px 0 0; font-size: 13px; line-height: 1.6; color: var(--muted-fg); }
+  .install-info ul { margin: 16px 0 0; padding: 0; list-style: none; }
+  .install-info li { font-size: 12px; color: var(--muted-fg); padding: 6px 0; display: flex; gap: 10px; }
+  .install-info li::before { content: "→"; color: var(--accent); }
+
+  /* guardrails */
+  .guardrails {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .guard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+  .guard {
+    padding: 20px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .guard .rule { font-size: 11px; letter-spacing: 0.12em; color: var(--muted-fg); text-transform: uppercase; }
+  .guard .rule .no { color: var(--destructive); }
+  .guard .rule .yes { color: var(--accent); }
+  .guard p { margin: 10px 0 0; font-size: 12px; line-height: 1.55; color: var(--muted-fg); }
+  .guard code { color: var(--fg); font-size: 11px; background: var(--muted); padding: 1px 5px; }
+
+  /* footer */
+  .footer {
+    padding: 32px 0;
+    font-size: 12px;
+    color: var(--muted-fg);
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .footer .dots { display: inline-flex; gap: 4px; align-items: center; }
+  .footer .dots span { width: 4px; height: 4px; background: currentColor; }
+
+  /* ---- CHAT ---- */
+  .chat-wrap {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 0;
+  }
+  .chat-sidebar {
+    border-right: 1px solid var(--border);
+    padding: 24px 20px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  .side-section .side-head {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg); margin-bottom: 10px;
+    display: flex; justify-content: space-between;
+  }
+  .side-section .side-head .count { color: var(--border-strong); }
+  .side-item {
+    padding: 8px 10px; margin: 0 -10px;
+    font-size: 12.5px; color: var(--muted-fg);
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    transition: all .15s;
+    border-left: 2px solid transparent;
+  }
+  .side-item:hover { color: var(--fg); background: var(--muted); }
+  .side-item.active { color: var(--fg); border-left-color: var(--accent); }
+  .side-item .time { margin-left: auto; font-size: 10px; color: var(--border-strong); }
+
+  .chat-main {
+    display: flex; flex-direction: column;
+    min-height: 0; min-width: 0;
+  }
+  .chat-top {
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .chat-title { display: flex; align-items: center; gap: 12px; }
+  .chat-title .tag {
+    font-size: 10px; letter-spacing: 0.14em;
+    color: var(--accent);
+    padding: 3px 8px;
+    border: 1px solid var(--accent);
+  }
+  .chat-title .t { font-size: 13px; font-weight: 500; }
+  .chat-top .right { display: flex; gap: 6px; font-size: 11px; color: var(--muted-fg); }
+  .chat-top .pill {
+    padding: 4px 10px; border: 1px solid var(--border);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chat-top .pill .dot { width: 6px; height: 6px; background: var(--accent); }
+
+  .chat-scroll {
+    flex: 1; overflow-y: auto;
+    padding: 32px;
+  }
+  .chat-thread { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+
+  .msg { display: grid; grid-template-columns: 32px 1fr; gap: 16px; }
+  .msg .role {
+    font-size: 10px; letter-spacing: 0.14em;
+    padding-top: 2px;
+    color: var(--muted-fg);
+  }
+  .msg.user .role { color: var(--accent); }
+  .msg .body { font-size: 13.5px; line-height: 1.7; }
+  .msg.user .body { color: var(--muted-fg); }
+  .msg .body p { margin: 0 0 10px; }
+  .msg .body p:last-child { margin-bottom: 0; }
+  .msg .body ol { padding-left: 20px; margin: 10px 0; }
+  .msg .body li { margin: 4px 0; }
+  .msg .body strong { color: var(--fg); font-weight: 600; }
+
+  .code {
+    margin: 14px 0;
+    border: 1px solid var(--border);
+    background: oklch(0.11 0.005 107);
+  }
+  .code-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 10px; letter-spacing: 0.1em; color: var(--muted-fg);
+    text-transform: uppercase;
+  }
+  .code pre {
+    margin: 0; padding: 14px 18px;
+    font-size: 12px; line-height: 1.7;
+    overflow-x: auto;
+  }
+  .copy-btn {
+    font-size: 10px; color: var(--muted-fg);
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    transition: color .15s;
+  }
+  .copy-btn:hover { color: var(--fg); }
+
+  .msg-actions {
+    display: flex; gap: 4px; margin-top: 10px;
+  }
+  .msg-actions button {
+    width: 24px; height: 24px;
+    display: grid; place-items: center;
+    color: var(--muted-fg);
+    transition: color .15s;
+  }
+  .msg-actions button:hover { color: var(--fg); }
+  .msg-actions button.up-active { color: var(--accent); }
+  .msg-actions button.down-active { color: var(--destructive); }
+
+  .chat-empty {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 40px;
+  }
+  .chat-empty-inner {
+    max-width: 720px; width: 100%;
+  }
+  .chat-empty .glyph {
+    font-size: 11px; letter-spacing: 0.14em; color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .chat-empty h2 {
+    font-size: 40px; letter-spacing: -0.02em; line-height: 1.1;
+    max-width: 16ch;
+  }
+  .chat-empty h2 .tint { color: var(--muted-fg); }
+  .chat-empty .hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted-fg);
+  }
+  .prompt-grid {
+    margin-top: 32px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+  .prompt-cell {
+    padding: 16px 18px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .15s;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .prompt-cell:hover { background: var(--muted); }
+  .prompt-cell .t { font-size: 13px; }
+  .prompt-cell .cat { font-size: 10px; color: var(--muted-fg); letter-spacing: 0.12em; }
+  .prompt-cell:hover .arrow { color: var(--accent); transform: translateX(3px); }
+  .prompt-cell .arrow { color: var(--muted-fg); transition: all .15s; }
+
+  .chat-input-wrap {
+    border-top: 1px solid var(--border);
+    padding: 16px 28px 24px;
+    background: var(--bg);
+  }
+  .chat-input {
+    max-width: 760px; margin: 0 auto;
+  }
+  .chat-input-inner {
+    border: 1px solid var(--border-strong);
+    background: var(--card);
+    display: flex; flex-direction: column;
+    transition: border-color .15s;
+  }
+  .chat-input-inner:focus-within { border-color: var(--accent); }
+  .chat-input textarea {
+    min-height: 52px;
+    max-height: 200px;
+    resize: none;
+    padding: 14px 16px;
+    background: transparent;
+    border: 0; outline: 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    font-family: inherit;
+  }
+  .chat-input textarea::placeholder { color: var(--muted-fg); }
+  .input-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .input-toolbar .tools { display: flex; gap: 2px; }
+  .input-toolbar .tool {
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--muted-fg);
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: color .15s;
+  }
+  .input-toolbar .tool:hover { color: var(--fg); }
+  .send-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--accent);
+    color: oklch(0.153 0.006 107.1);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    transition: background .15s;
+  }
+  .send-btn:disabled { background: var(--muted); color: var(--muted-fg); cursor: not-allowed; }
+  .send-btn:not(:disabled):hover { background: var(--accent-2); }
+
+  /* ---- TX EXPLAINER ---- */
+  .tx-page { padding: 48px 0 80px; }
+  .tx-head h1 { font-size: 36px; letter-spacing: -0.025em; }
+  .tx-head p { margin-top: 10px; color: var(--muted-fg); font-size: 14px; max-width: 56ch; }
+  .tx-input-wrap {
+    margin-top: 28px;
+    border: 1px solid var(--border-strong);
+    background: var(--card);
+  }
+  .tx-input-top {
+    display: flex; align-items: center;
+    padding: 6px 8px 6px 14px;
+    gap: 8px;
+  }
+  .tx-input-top .caret { color: var(--accent); font-weight: 600; }
+  .tx-input-top input {
+    flex: 1;
+    background: transparent; border: 0; outline: 0;
+    font-family: inherit; font-size: 13px;
+    padding: 10px 6px;
+  }
+  .tx-input-bottom {
+    border-top: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--muted-fg);
+  }
+  .tx-input-bottom .ex {
+    display: flex; gap: 12px; align-items: center;
+  }
+  .tx-input-bottom .ex button:hover { color: var(--fg); }
+
+  .tx-result {
+    margin-top: 32px;
+    display: grid; grid-template-columns: 1fr 1.4fr; gap: 0;
+    border: 1px solid var(--border);
+  }
+  .tx-left {
+    padding: 24px;
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .tx-status {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  .tx-status .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+  .tx-sig {
+    font-size: 11px; color: var(--muted-fg);
+    word-break: break-all; line-height: 1.5;
+  }
+  .tx-keyvals .row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 10px 0; border-top: 1px dashed var(--border);
+    font-size: 12px;
+  }
+  .tx-keyvals .row:first-child { border-top: 0; }
+  .tx-keyvals .k { color: var(--muted-fg); letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; }
+  .tx-keyvals .v { font-variant-numeric: tabular-nums; }
+  .tx-right {
+    padding: 24px;
+  }
+  .tx-expl-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .tx-expl-head .title { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-fg); }
+  .tx-expl-head .stream { font-size: 10px; color: var(--accent); display: flex; gap: 6px; align-items: center; }
+  .tx-expl-head .stream .d { width: 6px; height: 6px; background: var(--accent); animation: pulse 1s infinite; }
+  .tx-expl p { font-size: 13.5px; line-height: 1.7; margin: 0 0 12px; }
+  .tx-expl .acct { color: var(--accent); background: color-mix(in oklab, var(--accent) 15%, transparent); padding: 1px 6px; font-size: 12px; }
+  .tx-expl ol { padding-left: 24px; margin: 12px 0; }
+  .tx-expl ol li { margin: 8px 0; font-size: 13px; line-height: 1.65; }
+
+  .tx-ixs {
+    margin-top: 32px;
+    border: 1px solid var(--border);
+  }
+  .tx-ixs .head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+  }
+  .tx-ix {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 32px 160px 1fr auto;
+    gap: 20px; align-items: center;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .tx-ix:last-child { border-bottom: 0; }
+  .tx-ix:hover { background: var(--muted); }
+  .tx-ix .idx { color: var(--muted-fg); font-size: 11px; }
+  .tx-ix .prog { color: var(--accent); }
+  .tx-ix .name { color: var(--fg); }
+  .tx-ix .chev { color: var(--muted-fg); }
+
+  /* ---- EVAL ---- */
+  .eval-page { padding: 48px 0 80px; display: flex; flex-direction: column; gap: 40px; }
+  .eval-hero {
+    display: grid; grid-template-columns: 1.2fr 1fr;
+    border: 1px solid var(--border);
+  }
+  .eval-hero-left {
+    padding: 40px;
+    border-right: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .eval-hero-left .label {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+  }
+  .eval-score {
+    font-size: 120px; font-weight: 700;
+    line-height: 1; letter-spacing: -0.04em;
+    color: var(--accent);
+    margin-top: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  .eval-score .pct { font-size: 48px; color: var(--muted-fg); }
+  .eval-hero-left .delta {
+    margin-top: 12px;
+    font-size: 13px; color: var(--muted-fg);
+  }
+  .eval-hero-left .delta .up { color: var(--accent); }
+  .eval-hero-left .bar {
+    margin-top: 28px;
+    height: 4px; background: var(--muted); position: relative;
+  }
+  .eval-hero-left .bar .fill {
+    position: absolute; inset: 0 auto 0 0; background: var(--accent);
+    width: 87.5%;
+  }
+  .eval-hero-left .bar-labels {
+    display: flex; justify-content: space-between; margin-top: 8px;
+    font-size: 10px; color: var(--muted-fg);
+  }
+  .eval-hero-right {
+    padding: 40px;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 14px;
+  }
+  .eval-meta-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .eval-meta-row:last-child { border: 0; }
+  .eval-meta-row .k { color: var(--muted-fg); letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; }
+  .eval-meta-row .v { font-weight: 500; }
+  .eval-meta-row .v .b { font-size: 10px; color: var(--accent); margin-left: 8px; border: 1px solid var(--accent); padding: 1px 5px; }
+
+  .eval-cat-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+  .eval-cat {
+    padding: 20px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .eval-cat .top {
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .eval-cat .name { font-size: 13px; font-weight: 500; }
+  .eval-cat .ratio { font-size: 11px; color: var(--muted-fg); font-variant-numeric: tabular-nums; }
+  .eval-cat .big {
+    font-size: 32px; font-weight: 700;
+    letter-spacing: -0.02em; margin-top: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .eval-cat.perfect .big { color: var(--accent); }
+  .eval-cat .bar {
+    margin-top: 10px;
+    height: 3px; background: var(--muted); position: relative;
+  }
+  .eval-cat .bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+  .eval-cat.weak .bar .fill { background: oklch(0.65 0.14 60); }
+  .eval-cat.weak .big { color: oklch(0.75 0.14 60); }
+
+  .task-table {
+    border: 1px solid var(--border);
+  }
+  .task-table .th, .task-table .tr {
+    display: grid;
+    grid-template-columns: 60px 160px 1fr 120px 80px 40px;
+    gap: 16px;
+    padding: 12px 20px;
+    font-size: 12px;
+    align-items: center;
+  }
+  .task-table .th {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+  .task-table .tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+  .task-table .tr:last-child { border-bottom: 0; }
+  .task-table .tr:hover { background: var(--muted); }
+  .task-table .id { color: var(--muted-fg); }
+  .task-table .cat { color: var(--fg); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .task-table .reason { color: var(--muted-fg); }
+  .task-table .pass {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+    padding: 2px 8px; display: inline-block;
+  }
+  .task-table .pass.yes { color: var(--accent); border: 1px solid var(--accent); }
+  .task-table .pass.no { color: var(--destructive); border: 1px solid var(--destructive); }
+  .task-table .time { color: var(--muted-fg); font-variant-numeric: tabular-nums; text-align: right; }
+  .task-table .chev { color: var(--muted-fg); text-align: right; }
+
+  /* ---- DOCS ---- */
+  .docs-page { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 57px); }
+  .docs-aside {
+    border-right: 1px solid var(--border);
+    padding: 40px 24px;
+    position: sticky; top: 57px;
+    height: calc(100vh - 57px);
+    overflow-y: auto;
+  }
+  .docs-section-title {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+    margin: 22px 0 8px;
+    display: flex; justify-content: space-between;
+  }
+  .docs-section-title:first-child { margin-top: 0; }
+  .docs-section-title .n { color: var(--accent); }
+  .docs-link {
+    display: block;
+    padding: 6px 10px; margin: 0 -10px;
+    font-size: 12.5px;
+    color: var(--muted-fg);
+    border-left: 2px solid transparent;
+    transition: all .15s;
+    cursor: pointer;
+  }
+  .docs-link:hover { color: var(--fg); background: var(--muted); }
+  .docs-link.active { color: var(--fg); border-left-color: var(--accent); background: var(--muted); }
+  .docs-link .num { color: var(--border-strong); margin-right: 8px; font-size: 10px; }
+  .docs-link.active .num { color: var(--accent); }
+
+  .docs-main { padding: 56px 56px 100px; max-width: 820px; }
+  .docs-crumbs { font-size: 11px; letter-spacing: 0.1em; color: var(--muted-fg); margin-bottom: 18px; }
+  .docs-crumbs .sep { margin: 0 8px; opacity: .4; }
+  .docs-main h1 { font-size: 40px; letter-spacing: -0.025em; }
+  .docs-main .sub { font-size: 14px; color: var(--muted-fg); margin-top: 10px; max-width: 58ch; }
+
+  .docs-toc {
+    margin: 36px 0 44px;
+    border: 1px solid var(--border);
+    display: grid; grid-template-columns: repeat(3, 1fr);
+  }
+  .docs-toc a {
+    padding: 14px 16px;
+    border-right: 1px solid var(--border);
+    font-size: 11px; letter-spacing: 0.1em; color: var(--muted-fg);
+    display: flex; gap: 8px; align-items: center;
+    transition: all .15s;
+  }
+  .docs-toc a:last-child { border-right: 0; }
+  .docs-toc a:hover { color: var(--fg); background: var(--muted); }
+  .docs-toc a .n { color: var(--accent); }
+
+  .docs-main h2 {
+    margin: 56px 0 12px;
+    font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .docs-main h2::before {
+    content: ""; width: 24px; height: 1px; background: var(--accent);
+  }
+  .docs-main h3 {
+    margin: 32px 0 10px;
+    font-size: 22px; letter-spacing: -0.01em; font-weight: 600;
+  }
+  .docs-main p { font-size: 14px; line-height: 1.75; color: var(--muted-fg); margin: 10px 0; }
+  .docs-main p strong { color: var(--fg); font-weight: 600; }
+  .docs-main code { background: var(--muted); padding: 1px 6px; font-size: 12px; color: var(--fg); }
+  .docs-main a.inline { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  .docs-code {
+    margin: 16px 0;
+    border: 1px solid var(--border);
+    background: oklch(0.11 0.005 107);
+  }
+  .docs-code .h {
+    display: flex; justify-content: space-between;
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    font-size: 10px; letter-spacing: 0.14em; color: var(--muted-fg); text-transform: uppercase;
+  }
+  .docs-code pre { margin: 0; padding: 16px 18px; font-size: 12.5px; line-height: 1.7; overflow-x: auto; }
+  .docs-callout {
+    margin: 20px 0;
+    padding: 16px 18px;
+    border-left: 2px solid var(--accent);
+    background: var(--muted);
+    font-size: 12.5px; line-height: 1.65;
+  }
+  .docs-callout .label { font-size: 10px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 6px; }
+
+  .docs-table {
+    margin: 20px 0;
+    border: 1px solid var(--border);
+  }
+  .docs-table .row {
+    display: grid; grid-template-columns: 120px 1fr 100px 120px;
+    gap: 16px; padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  .docs-table .row.h {
+    font-size: 10px; letter-spacing: 0.12em; color: var(--muted-fg); text-transform: uppercase;
+    background: var(--card);
+  }
+  .docs-table .row:last-child { border-bottom: 0; }
+  .docs-table .tier { color: var(--accent); font-weight: 600; }
+
+  .docs-nextprev {
+    margin-top: 60px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .docs-nav-card {
+    padding: 18px;
+    border: 1px solid var(--border);
+    transition: all .15s;
+    cursor: pointer;
+  }
+  .docs-nav-card:hover { border-color: var(--accent); }
+  .docs-nav-card .k { font-size: 10px; letter-spacing: 0.14em; color: var(--muted-fg); }
+  .docs-nav-card .t { font-size: 15px; font-weight: 500; margin-top: 6px; }
+  .docs-nav-card.next { text-align: right; }
+
+  /* ---- SIGN IN ---- */
+  .auth-page {
+    flex: 1;
+    display: grid; grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 57px);
+  }
+  .auth-side {
+    padding: 60px 64px;
+    border-right: 1px solid var(--border);
+    background: var(--card);
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow: hidden;
+    position: relative;
+  }
+  .auth-side .eyebrow { color: var(--accent); }
+  .auth-side h1 {
+    margin-top: 24px;
+    font-size: 44px; letter-spacing: -0.025em; line-height: 1.05;
+    max-width: 14ch;
+  }
+  .auth-side .lede {
+    margin-top: 20px;
+    font-size: 14px; line-height: 1.6; color: var(--muted-fg);
+    max-width: 44ch;
+  }
+  .auth-proofs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    margin-top: 40px;
+    border: 1px solid var(--border);
+  }
+  .auth-proofs .p {
+    padding: 18px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .auth-proofs .p:nth-child(2n) { border-right: 0; }
+  .auth-proofs .p:nth-last-child(-n+2) { border-bottom: 0; }
+  .auth-proofs .v { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .auth-proofs .v .u { font-size: 12px; color: var(--muted-fg); font-weight: 400; margin-left: 2px; }
+  .auth-proofs .k { font-size: 10px; letter-spacing: 0.12em; color: var(--muted-fg); margin-top: 6px; text-transform: uppercase; }
+
+  .auth-ascii {
+    font-family: var(--font-mono);
+    color: var(--border-strong);
+    font-size: 10px; line-height: 1.2;
+    white-space: pre;
+    margin-top: 40px;
+  }
+
+  .auth-form-wrap {
+    padding: 60px 64px;
+    display: flex; flex-direction: column; justify-content: center;
+    max-width: 520px; width: 100%; margin: 0 auto;
+  }
+  .auth-form-wrap .tabs {
+    display: flex;
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  .auth-form-wrap .tabs button {
+    flex: 1;
+    padding: 10px;
+    font-size: 12px; letter-spacing: 0.08em;
+    color: var(--muted-fg);
+    border-right: 1px solid var(--border);
+  }
+  .auth-form-wrap .tabs button:last-child { border-right: 0; }
+  .auth-form-wrap .tabs button.active { color: var(--fg); background: var(--muted); }
+
+  .auth-form-wrap h2 { font-size: 24px; letter-spacing: -0.02em; }
+  .auth-form-wrap .sub { margin-top: 8px; font-size: 13px; color: var(--muted-fg); }
+
+  .oauth-btns { margin-top: 28px; display: grid; gap: 10px; }
+  .oauth-btn {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--border-strong);
+    font-size: 13px; font-weight: 500;
+    transition: all .15s;
+    text-align: left;
+    width: 100%;
+  }
+  .oauth-btn:hover { border-color: var(--fg); background: var(--muted); }
+  .oauth-btn .svc { margin-left: auto; font-size: 10px; color: var(--muted-fg); letter-spacing: 0.12em; }
+
+  .auth-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0;
+    font-size: 10px; letter-spacing: 0.2em; color: var(--muted-fg);
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ""; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .field { margin-top: 14px; }
+  .field label {
+    display: block;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color .15s;
+    outline: 0;
+  }
+  .field input:focus { border-color: var(--accent); }
+
+  .auth-fineprint {
+    margin-top: 28px;
+    font-size: 11px; color: var(--muted-fg); line-height: 1.6;
+    text-align: center;
+  }
+  .auth-fineprint a { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---- DASHBOARD ---- */
+  .dash-page { padding: 40px 0 80px; }
+  .dash-head {
+    display: flex; justify-content: space-between; align-items: end;
+    margin-bottom: 32px; gap: 24px;
+  }
+  .dash-head .l .eyebrow { color: var(--accent); }
+  .dash-head h1 { font-size: 32px; letter-spacing: -0.02em; margin-top: 14px; }
+  .dash-head .lede { font-size: 13px; color: var(--muted-fg); margin-top: 6px; }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+  }
+  .dash-main-col { border-right: 1px solid var(--border); }
+  .dash-card {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dash-card:last-child { border-bottom: 0; }
+  .dash-card .head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 18px;
+  }
+  .dash-card .head .title {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted-fg);
+  }
+  .dash-card .head .tag {
+    font-size: 10px; letter-spacing: 0.14em;
+    padding: 3px 8px; border: 1px solid var(--accent); color: var(--accent);
+  }
+
+  .api-key-box {
+    display: flex; align-items: center;
+    border: 1px solid var(--border);
+    background: oklch(0.11 0.005 107);
+    padding: 12px 16px;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .api-key-box .prefix { color: var(--accent); }
+  .api-key-box .hidden-chars { letter-spacing: 2px; color: var(--muted-fg); }
+  .api-key-box .ctrls { margin-left: auto; display: flex; gap: 6px; }
+  .api-key-box .ctrls button {
+    font-size: 10px; letter-spacing: 0.1em;
+    padding: 4px 8px;
+    color: var(--muted-fg);
+    border: 1px solid var(--border-strong);
+    transition: color .15s;
+  }
+  .api-key-box .ctrls button:hover { color: var(--fg); border-color: var(--fg); }
+
+  /* usage chart */
+  .usage-chart {
+    display: flex; align-items: flex-end; gap: 4px;
+    height: 140px;
+    padding: 8px 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .usage-chart .bar {
+    flex: 1;
+    background: var(--accent-dim);
+    position: relative;
+    min-height: 2px;
+    transition: background .15s;
+  }
+  .usage-chart .bar:hover { background: var(--accent); }
+  .usage-chart .bar.today { background: var(--accent); }
+  .usage-xaxis {
+    display: flex; gap: 4px;
+    margin-top: 8px;
+    font-size: 10px; color: var(--muted-fg);
+  }
+  .usage-xaxis span { flex: 1; text-align: center; }
+
+  .usage-stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+  .usage-stats-row .s {
+    padding: 14px 16px;
+    border-right: 1px solid var(--border);
+  }
+  .usage-stats-row .s:last-child { border-right: 0; }
+  .usage-stats-row .s .v { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+  .usage-stats-row .s .k { font-size: 10px; letter-spacing: 0.12em; color: var(--muted-fg); margin-top: 4px; text-transform: uppercase; }
+
+  .rate-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    margin-top: 14px;
+    border: 1px solid var(--border);
+  }
+  .rate-cell {
+    padding: 16px;
+    border-right: 1px solid var(--border);
+  }
+  .rate-cell:last-child { border-right: 0; }
+  .rate-cell .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rate-cell .k { font-size: 10px; letter-spacing: 0.12em; color: var(--muted-fg); margin-top: 4px; text-transform: uppercase; }
+  .rate-cell .meter {
+    height: 2px; background: var(--muted); margin-top: 10px; position: relative;
+  }
+  .rate-cell .meter .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+
+  .account-info .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0;
+    border-top: 1px dashed var(--border);
+    font-size: 12.5px;
+  }
+  .account-info .row:first-child { border-top: 0; }
+  .account-info .row .k { color: var(--muted-fg); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+  .tier-row {
+    display: flex; gap: 0;
+    margin-top: 14px;
+    border: 1px solid var(--border);
+  }
+  .tier-cell {
+    flex: 1;
+    padding: 12px 14px;
+    border-right: 1px solid var(--border);
+    font-size: 11px;
+    text-align: center;
+    color: var(--muted-fg);
+    position: relative;
+  }
+  .tier-cell:last-child { border-right: 0; }
+  .tier-cell.active { background: var(--accent); color: oklch(0.153 0.006 107.1); }
+  .tier-cell .n { font-size: 10px; letter-spacing: 0.14em; display: block; }
+  .tier-cell .v { font-weight: 700; display: block; margin-top: 2px; font-size: 13px; }
+
+  /* ---- ERROR DECODER (bonus) ---- */
+
+  /* pages — show/hide */
+  .page { display: none; flex-direction: column; flex: 1; min-height: 0; }
+  .page.active { display: flex; }
+
+  /* chat page specifically occupies the viewport */
+  #page-chat { height: calc(100vh - 57px); }
+
+  /* mobile bail */
+  @media (max-width: 900px) {
+    .hero-grid, .bench-grid, .tx-result, .eval-hero, .install-panel { grid-template-columns: 1fr; }
+    .install-code { border-right: 0; border-bottom: 1px solid var(--border); }
+    .surfaces-grid, .guard-grid, .eval-cat-grid, .prompt-grid { grid-template-columns: 1fr; }
+    .surface, .guard, .eval-cat, .prompt-cell { border-right: 0; }
+    .chat-wrap { grid-template-columns: 1fr; }
+    .chat-sidebar { display: none; }
+    .task-table .th, .task-table .tr { grid-template-columns: 50px 100px 1fr 60px; }
+    .task-table .time, .task-table .chev { display: none; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ NAV ============ -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="#" class="logo" data-route="landing">
+        <span class="dot"></span>
+        <span>SLM</span>
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" data-route="chat" href="#"><span class="num">01</span>Chat</a>
+        <a class="nav-link" data-route="tx" href="#"><span class="num">02</span>Explain</a>
+        <a class="nav-link" data-route="eval" href="#"><span class="num">03</span>Eval</a>
+        <a class="nav-link" data-route="docs" href="#"><span class="num">04</span>Docs</a>
+      </div>
+      <div class="nav-right">
+        <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M18.4 5.6l-1.4 1.4M7 17l-1.4 1.4M18.4 18.4L17 17M7 7L5.6 5.6"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+        <a href="#" class="icon-btn" aria-label="GitHub">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.27a11 11 0 0 0-3.48 21.46c.55.1.75-.23.75-.52v-1.83c-3.06.67-3.7-1.47-3.7-1.47-.5-1.27-1.22-1.6-1.22-1.6-1-.68.08-.67.08-.67 1.1.08 1.68 1.13 1.68 1.13.98 1.68 2.57 1.2 3.2.92.1-.72.38-1.2.7-1.48-2.44-.28-5-1.22-5-5.44 0-1.2.43-2.18 1.13-2.95-.1-.28-.49-1.4.1-2.9 0 0 .92-.3 3 1.12a10.4 10.4 0 0 1 5.48 0c2.1-1.42 3-1.12 3-1.12.6 1.5.22 2.62.11 2.9.7.77 1.13 1.76 1.13 2.95 0 4.23-2.57 5.15-5.02 5.43.4.34.75 1 .75 2.02v3c0 .3.2.63.76.52A11 11 0 0 0 12 1.27"/></svg>
+        </a>
+        <a href="#" class="btn btn-sm" data-route="signin" id="signInBtn">Sign in</a>
+        <a href="#" class="icon-btn" data-route="dashboard" aria-label="Dashboard" title="Dashboard" style="margin-left:4px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/></svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ DOCS ============ -->
+  <div id="page-docs" class="page">
+    <div class="docs-page">
+      <aside class="docs-aside">
+        <div class="docs-section-title"><span><span class="n">01</span> Getting Started</span></div>
+        <a class="docs-link active" data-doc="quick-start"><span class="num">01</span>Quick Start</a>
+        <a class="docs-link" data-doc="auth"><span class="num">02</span>Authentication</a>
+        <a class="docs-link" data-doc="rate-limits"><span class="num">03</span>Rate Limits</a>
+
+        <div class="docs-section-title"><span><span class="n">02</span> Clients</span></div>
+        <a class="docs-link" data-doc="web"><span class="num">04</span>Web</a>
+        <a class="docs-link" data-doc="cli"><span class="num">05</span>CLI</a>
+        <a class="docs-link" data-doc="vscode"><span class="num">06</span>VS Code</a>
+        <a class="docs-link" data-doc="mcp"><span class="num">07</span>MCP</a>
+
+        <div class="docs-section-title"><span><span class="n">03</span> API Reference</span></div>
+        <a class="docs-link" data-doc="chat-api"><span class="num">08</span>POST /v1/chat</a>
+        <a class="docs-link" data-doc="explain-api"><span class="num">09</span>POST /explain/tx</a>
+        <a class="docs-link" data-doc="errors"><span class="num">10</span>Errors</a>
+
+        <div class="docs-section-title"><span><span class="n">04</span> Model</span></div>
+        <a class="docs-link" data-doc="model-card"><span class="num">11</span>Model Card</a>
+        <a class="docs-link" data-doc="dataset"><span class="num">12</span>Dataset Card</a>
+        <a class="docs-link" data-doc="guardrails"><span class="num">13</span>Guardrails</a>
+      </aside>
+
+      <div class="docs-main">
+        <div class="docs-crumbs">DOCS<span class="sep">/</span>GETTING STARTED<span class="sep">/</span><span style="color:var(--fg)">QUICK START</span></div>
+        <h1>Quick Start.</h1>
+        <p class="sub">Sign up and run your first SLM query in under 5 minutes. Works with any OpenAI-compatible client.</p>
+
+        <div class="docs-toc">
+          <a href="#s1"><span class="n">01</span>Sign in</a>
+          <a href="#s2"><span class="n">02</span>Pick a client</a>
+          <a href="#s3"><span class="n">03</span>First query</a>
+        </div>
+
+        <h2 id="s1">01 · Sign in</h2>
+        <h3>Get your API key</h3>
+        <p>Go to <a class="inline" data-route="signin" href="#">slm.dev/sign-in</a> and authorize with GitHub or Google. Your API key is generated automatically and visible on the <a class="inline" data-route="dashboard" href="#">dashboard</a>. Keys start with <code>slm_</code> followed by a 32-char hex token.</p>
+
+        <div class="docs-callout">
+          <div class="label">HEADS UP</div>
+          Anonymous use works too — you get 5 req/min and 10K tokens/day with no signup. Sign in to lift those limits.
+        </div>
+
+        <h2 id="s2">02 · Pick a client</h2>
+        <p>SLM ships four clients — use whichever fits your workflow.</p>
+        <div class="docs-table">
+          <div class="row h"><span>Client</span><span>Best for</span><span>Auth</span><span>Install</span></div>
+          <div class="row"><span><strong>Web</strong></span><span>Fastest way to try it</span><span>None</span><span>—</span></div>
+          <div class="row"><span><strong>CLI</strong></span><span>Terminal chat, codegen, migration</span><span>API key</span><span>pip install slm-cli</span></div>
+          <div class="row"><span><strong>VS Code</strong></span><span>@slm chat + inline autocomplete</span><span>None/Key</span><span>Marketplace</span></div>
+          <div class="row"><span><strong>MCP</strong></span><span>Claude Code, Cursor, Windsurf</span><span>API key</span><span>claude mcp add</span></div>
+        </div>
+
+        <h2 id="s3">03 · First query</h2>
+        <h3>Hit the API with curl</h3>
+        <div class="docs-code">
+          <div class="h"><span>BASH</span><span>copy</span></div>
+<pre><code>curl https://api.slm.dev/v1/chat/completions \
+  -H "Authorization: Bearer slm_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "slm-solana",
+    "messages": [{"role": "user", "content": "How do I derive a PDA in Anchor?"}],
+    "max_tokens": 512
+  }'</code></pre>
+        </div>
+        <p>The endpoint is a drop-in replacement for OpenAI's <code>/v1/chat/completions</code>. Pass <code>"stream": true</code> for SSE. Rate limits depend on your <a class="inline" data-doc="rate-limits" href="#">tier</a>.</p>
+
+        <div class="docs-nextprev">
+          <div class="docs-nav-card">
+            <div class="k">← PREV</div>
+            <div class="t">Overview</div>
+          </div>
+          <div class="docs-nav-card next">
+            <div class="k">NEXT →</div>
+            <div class="t">Authentication</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SIGN IN ============ -->
+  <div id="page-signin" class="page">
+    <div class="auth-page">
+      <div class="auth-side">
+        <div>
+          <div class="eyebrow">SLM / AUTH</div>
+          <h1>Welcome back, builder.</h1>
+          <p class="lede">Sign in to claim your API key, track usage, and save chat history. GitHub or Google — no email/password to manage.</p>
+
+          <div class="auth-proofs">
+            <div class="p"><div class="v mono-num">87.5<span class="u">%</span></div><div class="k">Solana eval</div></div>
+            <div class="p"><div class="v mono-num">741<span class="u">K</span></div><div class="k">Training records</div></div>
+            <div class="p"><div class="v mono-num">1,914</div><div class="k">Errors decoded</div></div>
+            <div class="p"><div class="v mono-num">41</div><div class="k">Programs covered</div></div>
+          </div>
+        </div>
+
+        <pre class="auth-ascii">   ╔═════════════════════════════════════╗
+   ║  slm-solana · qwen2.5-coder-7b      ║
+   ║  qlora · rank 16 · ckpt-160         ║
+   ║  $ ready to accept connections      ║
+   ╚═════════════════════════════════════╝</pre>
+      </div>
+
+      <div class="auth-form-wrap">
+        <div class="tabs" id="authTabs">
+          <button class="active" data-tab="signin">SIGN IN</button>
+          <button data-tab="signup">CREATE ACCOUNT</button>
+        </div>
+
+        <div id="authSignin">
+          <h2>Sign in to SLM.</h2>
+          <p class="sub">Pick an OAuth provider or paste an existing API key.</p>
+
+          <div class="oauth-btns">
+            <button class="oauth-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.27a11 11 0 0 0-3.48 21.46c.55.1.75-.23.75-.52v-1.83c-3.06.67-3.7-1.47-3.7-1.47-.5-1.27-1.22-1.6-1.22-1.6-1-.68.08-.67.08-.67 1.1.08 1.68 1.13 1.68 1.13.98 1.68 2.57 1.2 3.2.92.1-.72.38-1.2.7-1.48-2.44-.28-5-1.22-5-5.44 0-1.2.43-2.18 1.13-2.95-.1-.28-.49-1.4.1-2.9 0 0 .92-.3 3 1.12a10.4 10.4 0 0 1 5.48 0c2.1-1.42 3-1.12 3-1.12.6 1.5.22 2.62.11 2.9.7.77 1.13 1.76 1.13 2.95 0 4.23-2.57 5.15-5.02 5.43.4.34.75 1 .75 2.02v3c0 .3.2.63.76.52A11 11 0 0 0 12 1.27"/></svg>
+              <span>Continue with GitHub</span>
+              <span class="svc">OAUTH</span>
+            </button>
+            <button class="oauth-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 11v3.1h4.4c-.2 1.2-1.5 3.5-4.4 3.5-2.7 0-4.9-2.2-4.9-4.9s2.2-4.9 4.9-4.9c1.5 0 2.5.6 3.1 1.2l2.1-2.1C15.8 5.8 14.1 5 12 5c-3.9 0-7 3.1-7 7s3.1 7 7 7c4 0 6.7-2.8 6.7-6.8 0-.5 0-.8-.1-1.2H12z"/></svg>
+              <span>Continue with Google</span>
+              <span class="svc">OAUTH</span>
+            </button>
+          </div>
+
+          <div class="auth-divider">OR · USE EXISTING KEY</div>
+
+          <div class="field">
+            <label>API KEY</label>
+            <input type="text" placeholder="slm_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+          </div>
+          <div style="margin-top:14px">
+            <button class="btn btn-primary" style="width:100%;justify-content:center">
+              <span>Continue</span><span>→</span>
+            </button>
+          </div>
+
+          <div class="auth-fineprint">
+            Or use SLM anonymously — <a data-route="chat" href="#">start chatting</a> with 5 req/min limits.<br>
+            By continuing, you agree to the <a href="#">terms</a>. We store your email and name only.
+          </div>
+        </div>
+
+        <div id="authSignup" style="display:none">
+          <h2>Create an account.</h2>
+          <p class="sub">Free tier: 50K tokens/day. No credit card.</p>
+
+          <div class="oauth-btns" style="margin-top:20px">
+            <button class="oauth-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.27a11 11 0 0 0-3.48 21.46c.55.1.75-.23.75-.52v-1.83c-3.06.67-3.7-1.47-3.7-1.47-.5-1.27-1.22-1.6-1.22-1.6-1-.68.08-.67.08-.67 1.1.08 1.68 1.13 1.68 1.13.98 1.68 2.57 1.2 3.2.92.1-.72.38-1.2.7-1.48-2.44-.28-5-1.22-5-5.44 0-1.2.43-2.18 1.13-2.95-.1-.28-.49-1.4.1-2.9 0 0 .92-.3 3 1.12a10.4 10.4 0 0 1 5.48 0c2.1-1.42 3-1.12 3-1.12.6 1.5.22 2.62.11 2.9.7.77 1.13 1.76 1.13 2.95 0 4.23-2.57 5.15-5.02 5.43.4.34.75 1 .75 2.02v3c0 .3.2.63.76.52A11 11 0 0 0 12 1.27"/></svg>
+              <span>Sign up with GitHub</span>
+              <span class="svc">RECOMMENDED</span>
+            </button>
+            <button class="oauth-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 11v3.1h4.4c-.2 1.2-1.5 3.5-4.4 3.5-2.7 0-4.9-2.2-4.9-4.9s2.2-4.9 4.9-4.9c1.5 0 2.5.6 3.1 1.2l2.1-2.1C15.8 5.8 14.1 5 12 5c-3.9 0-7 3.1-7 7s3.1 7 7 7c4 0 6.7-2.8 6.7-6.8 0-.5 0-.8-.1-1.2H12z"/></svg>
+              <span>Sign up with Google</span>
+              <span class="svc">OAUTH</span>
+            </button>
+          </div>
+
+          <div class="auth-fineprint" style="margin-top:20px">
+            Already have an account? <a href="#" id="toSignin">Sign in</a>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div id="page-dashboard" class="page">
+    <div class="dash-page">
+      <div class="container">
+        <div class="dash-head">
+          <div class="l">
+            <div class="eyebrow">05 / dashboard</div>
+            <h1>Dashboard.</h1>
+            <div class="lede">Your key, your usage, your limits.</div>
+          </div>
+          <div style="display:flex; gap:8px">
+            <button class="btn btn-sm">⟲ Rotate key</button>
+            <button class="btn btn-sm">Sign out</button>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="dash-main-col">
+
+            <div class="dash-card">
+              <div class="head">
+                <span class="title">API Key</span>
+                <span class="tag">ACTIVE</span>
+              </div>
+              <div class="api-key-box">
+                <span class="prefix">slm_</span>
+                <span class="hidden-chars">••••••••••••••••••••••••••••</span>
+                <span style="color:var(--muted-fg)" class="mono-num">a3f9</span>
+                <div class="ctrls">
+                  <button>SHOW</button>
+                  <button>COPY</button>
+                </div>
+              </div>
+              <p style="margin:12px 0 0; font-size:11px; color:var(--muted-fg)">
+                Use in the <code style="background:var(--muted);padding:1px 5px">Authorization</code> header: <code style="background:var(--muted);padding:1px 5px">Bearer &lt;key&gt;</code>
+              </p>
+            </div>
+
+            <div class="dash-card">
+              <div class="head">
+                <span class="title">Usage · last 14 days</span>
+                <span style="font-size:11px; color:var(--muted-fg)">tokens/day</span>
+              </div>
+              <div class="usage-chart" id="usageChart"></div>
+              <div class="usage-xaxis" id="usageXAxis"></div>
+              <div class="usage-stats-row">
+                <div class="s"><div class="v mono-num">42,380</div><div class="k">Tokens · 14d</div></div>
+                <div class="s"><div class="v mono-num">892</div><div class="k">Requests · 14d</div></div>
+                <div class="s"><div class="v mono-num">3,124</div><div class="k">Tokens · today</div></div>
+                <div class="s"><div class="v mono-num">6.2<span style="font-size:12px; color:var(--muted-fg)">%</span></div><div class="k">Of daily quota</div></div>
+              </div>
+            </div>
+
+            <div class="dash-card">
+              <div class="head">
+                <span class="title">Rate limits</span>
+                <span style="font-size:11px; color:var(--muted-fg)">free tier</span>
+              </div>
+              <div class="rate-grid">
+                <div class="rate-cell">
+                  <div class="v mono-num">10 <span style="font-size:12px; color:var(--muted-fg)">/ min</span></div>
+                  <div class="k">Requests per minute</div>
+                  <div class="meter"><div class="fill" style="width:30%"></div></div>
+                </div>
+                <div class="rate-cell">
+                  <div class="v mono-num">50K <span style="font-size:12px; color:var(--muted-fg)">/ day</span></div>
+                  <div class="k">Tokens per day</div>
+                  <div class="meter"><div class="fill" style="width:6%"></div></div>
+                </div>
+              </div>
+              <div class="tier-row">
+                <div class="tier-cell"><span class="n">ANON</span><span class="v">5 · 10K</span></div>
+                <div class="tier-cell active"><span class="n">FREE</span><span class="v">10 · 50K</span></div>
+                <div class="tier-cell"><span class="n">STANDARD</span><span class="v">30 · 500K</span></div>
+                <div class="tier-cell"><span class="n">ADMIN</span><span class="v">100 · ∞</span></div>
+              </div>
+              <p style="margin:14px 0 0; font-size:11px; color:var(--muted-fg)">
+                Upgrade to standard → <a href="#" style="color:var(--accent); text-decoration:underline; text-underline-offset:3px">apply for higher limits</a>
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div class="dash-card">
+              <div class="head">
+                <span class="title">Account</span>
+                <span class="tag">GITHUB</span>
+              </div>
+              <div class="account-info">
+                <div class="row"><span class="k">Name</span><span>Kshitij Hash</span></div>
+                <div class="row"><span class="k">Email</span><span style="color:var(--muted-fg); font-size:11px">k***@gmail.com</span></div>
+                <div class="row"><span class="k">Handle</span><span>@kshitij-hash</span></div>
+                <div class="row"><span class="k">Joined</span><span>Apr 2026</span></div>
+                <div class="row"><span class="k">Tier</span><span style="color:var(--accent); font-weight:600">FREE</span></div>
+              </div>
+            </div>
+
+            <div class="dash-card">
+              <div class="head"><span class="title">Quickstart</span></div>
+              <div class="docs-code" style="margin:0">
+                <div class="h"><span>BASH</span></div>
+<pre><code>curl -X POST \
+  https://api.slm.dev/v1/chat \
+  -H "Authorization: Bearer slm_..." \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [
+    {"role":"user","content":"Hello"}
+  ]}'</code></pre>
+              </div>
+              <p style="margin:14px 0 0; font-size:11px; color:var(--muted-fg)">
+                Full reference → <a data-route="docs" href="#" style="color:var(--fg); text-decoration:underline; text-underline-offset:3px">docs</a>
+              </p>
+            </div>
+
+            <div class="dash-card">
+              <div class="head"><span class="title">Danger zone</span></div>
+              <button class="btn btn-sm" style="width:100%; justify-content:center; color:var(--destructive); border-color:var(--destructive)">Delete account</button>
+              <p style="margin:10px 0 0; font-size:10px; color:var(--muted-fg); text-align:center">Revokes key, clears history. Cannot be undone.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LANDING ============ -->
+  <div id="page-landing" class="page active">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">SLM / v0.2 / solana language model</div>
+          <h1>The Solana coding AI that <span class="tint">actually knows Solana.</span></h1>
+          <p class="lede">Fine-tuned on 741K Solana records. Chat, explain transactions, decode errors. In your browser, terminal, or editor — with a model that speaks modern Anchor.</p>
+          <div class="hero-ctas">
+            <a href="#" class="btn btn-primary" data-route="chat">
+              <span>Try it now</span>
+              <span class="btn-arrow">→</span>
+            </a>
+            <a href="#" class="btn">$ pip install slm-cli</a>
+          </div>
+        </div>
+        <div>
+          <div class="eyebrow">At a glance</div>
+          <div class="hero-meta" style="margin-top:20px">
+            <div class="stat accent">
+              <div class="label">Solana eval</div>
+              <div class="value mono-num">87.5<span class="unit">%</span></div>
+              <div class="sub">70 / 80 tasks · Apr 2026</div>
+            </div>
+            <div class="stat">
+              <div class="label">HumanEval</div>
+              <div class="value mono-num">90<span class="unit">%</span></div>
+              <div class="sub">General coding preserved</div>
+            </div>
+            <div class="stat">
+              <div class="label">Base</div>
+              <div class="value" style="font-size:18px;margin-top:12px">Qwen2.5-Coder-7B</div>
+              <div class="sub">QLoRA · rank 16</div>
+            </div>
+            <div class="stat">
+              <div class="label">Training</div>
+              <div class="value mono-num">741<span class="unit">K</span></div>
+              <div class="sub">Curated Solana records</div>
+            </div>
+          </div>
+
+          <div class="terminal">
+            <div class="terminal-head">
+              <span>~ slm · chat</span>
+              <div class="term-dots"><span></span><span></span><span></span></div>
+            </div>
+            <div class="terminal-body" id="termBody">
+<span class="t-prompt">$</span> slm chat "derive a PDA for a vault"
+<br><span class="t-muted">→ thinking…</span>
+<br><br><span class="t-comment">// anchor 0.30+ — constraint-based derivation</span>
+<br><span class="t-key">#[derive</span>(Accounts)]
+<br>pub struct <span class="t-key">InitVault</span>&lt;'info&gt; {
+<br>&nbsp;&nbsp;<span class="t-key">#[account</span>(
+<br>&nbsp;&nbsp;&nbsp;&nbsp;init, payer = authority,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;seeds = [<span class="t-str">b"vault"</span>, authority.key().as_ref()],
+<br>&nbsp;&nbsp;&nbsp;&nbsp;bump, space = 8 + Vault::INIT_SPACE,
+<br>&nbsp;&nbsp;)]
+<br>&nbsp;&nbsp;pub vault: Account&lt;'info, Vault&gt;,<span class="cursor-blink"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SURFACES -->
+    <section class="surfaces">
+      <div class="container">
+        <div class="section-label">
+          <span class="idx">01</span>
+          <span>Surfaces</span>
+          <span class="line"></span>
+          <span>Everywhere you code</span>
+        </div>
+        <div class="surfaces-grid">
+          <div class="surface" data-route="chat">
+            <div class="idx">A / Browser</div>
+            <h3>Chat</h3>
+            <p>Ask anything about Solana & Anchor. Streams markdown, code, citations.</p>
+            <div class="arrow">↗</div>
+          </div>
+          <div class="surface" data-route="tx">
+            <div class="idx">B / Browser</div>
+            <h3>Tx Explainer</h3>
+            <p>Paste a signature, get human-readable breakdown with Helius data.</p>
+            <div class="arrow">↗</div>
+          </div>
+          <div class="surface">
+            <div class="idx">C / Browser</div>
+            <h3>Error Decoder</h3>
+            <p>1,914 known errors across 41 programs. Instant fix suggestions.</p>
+            <div class="arrow">↗</div>
+          </div>
+          <div class="surface">
+            <div class="idx">D / Everywhere</div>
+            <h3>API · CLI · VS Code</h3>
+            <p>OpenAI-compatible. Runs locally via Ollama. MCP for Claude &amp; Cursor.</p>
+            <div class="arrow">↗</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENCHMARK -->
+    <section class="bench">
+      <div class="container">
+        <div class="section-label">
+          <span class="idx">02</span>
+          <span>Benchmark</span>
+          <span class="line"></span>
+          <span>80 tasks · 7 categories</span>
+        </div>
+        <div class="bench-grid">
+          <div class="bench-overall">
+            <div class="eyebrow" style="color:var(--muted-fg)">Overall score</div>
+            <div class="big mono-num">87.5<span class="pct">%</span></div>
+            <div class="meta">70 of 80 tasks passed · Apr 3, 2026</div>
+            <div class="divider"></div>
+            <div class="key-line"><span class="k">Base model</span><span>Qwen2.5-Coder-7B</span></div>
+            <div class="key-line"><span class="k">Method</span><span>QLoRA SFT</span></div>
+            <div class="key-line"><span class="k">Checkpoint</span><span>sft / ckpt-160</span></div>
+            <div class="key-line"><span class="k">vs base model</span><span style="color:var(--accent)">+34 pts</span></div>
+          </div>
+          <div>
+            <div class="bench-list">
+              <div class="bench-row"><span class="ix">01</span><span class="name">CPI Patterns</span><span class="ratio">10/10</span><span class="bar"><span class="fill" style="width:100%"></span></span><span class="pct">100%</span></div>
+              <div class="bench-row"><span class="ix">02</span><span class="name">Error Handling</span><span class="ratio">10/10</span><span class="bar"><span class="fill" style="width:100%"></span></span><span class="pct">100%</span></div>
+              <div class="bench-row"><span class="ix">03</span><span class="name">SPL Token Ops</span><span class="ratio">10/10</span><span class="bar"><span class="fill" style="width:100%"></span></span><span class="pct">100%</span></div>
+              <div class="bench-row"><span class="ix">04</span><span class="name">Tx Construction</span><span class="ratio">10/10</span><span class="bar"><span class="fill" style="width:100%"></span></span><span class="pct">100%</span></div>
+              <div class="bench-row low"><span class="ix">05</span><span class="name">PDA Derivation</span><span class="ratio">14/15</span><span class="bar"><span class="fill" style="width:93%"></span></span><span class="pct">93%</span></div>
+              <div class="bench-row low"><span class="ix">06</span><span class="name">Anchor Constraints</span><span class="ratio">13/15</span><span class="bar"><span class="fill" style="width:87%"></span></span><span class="pct">87%</span></div>
+              <div class="bench-row weak"><span class="ix">07</span><span class="name">Adversarial</span><span class="ratio">3/10</span><span class="bar"><span class="fill" style="width:30%"></span></span><span class="pct">30%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INSTALL -->
+    <section class="install">
+      <div class="container">
+        <div class="install-head">
+          <div>
+            <div class="section-label" style="margin-bottom:6px"><span class="idx">03</span><span>Get started</span></div>
+            <h2>Pick your surface.</h2>
+          </div>
+          <div class="install-tabs" id="installTabs">
+            <button class="install-tab active" data-tab="cli">CLI</button>
+            <button class="install-tab" data-tab="api">API</button>
+            <button class="install-tab" data-tab="ollama">Ollama</button>
+            <button class="install-tab" data-tab="vscode">VS Code</button>
+          </div>
+        </div>
+
+        <div class="install-panel">
+          <div class="install-code" id="installCode"></div>
+          <div class="install-info" id="installInfo"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GUARDRAILS -->
+    <section class="guardrails">
+      <div class="container">
+        <div class="section-label">
+          <span class="idx">04</span>
+          <span>Guardrails</span>
+          <span class="line"></span>
+          <span>Why the model doesn't hallucinate outdated patterns</span>
+        </div>
+        <div class="guard-grid">
+          <div class="guard">
+            <div class="rule"><span class="no">NO</span> · DECLARE_ID</div>
+            <p>Never emits <code>declare_id!</code>. Always uses <code>declare_program!</code> per Anchor 0.30+.</p>
+          </div>
+          <div class="guard">
+            <div class="rule"><span class="no">NO</span> · REENTRANCY</div>
+            <p>Doesn't suggest reentrancy guards — Solana prevents reentrancy via CPI depth limits.</p>
+          </div>
+          <div class="guard">
+            <div class="rule"><span class="no">NO</span> · CORAL-XYZ</div>
+            <p>References <code>solana-foundation/anchor</code>, not the old <code>coral-xyz</code> org.</p>
+          </div>
+          <div class="guard">
+            <div class="rule"><span class="no">NO</span> · CLOSED DISCRIMINATOR</div>
+            <p>No warnings about closed-account discriminator attacks — patched years ago.</p>
+          </div>
+          <div class="guard">
+            <div class="rule"><span class="no">NO</span> · FLOAT CONCERN</div>
+            <p>Doesn't warn about float non-determinism. Solana compute is deterministic.</p>
+          </div>
+          <div class="guard">
+            <div class="rule"><span class="yes">YES</span> · MODERN IX</div>
+            <p>Uses <code>get_instruction_relative</code>, not the deprecated <code>load_instruction_at</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div>Built for Solana · <span style="color:var(--fg)">MIT</span></div>
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div>
+          <a href="#">github</a> <span style="opacity:.4">/</span>
+          <a href="#">docs</a> <span style="opacity:.4">/</span>
+          <a href="#">dataset card</a> <span style="opacity:.4">/</span>
+          <a href="#">model card</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============ CHAT ============ -->
+  <div id="page-chat" class="page">
+    <div class="chat-wrap">
+      <aside class="chat-sidebar">
+        <div class="side-section">
+          <div class="side-head"><span>Recent</span><span class="count">4</span></div>
+          <div class="side-item active">
+            <span>●</span>
+            <span>Deriving a vault PDA</span>
+            <span class="time">now</span>
+          </div>
+          <div class="side-item">
+            <span>·</span>
+            <span>Anchor constraints cheat</span>
+            <span class="time">2h</span>
+          </div>
+          <div class="side-item">
+            <span>·</span>
+            <span>SPL transfer w/ signer</span>
+            <span class="time">yst</span>
+          </div>
+          <div class="side-item">
+            <span>·</span>
+            <span>Why my CPI fails</span>
+            <span class="time">2d</span>
+          </div>
+        </div>
+        <div class="side-section">
+          <div class="side-head"><span>Pinned</span><span class="count">2</span></div>
+          <div class="side-item"><span>★</span><span>Escrow program scaffold</span></div>
+          <div class="side-item"><span>★</span><span>Token-2022 mint setup</span></div>
+        </div>
+        <div class="side-section" style="margin-top:auto">
+          <div class="side-head"><span>Usage</span></div>
+          <div style="font-size:11px; color:var(--muted-fg); line-height:1.8">
+            <div style="display:flex; justify-content:space-between"><span>Today</span><span class="mono-num">12 / 50</span></div>
+            <div style="height:2px;background:var(--muted);margin:6px 0;position:relative"><div style="position:absolute;inset:0 auto 0 0;width:24%;background:var(--accent)"></div></div>
+            <div style="display:flex; justify-content:space-between"><span>Tokens</span><span class="mono-num">4,230</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="chat-main">
+        <div class="chat-top">
+          <div class="chat-title">
+            <span class="tag">SLM · 7B</span>
+            <span class="t">Deriving a vault PDA</span>
+          </div>
+          <div class="right">
+            <span class="pill"><span class="dot"></span> live</span>
+            <button class="icon-btn" title="New chat" id="newChatBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
+            <button class="icon-btn" title="Clear"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+          </div>
+        </div>
+
+        <div class="chat-scroll" id="chatScroll">
+          <div id="chatEmpty" class="chat-empty">
+            <div class="chat-empty-inner">
+              <div class="glyph">SLM / READY / TYPE TO START</div>
+              <h2>Ask anything about <span class="tint">Solana &amp; Anchor</span>.</h2>
+              <p class="hint">Uses the model fine-tuned on 741K Solana records. Streams responses, cites docs, suggests fixes. <span class="kbd">⌘K</span> to focus.</p>
+              <div class="prompt-grid">
+                <div class="prompt-cell" data-send="How do I derive a PDA in Anchor?">
+                  <div><div class="cat">PDA</div><div class="t">How do I derive a PDA in Anchor?</div></div>
+                  <span class="arrow">→</span>
+                </div>
+                <div class="prompt-cell" data-send="Write a token transfer in Anchor 0.30+">
+                  <div><div class="cat">SPL TOKEN</div><div class="t">Write a token transfer in Anchor 0.30+</div></div>
+                  <span class="arrow">→</span>
+                </div>
+                <div class="prompt-cell" data-send="Explain this CPI call structure">
+                  <div><div class="cat">CPI</div><div class="t">Explain this CPI call structure</div></div>
+                  <span class="arrow">→</span>
+                </div>
+                <div class="prompt-cell" data-send="Scaffold an escrow program">
+                  <div><div class="cat">SCAFFOLD</div><div class="t">Scaffold an escrow program</div></div>
+                  <span class="arrow">→</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="chatThread" class="chat-thread" style="display:none">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <div class="chat-input-wrap">
+          <div class="chat-input">
+            <div class="chat-input-inner">
+              <textarea id="chatTextarea" placeholder="Ask about Solana development…" rows="1"></textarea>
+              <div class="input-toolbar">
+                <div class="tools">
+                  <button class="tool" title="Attach"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11L12 20a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></svg>attach</button>
+                  <button class="tool" title="Model"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>slm-7b</button>
+                  <button class="tool" title="RAG">rag · on</button>
+                </div>
+                <button class="send-btn" id="sendBtn" disabled>
+                  <span>SEND</span>
+                  <span>↵</span>
+                </button>
+              </div>
+            </div>
+            <div style="margin-top:8px; font-size:10px; color:var(--muted-fg); display:flex; justify-content:space-between">
+              <span><span class="kbd">⌘↵</span> to send · <span class="kbd">⇧↵</span> for new line</span>
+              <span>Model may hallucinate. Verify critical code.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ TX EXPLAINER ============ -->
+  <div id="page-tx" class="page">
+    <div class="tx-page">
+      <div class="container">
+        <div class="tx-head">
+          <div class="eyebrow">02 / tx-explainer</div>
+          <h1 style="margin-top:20px">Transaction Explainer.</h1>
+          <p>Paste a Solana signature. Helius gives us the instructions; SLM tells you what happened in plain English.</p>
+        </div>
+
+        <div class="tx-input-wrap">
+          <div class="tx-input-top">
+            <span class="caret">$</span>
+            <input id="txInput" type="text" placeholder="5UfDuX7WXYxjng1PYLJmzGRqaWEd7dMN5Ld5sgsMUPoStSK7F4EzPbf2jnEHrgTCFm1GZeKVgU9LnE2RXm8S8Bu" />
+            <button class="btn btn-sm btn-primary" id="txExplainBtn">
+              <span>Explain</span><span>→</span>
+            </button>
+          </div>
+          <div class="tx-input-bottom">
+            <div class="ex">
+              <span>88 chars · base58</span>
+              <button id="txExample" style="color:var(--muted-fg); text-decoration:underline; text-underline-offset:3px">try example</button>
+              <button style="color:var(--muted-fg)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="vertical-align:-1px"><rect x="9" y="9" width="13" height="13"/><path d="M5 15V4a2 2 0 0 1 2-2h11"/></svg> paste</button>
+            </div>
+            <span><span class="kbd">↵</span> to submit</span>
+          </div>
+        </div>
+
+        <div class="tx-result">
+          <aside class="tx-left">
+            <div class="tx-status"><span class="dot"></span><span>Success · Mainnet</span></div>
+            <div>
+              <div class="eyebrow" style="color:var(--muted-fg)">signature</div>
+              <div class="tx-sig">5UfDuX7WXYxjng1PYLJmzGRqaWEd7dMN5Ld5sgsMUPoStSK7F4EzPbf2jnEHrgTCFm1GZeKVgU9LnE2RXm8S8Bu</div>
+            </div>
+            <div class="tx-keyvals">
+              <div class="row"><span class="k">Slot</span><span class="v mono-num">324,891,441</span></div>
+              <div class="row"><span class="k">Block time</span><span class="v">Apr 20, 2026 · 14:22 UTC</span></div>
+              <div class="row"><span class="k">Fee</span><span class="v mono-num">0.000015 SOL</span></div>
+              <div class="row"><span class="k">Compute</span><span class="v mono-num">41,203 CU</span></div>
+              <div class="row"><span class="k">Instructions</span><span class="v mono-num">4</span></div>
+              <div class="row"><span class="k">Signers</span><span class="v mono-num">1</span></div>
+              <div class="row"><span class="k">Accounts</span><span class="v mono-num">8</span></div>
+            </div>
+          </aside>
+          <div class="tx-right">
+            <div class="tx-expl-head">
+              <span class="title">Plain english</span>
+              <span class="stream"><span class="d"></span>streaming</span>
+            </div>
+            <div class="tx-expl">
+              <p>This transaction is an <strong>SPL token swap</strong>. The wallet <span class="acct">7xKXT…8Qmn</span> swapped <strong>2.5 SOL</strong> for <strong>~428.91 USDC</strong> through the Jupiter aggregator, which routed through Raydium CLMM.</p>
+              <p><strong>What happened:</strong></p>
+              <ol>
+                <li>Associated Token Account for USDC was created for the signer (one-time setup, rent: 0.00203 SOL).</li>
+                <li>2.5 SOL was wrapped to wSOL via the Token program.</li>
+                <li>Jupiter routed the swap through Raydium CLMM pool <span class="acct">SOL/USDC 0.05%</span>.</li>
+                <li>428.91 USDC was transferred to the signer's ATA; the wSOL account was closed.</li>
+              </ol>
+              <p>Slippage realized: <strong>0.12%</strong>. No errors; all 4 instructions succeeded in a single atomic transaction.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tx-ixs">
+          <div class="head">
+            <span>Instructions · 4</span>
+            <span>expand all ↓</span>
+          </div>
+          <div class="tx-ix"><span class="idx">01</span><span class="prog">ATA Program</span><span class="name">createAssociatedTokenAccount</span><span class="chev">›</span></div>
+          <div class="tx-ix"><span class="idx">02</span><span class="prog">Token Program</span><span class="name">sync_native · wrap SOL</span><span class="chev">›</span></div>
+          <div class="tx-ix"><span class="idx">03</span><span class="prog">Jupiter V6</span><span class="name">route · SOL → USDC via Raydium CLMM</span><span class="chev">›</span></div>
+          <div class="tx-ix"><span class="idx">04</span><span class="prog">Token Program</span><span class="name">closeAccount · unwrap wSOL</span><span class="chev">›</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EVAL ============ -->
+  <div id="page-eval" class="page">
+    <div class="eval-page">
+      <div class="container">
+        <div class="tx-head">
+          <div class="eyebrow">03 / benchmark</div>
+          <h1 style="margin-top:20px">Evaluation.</h1>
+          <p>80-task Solana/Anchor benchmark run against checkpoint 160 on Apr 3, 2026.</p>
+        </div>
+
+        <div class="eval-hero" style="margin-top:32px">
+          <div class="eval-hero-left">
+            <div class="label">Overall score</div>
+            <div class="eval-score">87.5<span class="pct">%</span></div>
+            <div class="delta">70 / 80 passed · <span class="up">+34 pts vs base</span> · <span class="up">+2.5 pts vs ckpt-140</span></div>
+            <div class="bar"><div class="fill"></div></div>
+            <div class="bar-labels"><span>0</span><span>target · 85</span><span>100</span></div>
+          </div>
+          <div class="eval-hero-right">
+            <div class="eval-meta-row"><span class="k">Base model</span><span class="v">Qwen2.5-Coder-7B-Instruct <span class="b">7B</span></span></div>
+            <div class="eval-meta-row"><span class="k">Training</span><span class="v">QLoRA · SFT · 10K records</span></div>
+            <div class="eval-meta-row"><span class="k">LoRA rank</span><span class="v mono-num">16</span></div>
+            <div class="eval-meta-row"><span class="k">Checkpoint</span><span class="v">sft / checkpoint-160</span></div>
+            <div class="eval-meta-row"><span class="k">Eval date</span><span class="v">Apr 3, 2026</span></div>
+            <div class="eval-meta-row"><span class="k">HumanEval</span><span class="v mono-num">90% <span class="b">general</span></span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label"><span class="idx">A</span><span>By category</span><span class="line"></span></div>
+          <div class="eval-cat-grid">
+            <div class="eval-cat perfect">
+              <div class="top"><span class="name">CPI Patterns</span><span class="ratio">10 / 10</span></div>
+              <div class="big mono-num">100%</div>
+              <div class="bar"><div class="fill" style="width:100%"></div></div>
+            </div>
+            <div class="eval-cat perfect">
+              <div class="top"><span class="name">Error Handling</span><span class="ratio">10 / 10</span></div>
+              <div class="big mono-num">100%</div>
+              <div class="bar"><div class="fill" style="width:100%"></div></div>
+            </div>
+            <div class="eval-cat perfect">
+              <div class="top"><span class="name">SPL Token Ops</span><span class="ratio">10 / 10</span></div>
+              <div class="big mono-num">100%</div>
+              <div class="bar"><div class="fill" style="width:100%"></div></div>
+            </div>
+            <div class="eval-cat perfect">
+              <div class="top"><span class="name">Tx Construction</span><span class="ratio">10 / 10</span></div>
+              <div class="big mono-num">100%</div>
+              <div class="bar"><div class="fill" style="width:100%"></div></div>
+            </div>
+            <div class="eval-cat">
+              <div class="top"><span class="name">PDA Derivation</span><span class="ratio">14 / 15</span></div>
+              <div class="big mono-num">93.3%</div>
+              <div class="bar"><div class="fill" style="width:93%"></div></div>
+            </div>
+            <div class="eval-cat">
+              <div class="top"><span class="name">Anchor Constraints</span><span class="ratio">13 / 15</span></div>
+              <div class="big mono-num">86.7%</div>
+              <div class="bar"><div class="fill" style="width:87%"></div></div>
+            </div>
+            <div class="eval-cat weak" style="grid-column:span 2">
+              <div class="top"><span class="name">Adversarial — model safety &amp; edge cases</span><span class="ratio">3 / 10</span></div>
+              <div class="big mono-num">30%</div>
+              <div class="bar"><div class="fill" style="width:30%"></div></div>
+              <p style="margin:10px 0 0; font-size:12px; color:var(--muted-fg)">Weakest category. Adversarial prompts test prompt injection, jailbreaks, and subtle incorrect-syntax suggestions. Next checkpoint targets 60%+.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label"><span class="idx">B</span><span>Task results</span><span class="line"></span><span>showing 6 of 80</span></div>
+          <div class="task-table">
+            <div class="th">
+              <span>ID</span><span>Category</span><span>Reason</span><span>Status</span><span>Time</span><span></span>
+            </div>
+            <div class="tr">
+              <span class="id">pda-01</span>
+              <span class="cat">pda</span>
+              <span class="reason">Matched 3/3 pass patterns</span>
+              <span><span class="pass yes">PASS</span></span>
+              <span class="time">31.1s</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="tr">
+              <span class="id">cpi-04</span>
+              <span class="cat">cpi</span>
+              <span class="reason">CPI context signer & account list correct</span>
+              <span><span class="pass yes">PASS</span></span>
+              <span class="time">12.8s</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="tr">
+              <span class="id">err-02</span>
+              <span class="cat">error</span>
+              <span class="reason">Custom error enum with #[error_code]</span>
+              <span><span class="pass yes">PASS</span></span>
+              <span class="time">9.4s</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="tr">
+              <span class="id">adv-03</span>
+              <span class="cat">adversarial</span>
+              <span class="reason">Suggested deprecated load_instruction_at</span>
+              <span><span class="pass no">FAIL</span></span>
+              <span class="time">22.7s</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="tr">
+              <span class="id">tok-07</span>
+              <span class="cat">spl</span>
+              <span class="reason">Token-2022 mint & transfer hook</span>
+              <span><span class="pass yes">PASS</span></span>
+              <span class="time">44.0s</span>
+              <span class="chev">›</span>
+            </div>
+            <div class="tr">
+              <span class="id">anc-11</span>
+              <span class="cat">anchor</span>
+              <span class="reason">Missing has_one constraint</span>
+              <span><span class="pass no">FAIL</span></span>
+              <span class="time">15.2s</span>
+              <span class="chev">›</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ========= ROUTING =========
+  const pages = {
+    landing: document.getElementById('page-landing'),
+    chat: document.getElementById('page-chat'),
+    tx: document.getElementById('page-tx'),
+    eval: document.getElementById('page-eval'),
+    docs: document.getElementById('page-docs'),
+    signin: document.getElementById('page-signin'),
+    dashboard: document.getElementById('page-dashboard'),
+  };
+  function route(name) {
+    Object.values(pages).forEach(p => p.classList.remove('active'));
+    (pages[name] || pages.landing).classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+    const nav = document.querySelector(`.nav-link[data-route="${name}"]`);
+    if (nav) nav.classList.add('active');
+    try { localStorage.setItem('slm:route', name); } catch {}
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('[data-route]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      route(el.getAttribute('data-route'));
+    });
+  });
+  const saved = (() => { try { return localStorage.getItem('slm:route'); } catch { return null; } })();
+  if (saved && pages[saved]) route(saved);
+
+  // ========= THEME =========
+  const themeBtn = document.getElementById('themeBtn');
+  const applyTheme = (t) => {
+    document.documentElement.classList.toggle('light', t === 'light');
+  };
+  applyTheme(localStorage.getItem('slm:theme') || 'dark');
+  themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+    localStorage.setItem('slm:theme', next);
+    applyTheme(next);
+  });
+
+  // ========= INSTALL TABS =========
+  const installPanels = {
+    cli: {
+      code: `<span class="t-prompt">$</span> pip install slm-cli
+<br><span class="t-prompt">$</span> slm config --api-key sk-slm-xxx
+<br><span class="t-prompt">$</span> slm chat <span class="t-str">"how do i derive a PDA?"</span>
+<br><br><span class="t-muted">→ Streaming from slm-solana (7B)…</span>
+<br><span class="t-comment"># use Anchor 0.30+ constraint-based derivation</span>
+<br><span class="t-key">#[account</span>(seeds = [<span class="t-str">b"vault"</span>], bump)]<span class="cursor-blink"></span>`,
+      info: {
+        h: 'Python CLI',
+        p: 'Drop into any terminal. Streaming, syntax highlighting, session history. Works with any OpenAI-compatible endpoint.',
+        items: ['pypi: slm-cli', 'Commands: chat · gen · review · migrate', 'History at ~/.slm/history', 'MIT license']
+      }
+    },
+    api: {
+      code: `<span class="t-prompt">$</span> curl https://api.slm.dev/v1/chat/completions \\
+<br>&nbsp;&nbsp;-H <span class="t-str">"Authorization: Bearer sk-slm-xxx"</span> \\
+<br>&nbsp;&nbsp;-H <span class="t-str">"Content-Type: application/json"</span> \\
+<br>&nbsp;&nbsp;-d '{<span class="t-key">"model"</span>:<span class="t-str">"slm-solana"</span>,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"messages"</span>:[{<span class="t-key">"role"</span>:<span class="t-str">"user"</span>,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"content"</span>:<span class="t-str">"write a PDA"</span>}]}'<span class="cursor-blink"></span>`,
+      info: {
+        h: 'OpenAI-compatible API',
+        p: 'Drop-in replacement for the OpenAI chat completions endpoint. Streams SSE. Rate-limited per tier.',
+        items: ['Endpoint: api.slm.dev/v1', 'Model: slm-solana', 'Auth: Bearer sk-slm-…', 'SSE streaming']
+      }
+    },
+    ollama: {
+      code: `<span class="t-prompt">$</span> ollama pull slm-solana
+<br><span class="t-muted">pulling manifest… 4.2 GB</span>
+<br><span class="t-muted">✓ ready</span>
+<br><span class="t-prompt">$</span> ollama run slm-solana
+<br><span class="t-comment">&gt;&gt;&gt; how do I create a PDA in anchor?</span><span class="cursor-blink"></span>`,
+      info: {
+        h: 'Run it locally',
+        p: 'GGUF Q3_K_M build fits in 16 GB of RAM. No network, no API key, no rate limit. Slower than the hosted API.',
+        items: ['Model: slm-solana (4.2GB)', 'Quant: Q3_K_M', 'Port: 11434 (default)', 'OpenAI-compatible']
+      }
+    },
+    vscode: {
+      code: `<span class="t-prompt">$</span> code --install-extension slm.slm-solana
+<br><span class="t-muted">✓ SLM - Solana Language Model @ 0.1.0</span>
+<br><br><span class="t-comment"># In any .rs file, type:</span>
+<br><span class="t-key">@slm</span> <span class="t-str">explain this CPI</span>
+<br><span class="t-comment"># or get inline autocomplete while typing</span><span class="cursor-blink"></span>`,
+      info: {
+        h: 'VS Code extension',
+        p: 'Chat participant API + inline completions. Hover any Solana error code for instant decode. Works with GitHub Copilot alongside.',
+        items: ['@slm chat participant', 'Inline autocomplete (.rs, .ts)', 'Hover-to-decode error codes', 'Marketplace · Open VSX']
+      }
+    },
+  };
+  function renderInstall(tab) {
+    const p = installPanels[tab];
+    document.getElementById('installCode').innerHTML = p.code;
+    document.getElementById('installInfo').innerHTML =
+      `<h3>${p.info.h}</h3><p>${p.info.p}</p><ul>${p.info.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+  }
+  document.querySelectorAll('#installTabs .install-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#installTabs .install-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderInstall(btn.getAttribute('data-tab'));
+    });
+  });
+  renderInstall('cli');
+
+  // ========= CHAT (fake streaming demo) =========
+  const chatScroll = document.getElementById('chatScroll');
+  const chatEmpty = document.getElementById('chatEmpty');
+  const chatThread = document.getElementById('chatThread');
+  const chatTa = document.getElementById('chatTextarea');
+  const sendBtn = document.getElementById('sendBtn');
+  const newChatBtn = document.getElementById('newChatBtn');
+
+  function newMsg(role, html) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + role;
+    el.innerHTML = `<div class="role">${role === 'user' ? 'YOU' : 'SLM'}</div><div class="body">${html}</div>`;
+    chatThread.appendChild(el);
+    chatScroll.scrollTop = chatScroll.scrollHeight;
+    return el;
+  }
+
+  const pdaReply = `<p>Here's how to derive a PDA for a <strong>vault</strong> in Anchor 0.30+. The idiomatic way is constraint-based derivation inside an <code style="background:var(--muted);padding:1px 5px">#[derive(Accounts)]</code> struct:</p>
+<div class="code"><div class="code-head"><span>RUST · anchor 0.30+</span><button class="copy-btn">COPY</button></div><pre><code>#[derive(Accounts)]
+pub struct InitVault<'info> {
+    #[account(
+        init,
+        payer = authority,
+        seeds = [b"vault", authority.key().as_ref()],
+        bump,
+        space = 8 + Vault::INIT_SPACE,
+    )]
+    pub vault: Account<'info, Vault>,
+
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    pub system_program: Program<'info, System>,
+}</code></pre></div>
+<p><strong>What's happening:</strong></p>
+<ol>
+  <li><code style="background:var(--muted);padding:1px 5px">seeds</code> + <code style="background:var(--muted);padding:1px 5px">bump</code> tells Anchor to derive the PDA from <code style="background:var(--muted);padding:1px 5px">b"vault"</code> and the authority's pubkey.</li>
+  <li><code style="background:var(--muted);padding:1px 5px">init</code> creates the account — Anchor computes the bump and stores it for later reuse.</li>
+  <li>Inside your handler, access it as <code style="background:var(--muted);padding:1px 5px">ctx.bumps.vault</code> if you need to sign CPIs with the PDA.</li>
+</ol>
+<div class="msg-actions">
+  <button title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13"/><path d="M5 15V4a2 2 0 0 1 2-2h11"/></svg></button>
+  <button title="Good" class="up-active"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 10v11M14 3l-2 7h8l-2 11H7V10l4-7"/></svg></button>
+  <button title="Bad"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 14V3M10 21l2-7H4l2-11h10v11l-4 7"/></svg></button>
+  <button title="Regenerate" style="margin-left:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg></button>
+</div>`;
+
+  // Seed thread
+  newMsg('user', '<p>How do I derive a PDA for a vault in Anchor?</p>');
+  newMsg('assistant', pdaReply);
+  chatEmpty.style.display = 'none';
+  chatThread.style.display = 'flex';
+
+  function sendMessage(text) {
+    if (!text.trim()) return;
+    chatEmpty.style.display = 'none';
+    chatThread.style.display = 'flex';
+    newMsg('user', `<p>${text.replace(/</g,'&lt;')}</p>`);
+    const thinking = newMsg('assistant', '<p style="color:var(--muted-fg); font-size:12px">→ streaming…</p>');
+    setTimeout(() => {
+      thinking.querySelector('.body').innerHTML = `<p>Great question. Here's a starter — this is a demo response in the prototype.</p><p>On a live deployment this would stream from the fine-tuned model with proper code blocks, citations, and feedback buttons.</p>`;
+    }, 700);
+  }
+  chatTa.addEventListener('input', () => {
+    sendBtn.disabled = !chatTa.value.trim();
+    chatTa.style.height = 'auto';
+    chatTa.style.height = Math.min(chatTa.scrollHeight, 200) + 'px';
+  });
+  chatTa.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      sendMessage(chatTa.value);
+      chatTa.value = '';
+      chatTa.style.height = 'auto';
+      sendBtn.disabled = true;
+    }
+  });
+  sendBtn.addEventListener('click', () => {
+    sendMessage(chatTa.value);
+    chatTa.value = '';
+    chatTa.style.height = 'auto';
+    sendBtn.disabled = true;
+  });
+  document.querySelectorAll('.prompt-cell').forEach(c => {
+    c.addEventListener('click', () => sendMessage(c.getAttribute('data-send')));
+  });
+  newChatBtn.addEventListener('click', () => {
+    chatThread.innerHTML = '';
+    chatEmpty.style.display = 'flex';
+    chatThread.style.display = 'none';
+  });
+
+  // Global hotkey ⌘K → chat focus
+  window.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      route('chat');
+      setTimeout(() => chatTa.focus(), 50);
+    }
+  });
+
+  // ========= AUTH TABS =========
+  const authTabs = document.getElementById('authTabs');
+  if (authTabs) {
+    authTabs.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        authTabs.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const t = b.getAttribute('data-tab');
+        document.getElementById('authSignin').style.display = t === 'signin' ? 'block' : 'none';
+        document.getElementById('authSignup').style.display = t === 'signup' ? 'block' : 'none';
+      });
+    });
+    const ts = document.getElementById('toSignin');
+    if (ts) ts.addEventListener('click', (e) => {
+      e.preventDefault();
+      authTabs.querySelector('[data-tab="signin"]').click();
+    });
+  }
+
+  // ========= USAGE CHART =========
+  const usageData = [1200, 2400, 1800, 3100, 2600, 4200, 3800, 2900, 4600, 3200, 5100, 2800, 4900, 3124];
+  const days = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', 'T'];
+  const maxU = Math.max(...usageData);
+  const chart = document.getElementById('usageChart');
+  const xAxis = document.getElementById('usageXAxis');
+  if (chart) {
+    usageData.forEach((v, i) => {
+      const b = document.createElement('div');
+      b.className = 'bar' + (i === usageData.length - 1 ? ' today' : '');
+      b.style.height = (v / maxU * 100) + '%';
+      b.title = `Day ${days[i]}: ${v.toLocaleString()} tokens`;
+      chart.appendChild(b);
+    });
+    days.forEach(d => {
+      const s = document.createElement('span');
+      s.textContent = d;
+      xAxis.appendChild(s);
+    });
+  }
+
+  // ========= DOCS LINKS =========
+  document.querySelectorAll('.docs-link').forEach(l => {
+    l.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.docs-link').forEach(x => x.classList.remove('active'));
+      l.classList.add('active');
+    });
+  });
+  document.getElementById('txExample').addEventListener('click', () => {
+    document.getElementById('txInput').value =
+      '5UfDuX7WXYxjng1PYLJmzGRqaWEd7dMN5Ld5sgsMUPoStSK7F4EzPbf2jnEHrgTCFm1GZeKVgU9LnE2RXm8S8Bu';
+  });
+</script>
+</body>
+</html>

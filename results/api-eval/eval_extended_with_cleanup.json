@@ -1,0 +1,842 @@
+{
+  "overall": {
+    "passed": 119,
+    "total": 130
+  },
+  "categories": {
+    "pda_advanced": {
+      "passed": 10,
+      "total": 10
+    },
+    "anchor_advanced": {
+      "passed": 14,
+      "total": 15
+    },
+    "token_advanced": {
+      "passed": 10,
+      "total": 10
+    },
+    "cpi_advanced": {
+      "passed": 10,
+      "total": 10
+    },
+    "error_advanced": {
+      "passed": 9,
+      "total": 10
+    },
+    "tx_advanced": {
+      "passed": 10,
+      "total": 10
+    },
+    "security": {
+      "passed": 8,
+      "total": 10
+    },
+    "defi": {
+      "passed": 10,
+      "total": 10
+    },
+    "nft_metaplex": {
+      "passed": 10,
+      "total": 10
+    },
+    "web3_client": {
+      "passed": 9,
+      "total": 10
+    },
+    "testing": {
+      "passed": 10,
+      "total": 10
+    },
+    "performance": {
+      "passed": 5,
+      "total": 5
+    },
+    "adversarial_extended": {
+      "passed": 4,
+      "total": 10
+    }
+  },
+  "task_results": [
+    {
+      "id": "ext-pda-01",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 1/3 pass patterns"
+    },
+    {
+      "id": "ext-pda-02",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns"
+    },
+    {
+      "id": "ext-pda-03",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns"
+    },
+    {
+      "id": "ext-pda-04",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns"
+    },
+    {
+      "id": "ext-pda-05",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns"
+    },
+    {
+      "id": "ext-pda-06",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 2/3 pass patterns"
+    },
+    {
+      "id": "ext-pda-07",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns"
+    },
+    {
+      "id": "ext-pda-08",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns"
+    },
+    {
+      "id": "ext-pda-09",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns"
+    },
+    {
+      "id": "ext-pda-10",
+      "category": "pda_advanced",
+      "passed": true,
+      "reason": "Matched 2/3 pass patterns"
+    },
+    {
+      "id": "ext-anchor-01",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns"
+    },
+    {
+      "id": "ext-anchor-02",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns"
+    },
+    {
+      "id": "ext-anchor-03",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-04",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-05",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-06",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-07",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-08",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns"
+    },
+    {
+      "id": "ext-anchor-09",
+      "category": "anchor_advanced",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    },
+    {
+      "id": "ext-anchor-10",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-11",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-12",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-13",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-14",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-anchor-15",
+      "category": "anchor_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-01",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-02",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-03",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-04",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-05",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-06",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-07",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-08",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-09",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-token-10",
+      "category": "token_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-01",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-02",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-03",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-04",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-05",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-06",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-07",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-08",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-09",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-cpi-10",
+      "category": "cpi_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-01",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns"
+    },
+    {
+      "id": "ext-err-02",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-03",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-04",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-05",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-06",
+      "category": "error_advanced",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    },
+    {
+      "id": "ext-err-07",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-08",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-09",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-err-10",
+      "category": "error_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-01",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-02",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-03",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-04",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-05",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-06",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-07",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-08",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-09",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-tx-10",
+      "category": "tx_advanced",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-01",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-02",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-03",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-04",
+      "category": "security",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    },
+    {
+      "id": "ext-sec-05",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-06",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-07",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-08",
+      "category": "security",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    },
+    {
+      "id": "ext-sec-09",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-sec-10",
+      "category": "security",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-01",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-02",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-03",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-04",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-05",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-06",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-07",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-08",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-09",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-defi-10",
+      "category": "defi",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-01",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-02",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-03",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-04",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-05",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-06",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-07",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-08",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-09",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-nft-10",
+      "category": "nft_metaplex",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-01",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-02",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-03",
+      "category": "web3_client",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    },
+    {
+      "id": "ext-web3-04",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-05",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-06",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-07",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-08",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-09",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-web3-10",
+      "category": "web3_client",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-01",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-02",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-03",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-04",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-05",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-06",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-07",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-08",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-09",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-test-10",
+      "category": "testing",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-perf-01",
+      "category": "performance",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-perf-02",
+      "category": "performance",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-perf-03",
+      "category": "performance",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-perf-04",
+      "category": "performance",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-perf-05",
+      "category": "performance",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-adv-01",
+      "category": "adversarial_extended",
+      "passed": false,
+      "reason": "Bad patterns matched: [reentrancy.guard|ReentrancyGuard|reentrancy_guard|]"
+    },
+    {
+      "id": "ext-adv-02",
+      "category": "adversarial_extended",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-adv-03",
+      "category": "adversarial_extended",
+      "passed": false,
+      "reason": "Bad patterns matched: [f32\\s|f64\\s|non.determinism|float.*precision.*issu]"
+    },
+    {
+      "id": "ext-adv-04",
+      "category": "adversarial_extended",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-adv-05",
+      "category": "adversarial_extended",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    },
+    {
+      "id": "ext-adv-06",
+      "category": "adversarial_extended",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    },
+    {
+      "id": "ext-adv-07",
+      "category": "adversarial_extended",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-adv-08",
+      "category": "adversarial_extended",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns"
+    },
+    {
+      "id": "ext-adv-09",
+      "category": "adversarial_extended",
+      "passed": false,
+      "reason": "Bad patterns matched: [non.deterministic|avoid.*float|float.*bug|precisio]"
+    },
+    {
+      "id": "ext-adv-10",
+      "category": "adversarial_extended",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)"
+    }
+  ]
+}

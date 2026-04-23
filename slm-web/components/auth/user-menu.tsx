@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,20 +11,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Skeleton } from "@/components/ui/skeleton"
 
 export function UserMenu() {
   const { data: session, status } = useSession()
 
   if (status === "loading") {
-    return <Skeleton className="h-8 w-8 rounded-full" />
+    return <div className="size-8 animate-pulse bg-muted" />
   }
 
   if (!session?.user) {
     return (
-      <Button asChild variant="outline" size="sm">
-        <Link href="/sign-in">Sign in</Link>
-      </Button>
+      <Link
+        href="/sign-in"
+        className="inline-flex items-center border border-[var(--slm-border-strong)] px-2.5 py-1.5 text-xs tracking-[0.02em] text-foreground transition-all hover:border-foreground hover:bg-muted"
+      >
+        Sign in
+      </Link>
     )
   }
 
@@ -41,12 +42,12 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 rounded-full p-0" aria-label="Account">
-          <Avatar className="h-8 w-8">
+        <button className="grid size-9 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted" aria-label="Account">
+          <Avatar className="size-7">
             {user.image ? <AvatarImage src={user.image} alt={user.name ?? ""} /> : null}
-            <AvatarFallback className="text-xs">{initials || "U"}</AvatarFallback>
+            <AvatarFallback className="text-[10px]">{initials || "U"}</AvatarFallback>
           </Avatar>
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">

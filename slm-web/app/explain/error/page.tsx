@@ -7,6 +7,7 @@ import { ErrorResult } from "@/components/explain/error-result"
 import { useStreaming } from "@/hooks/use-streaming"
 import { decodeError } from "@/lib/api-client"
 import type { LookupResult } from "@/lib/sse"
+import { cleanModelResponse, fixAnchorCode } from "@/lib/constants"
 
 export default function ExplainErrorPage() {
   const [lookupResult, setLookupResult] = React.useState<LookupResult | null>(null)
@@ -28,7 +29,7 @@ export default function ExplainErrorPage() {
       }
       if (event.type === "content") {
         explanationRef.current += event.content
-        setExplanation(explanationRef.current)
+        setExplanation(fixAnchorCode(cleanModelResponse(explanationRef.current)))
       }
     },
     onDone() {
@@ -70,11 +71,12 @@ export default function ExplainErrorPage() {
 
   return (
     <PageLayout>
-      <div className="space-y-6">
+      <div className="py-12 space-y-8">
         <div>
-          <h1 className="text-2xl font-bold">Error Decoder</h1>
-          <p className="mt-1 text-muted-foreground">
-            Enter a Solana program error code to decode it and get a fix
+          <div className="eyebrow" style={{ color: "var(--slm-accent)" }}>02 / error-decoder</div>
+          <h1 className="mt-5 text-4xl font-bold tracking-[-0.025em]">Error Decoder.</h1>
+          <p className="mt-2.5 max-w-[56ch] text-sm text-muted-foreground">
+            Enter a Solana program error code. We decode it against 41 known programs and explain what went wrong.
           </p>
         </div>
 

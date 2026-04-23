@@ -11,7 +11,8 @@ export type { User, ApiUsage, ChatSession, ChatMessage } from "@prisma/client"
 // ---- User Management ----
 
 /**
- * Get or create a user by OAuth provider + id. Generates an API key on first login.
+ * Get or create a user by OAuth provider + id.
+ * API key is NOT generated on sign-up — user creates it on-demand from the dashboard.
  */
 export async function getOrCreateUser(
   provider: "github" | "google",
@@ -30,9 +31,32 @@ export async function getOrCreateUser(
       providerId,
       name,
       email,
-      apiKey: generateApiKey(),
       tier: "free",
     },
+  })
+}
+
+/**
+ * Generate an API key for a user who doesn't have one yet.
+ */
+export async function generateApiKeyForUser(userId: number) {
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user) return null
+  if (user.apiKey) return user // already has one
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: { apiKey: generateApiKey() },
+  })
+}
+
+/**
+ * Rotate a user's API key — generates a new one, invalidates the old one.
+ */
+export async function rotateApiKey(userId: number) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { apiKey: generateApiKey() },
   })
 }
 
@@ -46,39 +70,85 @@ export async function getUserByApiKey(apiKey: string) {
 
 /**
  * Log an API usage record.
+ * Accepts userId (for web) and/or apiKey (for API). At least one required.
  */
 export async function logUsage(
-  apiKey: string,
+  identifier: { userId?: number | null; apiKey?: string | null },
   endpoint: string,
   tokensUsed: number,
+  source: "web" | "api" = "api",
 ): Promise<void> {
+  if (!identifier.userId && !identifier.apiKey) return
   await prisma.apiUsage.create({
-    data: { apiKey, endpoint, tokensUsed },
+    data: {
+      userId: identifier.userId ?? null,
+      apiKey: identifier.apiKey ?? null,
+      endpoint,
+      tokensUsed,
+      source,
+    },
   })
 }
 
 /**
- * Get usage stats for the last N days.
+ * Get today's token usage for a user (combined web + API).
  */
-export async function getUsageStats(apiKey: string, days = 7) {
+export async function getTodayTokensByUserId(userId: number): Promise<number> {
+  const startOfDay = new Date()
+  startOfDay.setUTCHours(0, 0, 0, 0)
+  const result = await prisma.apiUsage.aggregate({
+    where: { userId, createdAt: { gte: startOfDay } },
+    _sum: { tokensUsed: true },
+  })
+  return result._sum.tokensUsed ?? 0
+}
+
+/**
+ * Get usage stats for the last N days, queried by userId.
+ */
+export async function getUsageStats(userId: number, days = 7) {
   const since = new Date(Date.now() - days * 86_400_000)
   const rows = await prisma.apiUsage.findMany({
-    where: { apiKey, createdAt: { gte: since } },
-    select: { createdAt: true, tokensUsed: true },
+    where: { userId, createdAt: { gte: since } },
+    select: { createdAt: true, tokensUsed: true, endpoint: true, source: true },
   })
 
   const byDate = new Map<string, { requests: number; tokens: number }>()
+  const byEndpoint = new Map<string, { requests: number; tokens: number }>()
+  const bySource = new Map<string, { requests: number; tokens: number }>()
+
   for (const r of rows) {
     const date = r.createdAt.toISOString().slice(0, 10)
-    const entry = byDate.get(date) ?? { requests: 0, tokens: 0 }
-    entry.requests += 1
-    entry.tokens += r.tokensUsed
-    byDate.set(date, entry)
+    const dateEntry = byDate.get(date) ?? { requests: 0, tokens: 0 }
+    dateEntry.requests += 1
+    dateEntry.tokens += r.tokensUsed
+    byDate.set(date, dateEntry)
+
+    const ep = r.endpoint
+    const epEntry = byEndpoint.get(ep) ?? { requests: 0, tokens: 0 }
+    epEntry.requests += 1
+    epEntry.tokens += r.tokensUsed
+    byEndpoint.set(ep, epEntry)
+
+    const src = r.source
+    const srcEntry = bySource.get(src) ?? { requests: 0, tokens: 0 }
+    srcEntry.requests += 1
+    srcEntry.tokens += r.tokensUsed
+    bySource.set(src, srcEntry)
   }
 
-  return Array.from(byDate.entries())
+  const daily = Array.from(byDate.entries())
     .map(([date, v]) => ({ date, ...v }))
-    .sort((a, b) => b.date.localeCompare(a.date))
+    .sort((a, b) => a.date.localeCompare(b.date))
+
+  const endpoints = Array.from(byEndpoint.entries())
+    .map(([endpoint, v]) => ({ endpoint, ...v }))
+    .sort((a, b) => b.tokens - a.tokens)
+
+  const web = bySource.get("web") ?? { requests: 0, tokens: 0 }
+  const api = bySource.get("api") ?? { requests: 0, tokens: 0 }
+
+  return { daily, endpoints, web, api }
 }
 
 // ---- Chat Sessions ----

@@ -9,63 +9,79 @@ export interface RateLimitResult {
 
 const WINDOW_MS = 60_000 // 1 minute sliding window
 
-/**
- * Check rate limit for a given identifier and tier using Redis sliding window.
- *
- * Uses a sorted set with timestamps as scores for a sliding window algorithm:
- * 1. Remove entries older than the window
- * 2. Count current entries
- * 3. If under limit, add new entry
- * 4. Set expiry on the key
- */
+// ── In-memory fallback (used when Redis is unavailable) ──
+
+const inMemoryWindows = new Map<string, number[]>()
+
+// Periodic cleanup to prevent memory leaks in long-running processes
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const cutoff = Date.now() - WINDOW_MS
+    for (const [key, timestamps] of inMemoryWindows) {
+      const filtered = timestamps.filter((t) => t > cutoff)
+      if (filtered.length === 0) inMemoryWindows.delete(key)
+      else inMemoryWindows.set(key, filtered)
+    }
+  }, 60_000)
+}
+
+function checkRateLimitInMemory(
+  identifier: string,
+  limit: number,
+): RateLimitResult {
+  const now = Date.now()
+  const windowStart = now - WINDOW_MS
+  let timestamps = inMemoryWindows.get(identifier) ?? []
+  timestamps = timestamps.filter((t) => t > windowStart)
+
+  const reset = Math.ceil((now + WINDOW_MS) / 1000)
+
+  if (timestamps.length >= limit) {
+    inMemoryWindows.set(identifier, timestamps)
+    return { allowed: false, remaining: 0, reset }
+  }
+
+  timestamps.push(now)
+  inMemoryWindows.set(identifier, timestamps)
+  return { allowed: true, remaining: limit - timestamps.length, reset }
+}
+
+// ── Main rate limiter (Redis primary, in-memory fallback) ──
+
 export async function checkRateLimit(
   identifier: string,
   tier: RateLimitTier,
 ): Promise<RateLimitResult> {
-  const redis = getRedis()
   const limit = RATE_LIMITS[tier].requestsPerMin
-  const now = Date.now()
-  const windowStart = now - WINDOW_MS
-  const key = `ratelimit:${identifier}`
 
-  // Execute atomically with a pipeline
-  const pipeline = redis.pipeline()
+  try {
+    const redis = getRedis()
+    const now = Date.now()
+    const windowStart = now - WINDOW_MS
+    const key = `ratelimit:${identifier}`
 
-  // 1. Remove entries outside the window
-  pipeline.zremrangebyscore(key, 0, windowStart)
+    const pipeline = redis.pipeline()
+    pipeline.zremrangebyscore(key, 0, windowStart)
+    pipeline.zcard(key)
+    pipeline.zadd(key, now.toString(), `${now}:${Math.random()}`)
+    pipeline.pexpire(key, WINDOW_MS)
 
-  // 2. Count entries in the window
-  pipeline.zcard(key)
+    const results = await pipeline.exec()
+    const currentCount = (results?.[1]?.[1] as number) ?? 0
+    const reset = Math.ceil((now + WINDOW_MS) / 1000)
 
-  // 3. Add this request
-  pipeline.zadd(key, now.toString(), `${now}:${Math.random()}`)
-
-  // 4. Set TTL on the key (auto-cleanup)
-  pipeline.pexpire(key, WINDOW_MS)
-
-  const results = await pipeline.exec()
-
-  // results[1] is the zcard result: [error, count]
-  const currentCount = (results?.[1]?.[1] as number) ?? 0
-
-  const reset = Math.ceil((now + WINDOW_MS) / 1000)
-
-  if (currentCount >= limit) {
-    // Over limit: remove the entry we just added
-    // The entry we added is results[2], but we need to undo it
-    // Actually, since we already added it before checking, remove the latest
-    await redis.zremrangebyscore(key, now, now + 1)
+    if (currentCount >= limit) {
+      await redis.zremrangebyscore(key, now, now + 1)
+      return { allowed: false, remaining: 0, reset }
+    }
 
     return {
-      allowed: false,
-      remaining: 0,
+      allowed: true,
+      remaining: limit - currentCount - 1,
       reset,
     }
-  }
-
-  return {
-    allowed: true,
-    remaining: limit - currentCount - 1,
-    reset,
+  } catch {
+    // Redis unavailable — fall back to in-memory rate limiting
+    return checkRateLimitInMemory(identifier, limit)
   }
 }

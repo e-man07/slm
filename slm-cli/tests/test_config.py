@@ -73,4 +73,4 @@ def test_config_file_created_in_correct_location():
 def test_default_config_values():
     from slm_cli.config import DEFAULT_CONFIG
     assert "api_url" in DEFAULT_CONFIG
-    assert DEFAULT_CONFIG["api_url"] == "https://slm.dev/api"
+    assert DEFAULT_CONFIG["api_url"] == "https://api.sealevel.tech"

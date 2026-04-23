@@ -21,8 +21,8 @@ export const docTopics: DocTopic[] = [
         <section>
           <h2>1. Sign in</h2>
           <p>
-            Go to <a href="/sign-in">slm.dev/sign-in</a> and sign in with GitHub or Google. Your API
-            key is generated automatically and shown on the dashboard.
+            Go to <a href="/sign-in">slm.dev/sign-in</a> and sign in with GitHub or Google. Then
+            generate an API key from the <a href="/dashboard">Dashboard</a>.
           </p>
         </section>
         <section>
@@ -35,11 +35,7 @@ export const docTopics: DocTopic[] = [
             <li>
               <a href="/docs/cli">CLI</a> — terminal chat, code generation, review, migration
             </li>
-            <li>
-              <a href="/docs/vscode">VS Code extension</a> — <code>@slm</code> chat + inline
-              autocomplete
-            </li>
-            <li>
+<li>
               <a href="/docs/mcp">MCP server</a> — Claude Code, Cursor, Windsurf integration
             </li>
           </ul>
@@ -48,11 +44,11 @@ export const docTopics: DocTopic[] = [
           <h2>3. First query (curl)</h2>
           <CodeBlock
             language="bash"
-            code={`curl https://your-slm-endpoint/v1/chat/completions \\
+            code={`curl https://api.sealevel.tech/v1/chat/completions \\
   -H "Authorization: Bearer slm_YOUR_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "slm-solana",
+    "model": "sealevel",
     "messages": [{"role": "user", "content": "How do I derive a PDA in Anchor?"}],
     "max_tokens": 512
   }'`}
@@ -70,7 +66,7 @@ export const docTopics: DocTopic[] = [
       <>
         <section>
           <h2>OAuth providers</h2>
-          <p>Sign in with GitHub or Google at <a href="/sign-in">slm.dev/sign-in</a>. On first sign-in an API key is generated and bound to your account.</p>
+          <p>Sign in with GitHub or Google at <a href="/sign-in">slm.dev/sign-in</a>. Then go to the <a href="/dashboard">Dashboard</a> and click <strong>Generate API Key</strong> to create your key.</p>
         </section>
         <section>
           <h2>API key format</h2>
@@ -83,10 +79,7 @@ export const docTopics: DocTopic[] = [
         <section>
           <h2>Rate-limit tiers</h2>
           <ul>
-            <li><strong>Anonymous</strong> (no key): 5 req/min, 10K tokens/day</li>
-            <li><strong>Free</strong> (signed-in): 10 req/min, 50K tokens/day</li>
-            <li><strong>Standard</strong>: 30 req/min, 500K tokens/day</li>
-            <li><strong>Admin</strong>: unlimited</li>
+            <li><strong>Free</strong> (signed-in): 5 req/min, 100K tokens/day</li>
           </ul>
           <p>Limits reset at UTC midnight. Hit a limit and you get a 429 with <code>Retry-After</code>.</p>
         </section>
@@ -113,7 +106,7 @@ export const docTopics: DocTopic[] = [
         </section>
         <section>
           <h2>Anonymous vs signed-in</h2>
-          <p>Anonymous users get 5 req/min. Sign in for 10 req/min + chat history.</p>
+          <p>Anonymous users get 3 req/min. Sign in for 5 req/min + chat history.</p>
         </section>
         <section>
           <h2>Stop generation</h2>
@@ -189,79 +182,6 @@ slm explain --error 0x1771`}
     ),
   },
   {
-    slug: "vscode",
-    label: "VS Code Extension",
-    section: "Clients",
-    description: "@slm chat participant, inline autocomplete, deprecated-pattern diagnostics.",
-    content: (
-      <>
-        <section>
-          <h2>Install</h2>
-          <p>
-            Search <strong>Sealevel - Solana Language Model</strong> in the VS Code Marketplace, or:
-          </p>
-          <CodeBlock language="bash" code={`code --install-extension slm.slm-vscode  # marketplace listing coming soon`} />
-        </section>
-        <section>
-          <h2>Configure</h2>
-          <p>Open Settings (<kbd>⌘,</kbd>), search "Sealevel", set:</p>
-          <ul>
-            <li><code>slm.apiKey</code> — your API key</li>
-            <li><code>slm.apiUrl</code> — default <code>https://slm.dev/api</code></li>
-            <li><code>slm.autocomplete.enabled</code> — toggle inline completions</li>
-            <li><code>slm.autocomplete.debounceMs</code> — default 1500</li>
-          </ul>
-        </section>
-        <section>
-          <h2>Chat participant</h2>
-          <p>In the VS Code Chat panel, mention <code>@slm</code>:</p>
-          <CodeBlock
-            language="text"
-            code={`@slm how do I derive a PDA for a user's token account?
-@slm review this code for security issues
-@slm migrate this to modern Anchor patterns`}
-          />
-        </section>
-        <section>
-          <h2>Inline autocomplete</h2>
-          <p>
-            Ghost-text suggestions appear 1.5 s after you pause typing in{" "}
-            <code>.rs</code>, <code>.ts</code>, <code>.tsx</code>, <code>.toml</code> files. Press{" "}
-            <kbd>Tab</kbd> to accept.
-          </p>
-        </section>
-        <section>
-          <h2>Deprecated-pattern diagnostics</h2>
-          <p>
-            The extension underlines deprecated patterns (<code>declare_id!</code>,{" "}
-            <code>coral-xyz/anchor</code>, <code>load_instruction_at</code>, reentrancy guards) and
-            offers two quick-fixes:
-          </p>
-          <ul>
-            <li><strong>Replace with modern pattern</strong> — instant in-place edit</li>
-            <li><strong>Migrate to modern Anchor patterns</strong> — opens <code>@slm</code> chat with the file</li>
-          </ul>
-        </section>
-        <section>
-          <h2>Commands</h2>
-          <p>Open the command palette (<kbd>⌘⇧P</kbd>):</p>
-          <ul>
-            <li><strong>Sealevel: Explain Error Code</strong></li>
-            <li><strong>Sealevel: Explain Transaction</strong></li>
-          </ul>
-        </section>
-        <section>
-          <h2>Status bar</h2>
-          <p>
-            Bottom-right shows <code>SLM: Ready</code> / <code>SLM: Degraded</code> /{" "}
-            <code>SLM: Offline</code>. Click it to open settings. View logs via{" "}
-            <strong>Output → SLM</strong>.
-          </p>
-        </section>
-      </>
-    ),
-  },
-  {
     slug: "mcp",
     label: "MCP Server",
     section: "Clients",
@@ -272,19 +192,66 @@ slm explain --error 0x1771`}
           <h2>Add to Claude Code</h2>
           <CodeBlock
             language="bash"
-            code={`claude mcp add --transport http slm-solana https://mcp.slm.dev/mcp  # hosted endpoint coming soon`}
+            code={`claude mcp add --transport http sealevel https://mcp.sealevel.tech/mcp  # hosted endpoint coming soon`}
           />
           <p>That&apos;s it — no npm install, no config file. Claude Code picks it up immediately.</p>
         </section>
         <section>
-          <h2>Add to Cursor / Windsurf</h2>
-          <p>Same HTTP endpoint. In Cursor Settings → MCP Servers, add:</p>
+          <h2>Add to Cursor</h2>
+          <p>In Cursor Settings → MCP Servers, add:</p>
           <CodeBlock
             language="json"
             code={`{
   "mcpServers": {
-    "slm-solana": {
-      "url": "https://mcp.slm.dev/mcp"
+    "sealevel": {
+      "url": "https://mcp.sealevel.tech/mcp"
+    }
+  }
+}`}
+          />
+        </section>
+        <section>
+          <h2>Add to Windsurf</h2>
+          <p>In Windsurf Settings → MCP, add the same config:</p>
+          <CodeBlock
+            language="json"
+            code={`{
+  "mcpServers": {
+    "sealevel": {
+      "url": "https://mcp.sealevel.tech/mcp"
+    }
+  }
+}`}
+          />
+        </section>
+        <section>
+          <h2>Add to Claude Desktop</h2>
+          <p>Edit <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%/Claude/claude_desktop_config.json</code> (Windows):</p>
+          <CodeBlock
+            language="json"
+            code={`{
+  "mcpServers": {
+    "sealevel": {
+      "command": "npx",
+      "args": ["@slm/mcp"],
+      "env": {
+        "SLM_API_URL": "https://api.sealevel.tech",
+        "SLM_API_KEY": "slm_YOUR_KEY"
+      }
+    }
+  }
+}`}
+          />
+        </section>
+        <section>
+          <h2>Add to OpenAI Codex</h2>
+          <p>In your project&apos;s <code>codex.json</code> or via the Codex CLI:</p>
+          <CodeBlock
+            language="json"
+            code={`{
+  "mcpServers": {
+    "sealevel": {
+      "url": "https://mcp.sealevel.tech/mcp"
     }
   }
 }`}
@@ -307,7 +274,7 @@ slm explain --error 0x1771`}
       "command": "npx",
       "args": ["@slm/mcp"],
       "env": {
-        "SLM_API_URL": "https://slm.dev/api",
+        "SLM_API_URL": "https://api.sealevel.tech",
         "SLM_API_KEY": "slm_YOUR_KEY"
       }
     }
@@ -327,13 +294,11 @@ slm explain --error 0x1771`}
         </section>
         <section>
           <h2>Prompts + resources</h2>
-          <p>Slash commands in Claude Code:</p>
+          <p>Slash command in Claude Code:</p>
           <ul>
-            <li><code>/mcp__slm__solana-expert</code> — expert help on a topic</li>
-            <li><code>/mcp__slm__anchor-migration</code> — guided migration</li>
-            <li><code>/mcp__slm__security-review</code> — deep audit</li>
+            <li><code>/mcp__slm__security-review</code> — security audit for Anchor code (checks signer validation, owner checks, overflow, PDA collisions, close constraints)</li>
           </ul>
-          <p>Resources: <code>solana://errors</code>, <code>solana://eval-results</code>, <code>solana://system-prompt</code>.</p>
+          <p>Resources: <code>solana://errors</code> (complete error table), <code>solana://system-prompt</code> (Sealevel guardrails).</p>
         </section>
       </>
     ),
@@ -356,7 +321,7 @@ Authorization: Bearer slm_YOUR_KEY
 Content-Type: application/json
 
 {
-  "model": "slm-solana",
+  "model": "sealevel",
   "messages": [
     {"role": "system", "content": "You are Sealevel, an expert Solana developer..."},
     {"role": "user", "content": "Write an Anchor counter program"}
@@ -436,12 +401,18 @@ Authorization: Bearer slm_YOUR_KEY`}
           <CodeBlock
             language="json"
             code={`{
-  "user": {"name": "...", "email": "...", "tier": "free", "created_at": "..."},
+  "user": {"tier": "free"},
   "today": {"requests": 42, "tokens": 12345},
   "last_7_days": [
-    {"date": "2026-04-16", "requests": 42, "tokens": 12345},
-    ...
-  ]
+    {"date": "2026-04-16", "requests": 42, "tokens": 12345}
+  ],
+  "by_endpoint": [
+    {"endpoint": "/api/chat", "requests": 40, "tokens": 11000}
+  ],
+  "by_source": {
+    "web": {"requests": 30, "tokens": 8000},
+    "api": {"requests": 12, "tokens": 4345}
+  }
 }`}
           />
         </section>

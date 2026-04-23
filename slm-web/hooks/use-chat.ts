@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { chatCompletions } from "@/lib/api-client"
+import { cleanModelResponse, fixAnchorCode } from "@/lib/constants"
 import { useStreaming } from "./use-streaming"
 
 export interface ChatMessage {
@@ -81,10 +82,11 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
     onEvent(event) {
       if (event.type === "chat_delta") {
         assistantContentRef.current += event.content
+        const cleaned = fixAnchorCode(cleanModelResponse(assistantContentRef.current))
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantIdRef.current
-              ? { ...msg, content: assistantContentRef.current }
+              ? { ...msg, content: cleaned }
               : msg,
           ),
         )

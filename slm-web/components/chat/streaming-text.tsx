@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import ReactMarkdown from "react-markdown"
 
 interface StreamingTextProps {
   text: string
@@ -14,11 +15,9 @@ export function StreamingText({
   className,
 }: StreamingTextProps) {
   return (
-    <span className={cn("whitespace-pre-wrap", className)}>
-      {text}
-      {isStreaming && (
-        <span className="ml-0.5 inline-block h-4 w-[2px] animate-pulse bg-foreground" />
-      )}
-    </span>
+    <div className={cn("prose prose-sm prose-invert max-w-none", className)}>
+      <ReactMarkdown>{text}</ReactMarkdown>
+      {isStreaming && <span className="cursor-blink ml-0.5" />}
+    </div>
   )
 }

@@ -7,6 +7,7 @@ interface PageLayoutProps {
   hideFooter?: boolean
   navMinimal?: boolean
   className?: string
+  fullWidth?: boolean
 }
 
 export function PageLayout({
@@ -14,13 +15,15 @@ export function PageLayout({
   hideFooter = false,
   navMinimal = false,
   className,
+  fullWidth = false,
 }: PageLayoutProps) {
   return (
     <div data-slot="page-layout" className="flex min-h-svh flex-col">
       <NavBar minimal={navMinimal} />
       <main
         className={cn(
-          "mx-auto w-full max-w-5xl flex-1 px-4 py-8",
+          "flex-1",
+          !fullWidth && "mx-auto w-full max-w-[1120px] px-6",
           className,
         )}
       >

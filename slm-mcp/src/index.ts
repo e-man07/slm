@@ -26,22 +26,16 @@ import {
 
 // Resources
 import { readErrorsResource } from "./resources/errors.js";
-import { readEvalResultsResource } from "./resources/eval-results.js";
 import { readSystemPromptResource } from "./resources/system-prompt.js";
 
 // Prompts
 import {
-  solanaExpertArgsSchema,
-  getSolanaExpertPrompt,
-} from "./prompts/solana-expert.js";
-import {
-  migrationArgsSchema,
-  getMigrationPrompt,
-} from "./prompts/migration.js";
-import {
   securityArgsSchema,
   getSecurityPrompt,
 } from "./prompts/security.js";
+
+// Request context for per-user auth
+import { requestContext } from "./lib/request-context.js";
 
 export function createServer(): McpServer {
   const server = new McpServer(
@@ -115,14 +109,6 @@ export function createServer(): McpServer {
     return readErrorsResource();
   });
 
-  server.registerResource("eval-results", "solana://eval-results", {
-    title: "Sealevel Eval Results",
-    description: "Sealevel model evaluation results (87.5% overall score)",
-    mimeType: "text/plain",
-  }, async () => {
-    return readEvalResultsResource();
-  });
-
   server.registerResource("system-prompt", "solana://system-prompt", {
     title: "Sealevel System Prompt",
     description: "The system prompt and guardrail rules used by Sealevel",
@@ -132,23 +118,6 @@ export function createServer(): McpServer {
   });
 
   // ── Prompts ────────────────────────────────────────────
-
-  server.registerPrompt("solana-expert", {
-    title: "Solana Expert",
-    description: "Get expert Solana development assistance on a specific topic",
-    argsSchema: solanaExpertArgsSchema,
-  }, async (args) => {
-    return getSolanaExpertPrompt(args);
-  });
-
-  server.registerPrompt("anchor-migration", {
-    title: "Anchor Migration",
-    description:
-      "Migrate old Anchor code to modern Anchor 0.30+ patterns",
-    argsSchema: migrationArgsSchema,
-  }, async (args) => {
-    return getMigrationPrompt(args);
-  });
 
   server.registerPrompt("security-review", {
     title: "Security Review",
@@ -176,9 +145,21 @@ if (isDirectRun) {
     const port = parseInt(process.env.PORT ?? "8080", 10);
     const server = createServer();
 
+    const ALLOWED_ORIGINS = new Set([
+      "https://sealevel.tech",
+      "https://www.sealevel.tech",
+      "https://api.sealevel.tech",
+      process.env.CORS_ORIGIN,
+    ].filter(Boolean));
+
     const httpServer = createHttpServer(async (req, res) => {
       // CORS
-      res.setHeader("Access-Control-Allow-Origin", "*");
+      const origin = req.headers.origin ?? "";
+      const allowedOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "";
+      if (allowedOrigin) {
+        res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+        res.setHeader("Vary", "Origin");
+      }
       res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE");
       res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, mcp-session-id");
       res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
@@ -196,12 +177,17 @@ if (isDirectRun) {
         return;
       }
 
-      // MCP endpoint
+      // MCP endpoint — extract user's Bearer token and pass through to API calls
       if (req.url === "/mcp" || req.url === "/") {
-        const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
-        res.on("close", () => { transport.close(); });
-        await server.connect(transport);
-        await transport.handleRequest(req, res);
+        const authHeader = req.headers.authorization ?? "";
+        const authToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : undefined;
+
+        await requestContext.run({ authToken }, async () => {
+          const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+          res.on("close", () => { transport.close(); });
+          await server.connect(transport);
+          await transport.handleRequest(req, res);
+        });
         return;
       }
 

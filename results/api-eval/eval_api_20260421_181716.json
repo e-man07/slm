@@ -1,0 +1,694 @@
+{
+  "timestamp": "2026-04-21T18:17:16.326556+00:00",
+  "api_url": "https://7rbh4aaeipe1l22raag8n0mtsk.ingress.h100.wdc.hh.akash.pub/v1",
+  "model": "slm-solana",
+  "overall": {
+    "passed": 0,
+    "total": 80,
+    "score": 0.0
+  },
+  "solana_bench": {
+    "passed": 0,
+    "total": 80,
+    "score": 0.0
+  },
+  "categories": {
+    "adversarial": {
+      "passed": 0,
+      "total": 10,
+      "score": 0.0
+    },
+    "anchor_constraints": {
+      "passed": 0,
+      "total": 15,
+      "score": 0.0
+    },
+    "cpi_patterns": {
+      "passed": 0,
+      "total": 10,
+      "score": 0.0
+    },
+    "error_handling": {
+      "passed": 0,
+      "total": 10,
+      "score": 0.0
+    },
+    "pda_derivation": {
+      "passed": 0,
+      "total": 15,
+      "score": 0.0
+    },
+    "spl_token_ops": {
+      "passed": 0,
+      "total": 10,
+      "score": 0.0
+    },
+    "transaction_construction": {
+      "passed": 0,
+      "total": 10,
+      "score": 0.0
+    }
+  },
+  "task_results": [
+    {
+      "id": "pda-01",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-02",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-03",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-04",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-05",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-06",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-07",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-08",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-09",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-10",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-11",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-12",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-13",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-14",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "pda-15",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-01",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-02",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-03",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-04",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-05",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-06",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-07",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-08",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-09",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-10",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-11",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-12",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-13",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-14",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "anchor-15",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-01",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-02",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-03",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-04",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-05",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-06",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-07",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-08",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-09",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "spl-10",
+      "category": "spl_token_ops",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-01",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-02",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-03",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-04",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-05",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-06",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-07",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-08",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-09",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "cpi-10",
+      "category": "cpi_patterns",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-01",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-02",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-03",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-04",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-05",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-06",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-07",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-08",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-09",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "err-10",
+      "category": "error_handling",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-01",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-02",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-03",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-04",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-05",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-06",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-07",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-08",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-09",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "adv-10",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-01",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-02",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-03",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-04",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-05",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-06",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-07",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-08",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-09",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    },
+    {
+      "id": "tx-10",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "API error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:1077)",
+      "output_length": 0,
+      "elapsed_s": 0
+    }
+  ]
+}

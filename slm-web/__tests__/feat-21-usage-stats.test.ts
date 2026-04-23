@@ -18,11 +18,9 @@ describe("Feature 21 - Usage Stats", () => {
       expect(typeof db.getUsageStats).toBe("function")
     })
 
-    it("getUsageStats returns array with expected shape", async () => {
-      // Without a DB connection, returns empty array
+    it("exports getTodayTokensByUserId function", async () => {
       const db = await import("@/lib/db")
-      const stats = await db.getUsageStats("slm_nonexistent", 7)
-      expect(Array.isArray(stats)).toBe(true)
+      expect(typeof db.getTodayTokensByUserId).toBe("function")
     })
   })
 

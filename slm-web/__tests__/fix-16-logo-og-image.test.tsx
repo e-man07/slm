@@ -6,7 +6,6 @@
  * GREEN - create assets and update components
  */
 import { describe, it, expect } from "vitest"
-import { render, screen } from "@testing-library/react"
 import { readFileSync, existsSync } from "fs"
 import { resolve } from "path"
 
@@ -35,10 +34,10 @@ describe("Fix 16 - Logo SVG + OG image", () => {
     expect(content).toContain("og-image")
   })
 
-  it("nav-bar.tsx uses the SVG logo instead of plain text", () => {
+  it("nav-bar.tsx renders the Sealevel brand logo", () => {
     const navPath = resolve(__dirname, "../components/nav-bar.tsx")
     const content = readFileSync(navPath, "utf-8")
-    // Should reference logo.svg or use an <img> or Image component
-    expect(content).toContain("logo.svg")
+    // Should have Sealevel text branding (dot + text logo per olive-mono design)
+    expect(content).toContain("SEALEVEL")
   })
 })

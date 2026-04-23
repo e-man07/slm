@@ -10,7 +10,7 @@ RUN npm run build
 
 ENV MCP_TRANSPORT=http
 ENV PORT=8080
-ENV SLM_API_URL=https://slm.dev/api
+ENV SLM_API_URL=https://api.sealevel.tech
 
 EXPOSE 8080
 

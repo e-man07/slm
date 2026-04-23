@@ -1,8 +1,6 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StreamingText } from "@/components/chat/streaming-text"
+import { MarkdownContent } from "@/components/shared/markdown-content"
 import type { LookupResult } from "@/lib/sse"
 
 interface ErrorResultProps {
@@ -19,58 +17,66 @@ export function ErrorResult({
   notFound = false,
 }: ErrorResultProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {lookupResult && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Error Details</CardTitle>
-              <Badge variant="destructive">{lookupResult.hex}</Badge>
+        <div className="border border-border">
+          <div className="flex items-center justify-between border-b border-border px-5 py-3">
+            <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Error Details</span>
+            <span
+              className="px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] border"
+              style={{ color: "var(--destructive)", borderColor: "var(--destructive)" }}
+            >
+              {lookupResult.hex}
+            </span>
+          </div>
+          <div className="p-5">
+            <div className="space-y-0">
+              <div className="flex justify-between items-baseline py-2.5 border-b border-dashed border-border text-xs">
+                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Program</span>
+                <span className="font-medium">{lookupResult.program_name}</span>
+              </div>
+              <div className="flex justify-between items-baseline py-2.5 border-b border-dashed border-border text-xs">
+                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Error</span>
+                <span className="font-medium">{lookupResult.error_name}</span>
+              </div>
+              <div className="flex justify-between items-baseline py-2.5 border-b border-dashed border-border text-xs">
+                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Message</span>
+                <span className="text-muted-foreground">{lookupResult.error_message}</span>
+              </div>
+              <div className="flex justify-between items-baseline py-2.5 text-xs">
+                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Code</span>
+                <span className="mono-num">{lookupResult.hex} (decimal: {lookupResult.code})</span>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div>
-              <span className="text-muted-foreground">Program</span>
-              <p className="font-medium">{lookupResult.program_name}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Error</span>
-              <p className="font-medium">{lookupResult.error_name}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Message</span>
-              <p>{lookupResult.error_message}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Code</span>
-              <p className="font-mono text-xs">
-                {lookupResult.hex} (decimal: {lookupResult.code})
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {notFound && !lookupResult && (
-        <Card>
-          <CardContent className="py-4 text-sm text-muted-foreground">
-            Error not found in 41 known Solana programs. The AI will attempt to
-            explain based on the error code pattern.
-          </CardContent>
-        </Card>
+        <div className="border border-border px-5 py-4 text-xs text-muted-foreground">
+          Error not found in 41 known Solana programs. The AI will attempt to
+          explain based on the error code pattern.
+        </div>
       )}
 
       {(explanation || isStreaming) && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">AI Explanation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm leading-relaxed">
-              <StreamingText text={explanation} isStreaming={isStreaming} />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="border border-border">
+          <div className="flex items-center justify-between border-b border-border px-5 py-3">
+            <span className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">AI Explanation</span>
+            {isStreaming && (
+              <span className="flex items-center gap-1.5 text-[10px] slm-accent">
+                <span
+                  className="inline-block size-1.5"
+                  style={{ background: "var(--slm-accent)", animation: "pulse-dot 1s infinite" }}
+                />
+                streaming
+              </span>
+            )}
+          </div>
+          <div className="p-5">
+            <MarkdownContent content={explanation} isStreaming={isStreaming} />
+          </div>
+        </div>
       )}
     </div>
   )

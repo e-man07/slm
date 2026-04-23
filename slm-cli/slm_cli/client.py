@@ -7,12 +7,79 @@ from __future__ import annotations
 
 from typing import Any
 
+import re
+
 import httpx
+
+
+def clean_model_response(text: str) -> str:
+    """Clean deprecated Solana/Anchor patterns from model responses.
+
+    Applied as a post-processing step before displaying to users.
+    """
+    text = re.sub(
+        r"^\s*declare_id!\s*\(\s*\"[^\"]*\"\s*\)\s*;?\s*$",
+        "// Program ID is set in Anchor.toml",
+        text,
+        flags=re.MULTILINE,
+    )
+    text = text.replace("declare_id!", "declare_program!")
+    text = text.replace("coral-xyz/anchor", "solana-foundation/anchor")
+    text = text.replace("project-serum/anchor", "solana-foundation/anchor")
+    text = text.replace("ProgramResult", "Result<()>")
+    text = text.replace("#[error]\n", "#[error_code]\n")
+    return text
+
+
+def fix_anchor_code(code: str) -> str:
+    """Fix common Anchor compilation issues in model output.
+
+    Applied as a post-processing step after clean_model_response.
+    """
+    code = re.sub(r'ctx\.bumps\.get\(\s*"(\w+)"\s*\)\.?unwrap\(\)', r'ctx.bumps.\1', code)
+    code = re.sub(r'ctx\.bumps\.get\(\s*"(\w+)"\s*\)', r'ctx.bumps.\1', code)
+    code = re.sub(r'use crate::[^;]+;\n?', '', code)
+    code = re.sub(r'crate::\w+::', '', code)
+    code = re.sub(r"(#\[account\])\s*pub struct (\w+)<'\w+>", r'#[account]\npub struct \2', code)
+    code = re.sub(r"pub enum (\w+)<'\w+>", r'pub enum \1', code)
+    return code
+
 
 SYSTEM_PROMPT = (
     "You are Sealevel, an expert Solana and Anchor development assistant. "
-    "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns "
-    "(solana-foundation/anchor, InitSpace, ctx.bumps.field_name). "
+    "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns.\n\n"
+    "When writing Anchor programs, follow this pattern:\n\n"
+    "```rust\n"
+    "use anchor_lang::prelude::*;\n\n"
+    'declare_id!("11111111111111111111111111111111");\n\n'
+    "#[program]\n"
+    "pub mod example {\n"
+    "    use super::*;\n"
+    "    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {\n"
+    "        ctx.accounts.my_account.data = 0;\n"
+    "        ctx.accounts.my_account.authority = ctx.accounts.user.key();\n"
+    "        ctx.accounts.my_account.bump = ctx.bumps.my_account;\n"
+    "        Ok(())\n"
+    "    }\n"
+    "}\n\n"
+    "#[derive(Accounts)]\n"
+    "pub struct Initialize<'info> {\n"
+    '    #[account(init, payer = user, space = 8 + 8 + 32 + 1, seeds = [b"seed", user.key().as_ref()], bump)]\n'
+    "    pub my_account: Account<'info, MyAccount>,\n"
+    "    #[account(mut)]\n"
+    "    pub user: Signer<'info>,\n"
+    "    pub system_program: Program<'info, System>,\n"
+    "}\n\n"
+    "#[account]\n"
+    "pub struct MyAccount {\n"
+    "    pub data: u64,\n"
+    "    pub authority: Pubkey,\n"
+    "    pub bump: u8,\n"
+    "}\n"
+    "```\n\n"
+    "Key rules: space = 8 + field sizes, ctx.bumps.field_name (not .get()), "
+    "#[account] structs have no lifetime, use Result<()>, #[error_code], "
+    "single file with no crate:: imports.\n\n"
     "When uncertain, say so rather than guessing. "
     "Never suggest reentrancy guards (Solana prevents reentrancy via CPI depth limits). "
     "Never reference coral-xyz/anchor or declare_id! - these are deprecated. "
@@ -29,13 +96,13 @@ class SLMClient:
 
     def __init__(
         self,
-        base_url: str = "https://slm.dev/api",
+        base_url: str = "https://api.sealevel.tech",
         api_key: str | None = None,
         timeout: float = 120.0,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
-        self.timeout = timeout
+        self.timeout = httpx.Timeout(connect=10.0, read=30.0, write=10.0, pool=10.0)
 
     @property
     def chat_url(self) -> str:

@@ -2,20 +2,22 @@
 version: "2.0"
 
 services:
-  sglang:
+  inference:
     image: lmsysorg/sglang:v0.4.5.post2-cu124
     env:
-      - "HUGGING_FACE_HUB_TOKEN=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"
+      - "HUGGING_FACE_HUB_TOKEN=<REPLACE_ME>"
+      - "HF_HOME=/root/.cache/huggingface"
     command:
       - "/bin/bash"
       - "-c"
-      - "mkdir -p /root/.cache/flashinfer /tmp/flashinfer && export FLASHINFER_WORKSPACE_DIR=/tmp/flashinfer && if [ ! -f /root/.cache/slm-solana-merged/config.json ]; then echo 'Merging LoRA into base model...' && python3 -m pip install -q accelerate && python3 -c \"from huggingface_hub import snapshot_download; snapshot_download('WhyParabola/sealevel-solana-lora', local_dir='/tmp/slm-lora'); print('LoRA downloaded')\" && python3 -c \"import accelerate; from transformers import AutoModelForCausalLM, AutoTokenizer; import torch, json; print('Loading base...'); tok = AutoTokenizer.from_pretrained('Qwen/Qwen2.5-Coder-7B-Instruct', trust_remote_code=True); model = AutoModelForCausalLM.from_pretrained('Qwen/Qwen2.5-Coder-7B-Instruct', torch_dtype=torch.bfloat16, device_map='auto', trust_remote_code=True); print('Loading LoRA weights...'); cfg = json.load(open('/tmp/slm-lora/adapter_config.json')); from safetensors.torch import load_file; lora_weights = load_file('/tmp/slm-lora/adapter_model.safetensors'); lora_a = {}; lora_b = {}; [lora_a.update({k.replace('.lora_A.weight',''): v}) if '.lora_A.' in k else lora_b.update({k.replace('.lora_B.weight',''): v}) if '.lora_B.' in k else None for k,v in lora_weights.items()]; alpha = cfg.get('lora_alpha', 64); r = cfg.get('r', 32); scale = alpha / r; print(f'Merging {len(lora_a)} LoRA layers (scale={scale})...'); sd = model.state_dict(); matched = 0; [exec('matched += 1', {'matched': matched}) or sd[k+chr(46)+'weight'].add_((lora_b[k].to(sd[k+chr(46)+'weight'].device) @ lora_a[k].to(sd[k+chr(46)+'weight'].device)) * scale) for k in lora_a if k in lora_b and k+chr(46)+'weight' in sd]; model.load_state_dict(sd); print('Saving merged model...'); model.save_pretrained('/root/.cache/slm-solana-merged'); tok.save_pretrained('/root/.cache/slm-solana-merged'); print('Merge done!')\" && echo 'Cleaning base model cache...' && rm -rf /root/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-7B-Instruct; else echo 'Merged model found, skipping merge.'; fi && python3 -m sglang.launch_server --model-path /root/.cache/slm-solana-merged --host 0.0.0.0 --port 30000 --tp 1 --context-length 32768 --mem-fraction-static 0.80 --served-model-name slm-solana --trust-remote-code"
+      - "if [ ! -f /root/.cache/slm-solana-merged/config.json ]; then echo 'Merging LoRA into base model...' && python3 -m pip install -q accelerate && python3 -c \"from huggingface_hub import snapshot_download; snapshot_download('WhyParabola/sealevel-solana-lora', local_dir='/tmp/slm-lora'); print('LoRA downloaded')\" && python3 -c \"import accelerate; from transformers import AutoModelForCausalLM, AutoTokenizer; import torch, json; print('Loading base...'); tok = AutoTokenizer.from_pretrained('Qwen/Qwen2.5-Coder-7B-Instruct', trust_remote_code=True); model = AutoModelForCausalLM.from_pretrained('Qwen/Qwen2.5-Coder-7B-Instruct', torch_dtype=torch.bfloat16, device_map='auto', trust_remote_code=True); print('Loading LoRA weights...'); cfg = json.load(open('/tmp/slm-lora/adapter_config.json')); from safetensors.torch import load_file; lora_weights = load_file('/tmp/slm-lora/adapter_model.safetensors'); lora_a = {}; lora_b = {}; [lora_a.update({k.replace('.lora_A.weight',''): v}) if '.lora_A.' in k else lora_b.update({k.replace('.lora_B.weight',''): v}) if '.lora_B.' in k else None for k,v in lora_weights.items()]; alpha = cfg.get('lora_alpha', 64); r = cfg.get('r', 32); scale = alpha / r; print(f'Merging {len(lora_a)} LoRA layers (scale={scale})...'); sd = model.state_dict(); matched = 0; [exec('matched += 1', {'matched': matched}) or sd[k+chr(46)+'weight'].add_((lora_b[k].to(sd[k+chr(46)+'weight'].device) @ lora_a[k].to(sd[k+chr(46)+'weight'].device)) * scale) for k in lora_a if k in lora_b and k+chr(46)+'weight' in sd]; model.load_state_dict(sd); print('Saving merged model...'); model.save_pretrained('/root/.cache/slm-solana-merged'); tok.save_pretrained('/root/.cache/slm-solana-merged'); print('Merge done!')\" && echo 'Cleaning base model cache...' && rm -rf /root/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-7B-Instruct; else echo 'Merged model found, skipping merge.'; fi && mkdir -p /tmp/flashinfer && export FLASHINFER_WORKSPACE_DIR=/tmp/flashinfer && python3 -m sglang.launch_server --model-path /root/.cache/slm-solana-merged --host 0.0.0.0 --port 30000 --tp 1 --context-length 32768 --mem-fraction-static 0.80 --served-model-name slm-solana --trust-remote-code"
     expose:
       - port: 30000
         as: 30000
         to:
           - service: litellm
-            global: false
+          - service: rag-api
+            global: true
     params:
       storage:
         models:
@@ -25,13 +27,13 @@ services:
   litellm:
     image: ghcr.io/berriai/litellm:main-v1.46.6
     env:
-      - "LITELLM_MASTER_KEY=sk-slm-4036593696e43d7d65e41da2fcb57ebe0e82aa0729b8dcf3"
+      - "LITELLM_MASTER_KEY=<REPLACE_ME>"
       - "LITELLM_LOG_LEVEL=INFO"
       - "DISABLE_SPEND_LOGS=true"
     command:
       - "/bin/bash"
       - "-c"
-      - "python3 -c \"import json,os;open('/app/config.yaml','w').write(json.dumps({'model_list':[{'model_name':'slm-solana','litellm_params':{'model':'openai/slm-solana','api_base':'http://sglang:30000/v1','api_key':'none','max_tokens':4096,'stream':True,'logit_bias':{'18471':-30}}}],'litellm_settings':{'drop_params':True,'set_verbose':False},'general_settings':{'master_key':os.environ['LITELLM_MASTER_KEY']}}))\" && litellm --config /app/config.yaml --host 0.0.0.0 --port 4000"
+      - "python3 -c \"import json,os;open('/app/config.yaml','w').write(json.dumps({'model_list':[{'model_name':'slm-solana','litellm_params':{'model':'openai/slm-solana','api_base':'http://inference:30000/v1','api_key':'none','max_tokens':4096,'stream':False}}],'litellm_settings':{'drop_params':True,'set_verbose':False},'general_settings':{'master_key':os.environ['LITELLM_MASTER_KEY']}}))\" && litellm --config /app/config.yaml --host 0.0.0.0 --port 4000"
     expose:
       - port: 4000
         as: 80
@@ -58,12 +60,12 @@ services:
           readOnly: false
 
   rag-api:
-    image: whyparabola/slm-rag-api:latest
+    image: whyparabola/slm-rag-api:v5
     env:
-      - "SGLANG_URL=http://sglang:30000/v1"
+      - "SGLANG_URL=http://inference:30000/v1"
       - "QDRANT_URL=http://qdrant:6333"
       - "EMBEDDING_MODEL=BAAI/bge-small-en-v1.5"
-      - "GITHUB_TOKEN=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"
+      - "GITHUB_TOKEN=<REPLACE_ME>"
       - "RAG_VERSION=6"
     expose:
       - port: 8080
@@ -73,7 +75,7 @@ services:
 
 profiles:
   compute:
-    sglang:
+    inference:
       resources:
         cpu:
           units: 8
@@ -128,7 +130,7 @@ profiles:
   placement:
     akash:
       pricing:
-        sglang:
+        inference:
           denom: uakt
           amount: 100000
         litellm:
@@ -142,9 +144,9 @@ profiles:
           amount: 2000
 
 deployment:
-  sglang:
+  inference:
     akash:
-      profile: sglang
+      profile: inference
       count: 1
   litellm:
     akash:

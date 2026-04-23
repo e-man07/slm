@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT, API_URLS } from "@/lib/constants"
+import { SYSTEM_PROMPT, API_URLS, MAX_TOKENS_CAP, MAX_MESSAGES, MAX_MESSAGE_LENGTH } from "@/lib/constants"
 import { withRateLimit } from "@/lib/middleware"
 import { logUsage } from "@/lib/db"
 
@@ -13,10 +13,9 @@ async function fetchRAGContext(query: string): Promise<string> {
     })
     if (resp.ok) {
       const data = await resp.json()
-      // Only inject RAG if top result is highly relevant (>0.80)
       const topScore = data.results?.[0]?.score ?? 0
-      if (topScore < 0.80) return ""
-      return data.context || ""
+      if (topScore < 0.60) return ""
+      return (data.context || "").slice(0, 8000)
     }
   } catch {
     // RAG is optional — if it fails, proceed without context
@@ -29,31 +28,48 @@ export const POST = withRateLimit(async function POST(request: Request) {
     const body = await request.json()
     const { messages, stream = true, max_tokens = 1024, temperature = 0.0 } = body
 
+    // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return Response.json(
         { error: { code: "invalid_input", message: "Messages array is required", status: 400 } },
         { status: 400 },
       )
     }
+    if (messages.length > MAX_MESSAGES) {
+      return Response.json(
+        { error: { code: "invalid_input", message: `Too many messages (max ${MAX_MESSAGES})`, status: 400 } },
+        { status: 400 },
+      )
+    }
+    for (const m of messages) {
+      if (typeof m.content === "string" && m.content.length > MAX_MESSAGE_LENGTH) {
+        return Response.json(
+          { error: { code: "invalid_input", message: `Message too long (max ${MAX_MESSAGE_LENGTH} chars)`, status: 400 } },
+          { status: 400 },
+        )
+      }
+    }
 
-    // RAG for knowledge enrichment — supplements model knowledge, never restricts it
+    // Clamp parameters to safe ranges
+    const cappedMaxTokens = Math.min(Math.max(1, Number(max_tokens) || 1024), MAX_TOKENS_CAP)
+    const cappedTemperature = Math.min(Math.max(0, Number(temperature) || 0), 2.0)
+
+    // RAG for knowledge enrichment
     const lastUserMsg = [...messages].reverse().find((m: { role: string }) => m.role === "user")
     const userContent = lastUserMsg?.content?.toLowerCase() ?? ""
     const isCodeRequest = /\b(write|create|build|implement|show|code|program|function|instruction)\b/.test(userContent)
     const ragContext = lastUserMsg && !isCodeRequest ? await fetchRAGContext(lastUserMsg.content) : ""
 
     const systemContent = ragContext
-      ? `${SYSTEM_PROMPT}\n\nYou also have access to these reference docs for additional context. Always answer from your full knowledge first, then supplement with these if relevant:\n\n${ragContext}`
+      ? `${SYSTEM_PROMPT}\n\nIMPORTANT: Use the following verified reference documentation to answer the user's question. This information is authoritative and takes priority over your training data:\n\n${ragContext}`
       : SYSTEM_PROMPT
 
-    // Inject system prompt if not already present
     const hasSystem = messages[0]?.role === "system"
     const fullMessages = hasSystem
       ? messages
       : [{ role: "system", content: systemContent }, ...messages]
 
     const sglangUrl = `${API_URLS.SGLANG_BASE}${API_URLS.CHAT}`
-
     const sglangHeaders: Record<string, string> = { "Content-Type": "application/json" }
     if (process.env.SGLANG_API_KEY) {
       sglangHeaders["Authorization"] = `Bearer ${process.env.SGLANG_API_KEY}`
@@ -66,48 +82,37 @@ export const POST = withRateLimit(async function POST(request: Request) {
         model: "slm-solana",
         messages: fullMessages,
         stream,
-        max_tokens,
-        temperature,
-        // Ask LiteLLM/SGLang to include usage stats in the final SSE chunk
+        max_tokens: cappedMaxTokens,
+        temperature: cappedTemperature,
         stream_options: stream ? { include_usage: true } : undefined,
       }),
+      signal: AbortSignal.timeout(9000),
     })
 
     // Identify caller for usage tracking
-    const authHeader = request.headers.get("Authorization") ?? ""
-    const callerApiKey = authHeader.startsWith("Bearer ")
-      ? authHeader.slice(7).trim()
-      : "anonymous"
+    const { resolveCallerForUsage } = await import("@/lib/middleware")
+    const caller = await resolveCallerForUsage(request)
 
     async function recordUsage(tokens: number) {
-      if (callerApiKey === "anonymous" || tokens <= 0) return
+      if ((!caller.userId && !caller.apiKey) || tokens <= 0) return
       try {
-        await logUsage(callerApiKey, "/api/chat", tokens)
+        await logUsage({ userId: caller.userId, apiKey: caller.apiKey }, "/api/chat", tokens, caller.source)
       } catch (err) {
         console.warn("logUsage failed", err)
       }
     }
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => "Unknown error")
+      console.error(`SGLang error: ${response.status}`, await response.text().catch(() => ""))
       return Response.json(
-        {
-          error: {
-            code: "model_unavailable",
-            message: `Inference server error: ${response.status}`,
-            details: errorText,
-            status: 502,
-          },
-        },
+        { error: { code: "model_unavailable", message: "Inference server error. Please try again.", status: 502 } },
         { status: 502 },
       )
     }
 
     if (stream && response.body) {
-      // Tee the stream: one branch to client, one to a token-usage sniffer
       const [clientStream, sniffStream] = response.body.tee()
 
-      // Background task: read sniff stream, find final `usage` chunk, log tokens
       ;(async () => {
         try {
           const reader = sniffStream.getReader()
@@ -147,32 +152,27 @@ export const POST = withRateLimit(async function POST(request: Request) {
       })
     }
 
-    // Non-streaming response — grab usage directly
     const data = await response.json()
     if (data?.usage?.total_tokens) {
       void recordUsage(data.usage.total_tokens)
     }
     return Response.json(data)
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
-
-    // Check if it's a connection error (SGLang not running)
-    if (message.includes("ECONNREFUSED") || message.includes("fetch failed")) {
-      return Response.json(
-        {
-          error: {
-            code: "model_unavailable",
-            message: "Model inference server is not available. Please try again later.",
-            status: 503,
-          },
-        },
-        { status: 503 },
-      )
-    }
+    console.error("Chat route error:", error)
+    const isConnectionError = error instanceof Error &&
+      (error.message.includes("ECONNREFUSED") || error.message.includes("fetch failed") || error.message.includes("AbortError"))
 
     return Response.json(
-      { error: { code: "internal_error", message, status: 500 } },
-      { status: 500 },
+      {
+        error: {
+          code: isConnectionError ? "model_unavailable" : "internal_error",
+          message: isConnectionError
+            ? "Model inference server is not available. Please try again later."
+            : "An internal error occurred. Please try again.",
+          status: isConnectionError ? 503 : 500,
+        },
+      },
+      { status: isConnectionError ? 503 : 500 },
     )
   }
 }, "chat")
