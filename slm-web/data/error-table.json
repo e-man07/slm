@@ -1,0 +1,105 @@
+{
+  "programs": [
+    {
+      "program_id": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "program_name": "SPL Token",
+      "errors": [
+        { "code": 0, "hex": "0x0", "name": "NotRentExempt", "message": "Lamport balance below rent-exempt threshold" },
+        { "code": 1, "hex": "0x1", "name": "InsufficientFunds", "message": "Insufficient funds" },
+        { "code": 2, "hex": "0x2", "name": "InvalidMint", "message": "Invalid Mint" },
+        { "code": 3, "hex": "0x3", "name": "MintMismatch", "message": "Account not associated with this Mint" },
+        { "code": 4, "hex": "0x4", "name": "OwnerMismatch", "message": "Owner does not match" },
+        { "code": 5, "hex": "0x5", "name": "FixedSupply", "message": "Fixed supply" },
+        { "code": 6, "hex": "0x6", "name": "AlreadyInUse", "message": "The account cannot be initialized because it is already being used" },
+        { "code": 7, "hex": "0x7", "name": "InvalidNumberOfProvidedSigners", "message": "Invalid number of provided signers" },
+        { "code": 8, "hex": "0x8", "name": "InvalidNumberOfRequiredSigners", "message": "Invalid number of required signers" },
+        { "code": 9, "hex": "0x9", "name": "UninitializedState", "message": "State is uninitialized" },
+        { "code": 10, "hex": "0xa", "name": "NativeNotSupported", "message": "Instruction does not support native tokens" },
+        { "code": 11, "hex": "0xb", "name": "NonNativeHasBalance", "message": "Non-native account can only be closed if its balance is zero" },
+        { "code": 12, "hex": "0xc", "name": "InvalidInstruction", "message": "Invalid instruction" },
+        { "code": 13, "hex": "0xd", "name": "InvalidState", "message": "State is invalid for requested operation" },
+        { "code": 14, "hex": "0xe", "name": "Overflow", "message": "Operation overflowed" },
+        { "code": 15, "hex": "0xf", "name": "AuthorityTypeNotSupported", "message": "Account does not support specified authority type" },
+        { "code": 16, "hex": "0x10", "name": "MintCannotFreeze", "message": "This token mint cannot freeze accounts" },
+        { "code": 17, "hex": "0x11", "name": "AccountFrozen", "message": "Account is frozen; all account operations will fail" },
+        { "code": 18, "hex": "0x12", "name": "MintDecimalsMismatch", "message": "Mint decimals mismatch between the client and mint" },
+        { "code": 19, "hex": "0x13", "name": "NonNativeNotSupported", "message": "Instruction does not support non-native tokens" }
+      ]
+    },
+    {
+      "program_id": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+      "program_name": "Associated Token Account",
+      "errors": [
+        { "code": 0, "hex": "0x0", "name": "InvalidOwner", "message": "Associated token account owner does not match address derivation" }
+      ]
+    },
+    {
+      "program_id": "11111111111111111111111111111111",
+      "program_name": "System Program",
+      "errors": [
+        { "code": 0, "hex": "0x0", "name": "AccountAlreadyInUse", "message": "An account with the same address already exists" },
+        { "code": 1, "hex": "0x1", "name": "ResultWithNegativeLamports", "message": "Account does not have enough SOL to perform the operation" },
+        { "code": 2, "hex": "0x2", "name": "InvalidProgramId", "message": "Cannot assign account to this program id" },
+        { "code": 3, "hex": "0x3", "name": "InvalidAccountDataLength", "message": "Cannot allocate account data of this length" },
+        { "code": 4, "hex": "0x4", "name": "MaxSeedLengthExceeded", "message": "Length of requested seed is too long" },
+        { "code": 5, "hex": "0x5", "name": "AddressWithSeedMismatch", "message": "Provided address does not match addressed derived from seed" },
+        { "code": 6, "hex": "0x6", "name": "NonceNoRecentBlockhashes", "message": "Advancing stored nonce requires a populated RecentBlockhashes sysvar" },
+        { "code": 7, "hex": "0x7", "name": "NonceBlockhashNotExpired", "message": "Stored nonce is still in recent_blockhashes" },
+        { "code": 8, "hex": "0x8", "name": "NonceUnexpectedBlockhashValue", "message": "Specified nonce does not match stored nonce" }
+      ]
+    },
+    {
+      "program_id": "ANCHOR",
+      "program_name": "Anchor Framework",
+      "errors": [
+        { "code": 100, "hex": "0x64", "name": "InstructionMissing", "message": "8 byte instruction identifier not provided" },
+        { "code": 101, "hex": "0x65", "name": "InstructionFallbackNotFound", "message": "Fallback functions are not supported" },
+        { "code": 102, "hex": "0x66", "name": "InstructionDidNotDeserialize", "message": "The program could not deserialize the given instruction" },
+        { "code": 103, "hex": "0x67", "name": "InstructionDidNotSerialize", "message": "The program could not serialize the given instruction" },
+        { "code": 1000, "hex": "0x3e8", "name": "IdlInstructionStub", "message": "The program was compiled without idl instructions" },
+        { "code": 1001, "hex": "0x3e9", "name": "IdlInstructionInvalidProgram", "message": "The transaction was given an invalid program for the IDL instruction" },
+        { "code": 2000, "hex": "0x7d0", "name": "ConstraintMut", "message": "A mut constraint was violated" },
+        { "code": 2001, "hex": "0x7d1", "name": "ConstraintHasOne", "message": "A has_one constraint was violated" },
+        { "code": 2002, "hex": "0x7d2", "name": "ConstraintSigner", "message": "A signer constraint was violated" },
+        { "code": 2003, "hex": "0x7d3", "name": "ConstraintRaw", "message": "A raw constraint was violated" },
+        { "code": 2004, "hex": "0x7d4", "name": "ConstraintOwner", "message": "An owner constraint was violated" },
+        { "code": 2005, "hex": "0x7d5", "name": "ConstraintRentExempt", "message": "A rent exempt constraint was violated" },
+        { "code": 2006, "hex": "0x7d6", "name": "ConstraintSeeds", "message": "A seeds constraint was violated" },
+        { "code": 2007, "hex": "0x7d7", "name": "ConstraintExecutable", "message": "An executable constraint was violated" },
+        { "code": 2008, "hex": "0x7d8", "name": "ConstraintState", "message": "A state constraint was violated" },
+        { "code": 2009, "hex": "0x7d9", "name": "ConstraintAssociated", "message": "An associated constraint was violated" },
+        { "code": 2010, "hex": "0x7da", "name": "ConstraintAssociatedInit", "message": "An associated init constraint was violated" },
+        { "code": 2011, "hex": "0x7db", "name": "ConstraintClose", "message": "A close constraint was violated" },
+        { "code": 2012, "hex": "0x7dc", "name": "ConstraintAddress", "message": "An address constraint was violated" },
+        { "code": 2013, "hex": "0x7dd", "name": "ConstraintZero", "message": "Expected zero account discriminant" },
+        { "code": 2014, "hex": "0x7de", "name": "ConstraintTokenMint", "message": "A token mint constraint was violated" },
+        { "code": 2015, "hex": "0x7df", "name": "ConstraintTokenOwner", "message": "A token owner constraint was violated" },
+        { "code": 2016, "hex": "0x7e0", "name": "ConstraintMintMintAuthority", "message": "A mint mint authority constraint was violated" },
+        { "code": 2017, "hex": "0x7e1", "name": "ConstraintMintFreezeAuthority", "message": "A mint freeze authority constraint was violated" },
+        { "code": 2018, "hex": "0x7e2", "name": "ConstraintMintDecimals", "message": "A mint decimals constraint was violated" },
+        { "code": 2019, "hex": "0x7e3", "name": "ConstraintSpace", "message": "A space constraint was violated" },
+        { "code": 2020, "hex": "0x7e4", "name": "ConstraintAccountIsNone", "message": "A required account for the constraint is None" },
+        { "code": 3000, "hex": "0xbb8", "name": "AccountDiscriminatorAlreadySet", "message": "The account discriminator was already set on this account" },
+        { "code": 3001, "hex": "0xbb9", "name": "AccountDiscriminatorNotFound", "message": "No 8 byte discriminator was found on the account" },
+        { "code": 3002, "hex": "0xbba", "name": "AccountDiscriminatorMismatch", "message": "8 byte discriminator did not match what was expected" },
+        { "code": 3003, "hex": "0xbbb", "name": "AccountDidNotDeserialize", "message": "Failed to deserialize the account" },
+        { "code": 3004, "hex": "0xbbc", "name": "AccountDidNotSerialize", "message": "Failed to serialize the account" },
+        { "code": 3005, "hex": "0xbbd", "name": "AccountNotEnoughKeys", "message": "Not enough account keys given to the instruction" },
+        { "code": 3006, "hex": "0xbbe", "name": "AccountNotMutable", "message": "The given account is not mutable" },
+        { "code": 3007, "hex": "0xbbf", "name": "AccountOwnedByWrongProgram", "message": "The given account is owned by a different program than expected" },
+        { "code": 3008, "hex": "0xbc0", "name": "InvalidProgramId", "message": "Program ID was not as expected" },
+        { "code": 3009, "hex": "0xbc1", "name": "InvalidProgramExecutable", "message": "Program account is not executable" },
+        { "code": 3010, "hex": "0xbc2", "name": "AccountNotSigner", "message": "The given account did not sign" },
+        { "code": 3011, "hex": "0xbc3", "name": "AccountNotSystemOwned", "message": "The given account is not owned by the system program" },
+        { "code": 3012, "hex": "0xbc4", "name": "AccountNotInitialized", "message": "The program expected this account to be already initialized" },
+        { "code": 3013, "hex": "0xbc5", "name": "AccountNotProgramData", "message": "The given account is not a program data account" },
+        { "code": 3014, "hex": "0xbc6", "name": "AccountNotAssociatedTokenAccount", "message": "The given account is not the associated token account" },
+        { "code": 3015, "hex": "0xbc7", "name": "AccountSysvarMismatch", "message": "The given public key does not match the required sysvar" },
+        { "code": 3016, "hex": "0xbc8", "name": "AccountReallocExceedsLimit", "message": "The account reallocation exceeds the MAX_PERMITTED_DATA_INCREASE limit" },
+        { "code": 3017, "hex": "0xbc9", "name": "AccountDuplicateReallocs", "message": "The account was duplicated for more than one reallocation" },
+        { "code": 4100, "hex": "0x1004", "name": "DeclaredProgramIdMismatch", "message": "The declared program id does not match the actual program id" },
+        { "code": 5000, "hex": "0x1388", "name": "Deprecated", "message": "The API being used is deprecated and should no longer be used" }
+      ]
+    }
+  ]
+}

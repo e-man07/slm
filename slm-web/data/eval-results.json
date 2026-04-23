@@ -1,0 +1,609 @@
+{
+  "timestamp": "2026-04-22T19:43:01.731779+00:00",
+  "model_path": "WhyParabola/sealevel-solana-lora",
+  "baseline": false,
+  "overall": {
+    "passed": 192,
+    "total": 210,
+    "score": 0.914
+  },
+  "categories": {
+    "pda_derivation": {
+      "passed": 13,
+      "total": 15,
+      "score": 0.8666666666666667
+    },
+    "anchor_constraints": {
+      "passed": 15,
+      "total": 15,
+      "score": 1.0
+    },
+    "spl_token_ops": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "cpi_patterns": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "error_handling": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "adversarial": {
+      "passed": 6,
+      "total": 10,
+      "score": 0.6
+    },
+    "transaction_construction": {
+      "passed": 9,
+      "total": 10,
+      "score": 0.9
+    }
+  },
+  "task_results": [
+    {
+      "id": "pda-01",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/3 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-02",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-03",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 3/4 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-04",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "Bad patterns matched: [\\*ctx\\.bumps\\.get\\(]",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-05",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-06",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-07",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-08",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-09",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/3 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-10",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-11",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-12",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 3/3 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-13",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "No pass patterns matched (0/2)",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-14",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "pda-15",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-01",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-02",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-03",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-04",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-05",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-06",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-07",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-08",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-09",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-10",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-11",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-12",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-13",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-14",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "anchor-15",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-01",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-02",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-03",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-04",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-05",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-06",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-07",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-08",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-09",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "spl-10",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-01",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-02",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-03",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-04",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-05",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-06",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-07",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-08",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-09",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "cpi-10",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-01",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-02",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-03",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-04",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-05",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-06",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-07",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-08",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-09",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "err-10",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-01",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: [reentrancy.guard|ReentrancyGuard|reentrancy_guard|]",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-02",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-03",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-04",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: [closed.account.discriminator|CLOSED_ACCOUNT_DISCRI]",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-05",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-06",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: [load_instruction_at\\(|load_instruction_at_checked\\]",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-07",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-08",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-09",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "adv-10",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: [reentrancy.lock|ReentrancyLock|reentrancy_lock|is_]",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-01",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-02",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-03",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-04",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-05",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-06",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-07",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-08",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-09",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    },
+    {
+      "id": "tx-10",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "elapsed_s": 4.0
+    }
+  ]
+}
