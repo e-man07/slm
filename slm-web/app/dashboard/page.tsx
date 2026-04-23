@@ -76,14 +76,15 @@ function KvRow({ label, value, accent }: { label: string; value: string; accent?
 
 function MeterBar({ value, max, label }: { value: number; max: number; label: string }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
+  const exceeded = value > max
   return (
     <div style={{ padding: "14px 20px" }}>
       <div className="flex items-baseline justify-between" style={{ fontSize: 13 }}>
         <span className="text-muted-foreground">{label}</span>
-        <span className="mono-num font-bold">{fmtNum(value)}<span className="text-muted-foreground font-normal"> / {fmtNum(max)}</span></span>
+        <span className="mono-num font-bold" style={exceeded ? { color: "var(--destructive, #ef4444)" } : undefined}>{fmtNum(value)}<span className="text-muted-foreground font-normal"> / {fmtNum(max)}</span></span>
       </div>
       <div className="mt-2" style={{ height: 4, background: "var(--muted)" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: "var(--slm-accent)" }} />
+        <div style={{ height: "100%", width: `${pct}%`, background: exceeded ? "var(--destructive, #ef4444)" : "var(--slm-accent)" }} />
       </div>
     </div>
   )
