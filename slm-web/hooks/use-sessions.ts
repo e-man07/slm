@@ -24,7 +24,7 @@ export function useSessions(): UseSessionsReturn {
   const refresh = React.useCallback(async () => {
     setIsLoading(true)
     try {
-      const resp = await fetch("/api/sessions")
+      const resp = await fetch("/api/sessions?source=web")
       if (!resp.ok) {
         setSessions([])
         return

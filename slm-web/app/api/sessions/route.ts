@@ -14,7 +14,9 @@ export async function GET(request: Request) {
     )
   }
 
-  const sessions = await listChatSessions(userId)
+  const url = new URL(request.url)
+  const source = url.searchParams.get("source") ?? undefined
+  const sessions = await listChatSessions(userId, source)
   return Response.json({ sessions })
 }
 
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => ({}))
   const title = typeof body.title === "string" && body.title.trim() ? body.title.trim() : "New chat"
-  const created = await createChatSession(userId, title)
+  const source = typeof body.source === "string" && ["web", "cli", "mcp"].includes(body.source) ? body.source : "web"
+  const created = await createChatSession(userId, title, source)
   return Response.json({ session: created }, { status: 201 })
 }

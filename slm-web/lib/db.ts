@@ -196,13 +196,14 @@ export async function getUsageStats(userId: number, days = 7) {
 /**
  * List chat sessions for a user, most recent first.
  */
-export async function listChatSessions(userId: number) {
+export async function listChatSessions(userId: number, source?: string) {
   return prisma.chatSession.findMany({
-    where: { userId },
+    where: { userId, ...(source ? { source } : {}) },
     orderBy: { updatedAt: "desc" },
     select: {
       id: true,
       title: true,
+      source: true,
       createdAt: true,
       updatedAt: true,
       _count: { select: { messages: true } },
@@ -227,9 +228,9 @@ export async function getChatSession(sessionId: string, userId?: number) {
 /**
  * Create a new chat session.
  */
-export async function createChatSession(userId: number | null, title = "New chat") {
+export async function createChatSession(userId: number | null, title = "New chat", source = "web") {
   return prisma.chatSession.create({
-    data: { userId, title },
+    data: { userId, title, source },
   })
 }
 

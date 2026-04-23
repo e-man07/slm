@@ -49,6 +49,7 @@ model ChatSession {
   id        String        @id @default(cuid())
   userId    Int?          @map("user_id")
   title     String        @default("New chat")
+  source    String        @default("web") // "web" | "cli" | "mcp"
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
   user      User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
