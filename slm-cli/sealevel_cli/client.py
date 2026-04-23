@@ -317,8 +317,8 @@ class SealevelClient:
         return f"{self.base_url}/api/key"
 
     def list_sessions(self) -> list[dict]:
-        """List user's chat sessions (most recent first)."""
-        resp = httpx.get(self.sessions_url, headers=self.build_headers(), timeout=5.0)
+        """List user's CLI chat sessions (most recent first)."""
+        resp = httpx.get(f"{self.sessions_url}?source=cli", headers=self.build_headers(), timeout=5.0)
         if resp.status_code == 401:
             raise SealevelAuthError("Authentication required to list sessions.")
         if resp.status_code != 200:
@@ -330,7 +330,7 @@ class SealevelClient:
         resp = httpx.post(
             self.sessions_url,
             headers=self.build_headers(),
-            json={"title": title},
+            json={"title": title, "source": "cli"},
             timeout=5.0,
         )
         if resp.status_code == 401:
