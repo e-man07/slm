@@ -156,7 +156,7 @@ export function NavBar({ minimal = false }: NavBarProps) {
           </div>
         )}
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <ThemeToggle />
           <a
             href="https://github.com/kshitij-hash/slm"

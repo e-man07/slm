@@ -43,9 +43,9 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="grid size-9 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted" aria-label="Account">
-          <Avatar className="size-7">
+          <Avatar className="size-6">
             {user.image ? <AvatarImage src={user.image} alt={user.name ?? ""} /> : null}
-            <AvatarFallback className="text-[10px]">{initials || "U"}</AvatarFallback>
+            <AvatarFallback className="text-[9px]">{initials || "U"}</AvatarFallback>
           </Avatar>
         </button>
       </DropdownMenuTrigger>
