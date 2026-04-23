@@ -198,29 +198,35 @@ export function ChatSidebar({
           {isAuthenticated && (
             <div className="mt-auto">
               <div className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2.5">Usage</div>
-              <div className="text-[11px] text-muted-foreground leading-[1.8]">
-                <div className="flex justify-between">
-                  <span>Requests today</span>
-                  <span className="mono-num">{usage?.requests ?? 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Tokens today</span>
-                  <span className="mono-num">{(usage?.tokens ?? 0).toLocaleString()}</span>
-                </div>
-                <div className="relative my-1.5 h-0.5 bg-muted">
-                  <div
-                    className="absolute inset-y-0 left-0"
-                    style={{
-                      background: "var(--slm-accent)",
-                      width: `${Math.min(((usage?.tokens ?? 0) / tierLimits.tokensPerDay) * 100, 100)}%`,
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between" style={{ fontSize: 10, opacity: 0.6 }}>
-                  <span>Limit</span>
-                  <span className="mono-num">{(tierLimits.tokensPerDay / 1000).toFixed(0)}K tokens/day</span>
-                </div>
-              </div>
+              {(() => {
+                const tokens = usage?.tokens ?? 0
+                const exceeded = tokens > tierLimits.tokensPerDay
+                return (
+                  <div className="text-[11px] text-muted-foreground leading-[1.8]">
+                    <div className="flex justify-between">
+                      <span>Requests today</span>
+                      <span className="mono-num">{usage?.requests ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tokens today</span>
+                      <span className="mono-num" style={exceeded ? { color: "var(--destructive, #ef4444)" } : undefined}>{tokens.toLocaleString()}</span>
+                    </div>
+                    <div className="relative my-1.5 h-0.5 bg-muted">
+                      <div
+                        className="absolute inset-y-0 left-0"
+                        style={{
+                          background: exceeded ? "var(--destructive, #ef4444)" : "var(--slm-accent)",
+                          width: `${Math.min((tokens / tierLimits.tokensPerDay) * 100, 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex justify-between" style={{ fontSize: 10, opacity: 0.6 }}>
+                      <span>Limit</span>
+                      <span className="mono-num">{(tierLimits.tokensPerDay / 1000).toFixed(0)}K tokens/day</span>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           )}
         </div>
