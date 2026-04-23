@@ -100,19 +100,6 @@ export function ChatSidebar({
 
   return (
     <>
-      {/* Toggle button — only when closed */}
-      {!isOpen && (
-        <button
-          onClick={onToggle}
-          className="fixed left-3 top-[4.25rem] z-50 grid size-9 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
-          aria-label="Open sidebar"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      )}
-
       {/* Backdrop — mobile */}
       {isOpen && (
         <div

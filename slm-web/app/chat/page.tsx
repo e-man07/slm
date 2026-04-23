@@ -123,10 +123,22 @@ function ChatPageInner() {
           {/* Chat top bar */}
           {!isEmpty && (
             <div
-              className="flex h-12 items-center justify-between border-b border-border transition-[padding] duration-200"
-              style={{ paddingLeft: sidebar.isOpen ? 28 : 48, paddingRight: 28 }}
+              className="flex h-12 items-center justify-between border-b border-border px-4"
             >
-              <span className="text-[13px] font-semibold">Sealevel</span>
+              <div className="flex items-center gap-3">
+                {!sidebar.isOpen && (
+                  <button
+                    onClick={sidebar.toggle}
+                    className="grid size-8 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
+                    aria-label="Open sidebar"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                )}
+                <span className="text-[13px] font-semibold">Sealevel</span>
+              </div>
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1">
                   <span className="inline-block size-1.5" style={{ background: "var(--slm-accent)" }} />
