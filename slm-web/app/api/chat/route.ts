@@ -2,7 +2,7 @@ import { SYSTEM_PROMPT, API_URLS, MAX_TOKENS_CAP, MAX_MESSAGES, MAX_MESSAGE_LENG
 import { withRateLimit } from "@/lib/middleware"
 import { logUsage, logInteraction } from "@/lib/db"
 
-async function fetchRAGContext(query: string): Promise<string> {
+async function fetchRAGContext(query: string, minScore = 0.55): Promise<string> {
   try {
     const ragUrl = `${API_URLS.RAG_BASE}${API_URLS.RAG_QUERY}`
     const resp = await fetch(ragUrl, {
@@ -14,7 +14,7 @@ async function fetchRAGContext(query: string): Promise<string> {
     if (resp.ok) {
       const data = await resp.json()
       const topScore = data.results?.[0]?.score ?? 0
-      if (topScore < 0.60) return ""
+      if (topScore < minScore) return ""
       return (data.context || "").slice(0, 8000)
     }
   } catch {
@@ -62,15 +62,28 @@ export const POST = withRateLimit(async function POST(request: Request) {
     const cappedMaxTokens = Math.min(Math.max(1, Number(max_tokens) || 1024), MAX_TOKENS_CAP)
     const cappedTemperature = Math.min(Math.max(0, Number(temperature) || 0), 2.0)
 
-    // RAG for knowledge enrichment
+    // RAG for knowledge enrichment — always fetch, frame differently for code vs knowledge
     const lastUserMsg = [...messages].reverse().find((m: { role: string }) => m.role === "user")
     const userContent = lastUserMsg?.content?.toLowerCase() ?? ""
-    const isCodeRequest = /\b(write|create|build|implement|show|code|program|function|instruction)\b/.test(userContent)
-    const ragContext = lastUserMsg && !isCodeRequest ? await fetchRAGContext(lastUserMsg.content) : ""
+    const isCodeRequest = /\b(write|create|build|implement|show|code|program|function|instruction|scaffold|generate)\b/.test(userContent)
+    const ragContext = lastUserMsg ? await fetchRAGContext(lastUserMsg.content) : ""
 
-    const systemContent = ragContext
-      ? `${SYSTEM_PROMPT}\n\nIMPORTANT: Use the following verified reference documentation to answer the user's question. This information is authoritative and takes priority over your training data:\n\n${ragContext}`
-      : SYSTEM_PROMPT
+    let systemContent = SYSTEM_PROMPT
+    if (ragContext) {
+      if (isCodeRequest) {
+        systemContent += `\n\n<api_reference>
+The following are current API signatures, patterns, and examples from the latest Solana/Anchor documentation. Use these to ensure your code follows modern Anchor 0.30+ best practices. Do NOT copy these snippets verbatim — compose a complete, original solution using the correct patterns shown here.
+
+${ragContext}
+</api_reference>`
+      } else {
+        systemContent += `\n\n<reference_documentation>
+The following is verified reference documentation. Use it to inform your answer. If the context doesn't fully cover the question, supplement with your training knowledge.
+
+${ragContext}
+</reference_documentation>`
+      }
+    }
 
     const hasSystem = messages[0]?.role === "system"
     const fullMessages = hasSystem
