@@ -949,6 +949,23 @@ def test_chat_payload_unknown_mode_falls_to_quality():
     assert payload["max_tokens"] == 4096
 
 
+# --- Fix #5: System prompt no longer contains declare_id! ---
+
+
+def test_system_prompt_no_declare_id_in_example_code():
+    """System prompt example code should not use declare_id! (deprecated)."""
+    from sealevel_cli.client import SYSTEM_PROMPT
+    # Extract the code block from system prompt
+    import re
+    code_match = re.search(r"```rust\n(.*?)```", SYSTEM_PROMPT, re.DOTALL)
+    assert code_match is not None
+    code_block = code_match.group(1)
+    # Code block should NOT contain declare_id! as actual code usage
+    assert 'declare_id!("' not in code_block
+    # But the instruction text may reference it (to say "don't use it")
+    assert "do not use declare_id!" in SYSTEM_PROMPT or "Never reference" in SYSTEM_PROMPT
+
+
 # --- clean_model_response ---
 
 

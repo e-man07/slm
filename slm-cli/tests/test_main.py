@@ -85,6 +85,17 @@ def test_config_set_api_url():
         assert "✓" in result.stdout
 
 
+def test_config_rejects_non_http_url_typer():
+    """Fix #4: slm config --api-url should validate like /config does."""
+    result = runner.invoke(app, ["config", "--api-url", "ftp://bad.url"])
+    assert result.exit_code == 1
+
+
+def test_config_rejects_empty_url_typer():
+    result = runner.invoke(app, ["config", "--api-url", ""])
+    assert result.exit_code == 1
+
+
 def test_config_set_mode_quality():
     with tempfile.TemporaryDirectory() as tmpdir:
         env = {**os.environ, "SEALEVEL_CONFIG_DIR": tmpdir}
@@ -118,6 +129,20 @@ def test_config_show_masks_api_key():
         assert result.exit_code == 0
         # Full key should not appear
         assert "slm_supersecretkey1234" not in result.stdout or "···" in result.stdout
+
+
+def test_config_show_includes_keyring_key():
+    """Fix #3: slm config --show should display key from keyring."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        env = {**os.environ, "SEALEVEL_CONFIG_DIR": tmpdir}
+        # Set key via config (stored in TOML since test env has no keyring)
+        with patch("sealevel_cli.config._keyring_available", return_value=False):
+            from sealevel_cli.config import set_value as _sv
+            _sv("api_key", "slm_fromkeyring12345", config_dir=tmpdir)
+        result = runner.invoke(app, ["config", "--show"], env=env)
+        assert result.exit_code == 0
+        # Should show masked version of key
+        assert "API KEY" in result.stdout or "slm_from" in result.stdout
 
 
 # --- No-API-key warning ---

@@ -74,7 +74,7 @@ def _first_run_setup(config_dir: str | None) -> str | None:
                 return None
         elif choice == "2":
             print_info("Get your key at https://sealevel.tech/dashboard")
-            key = pt_prompt("Paste your API key: ").strip()
+            key = pt_prompt("Paste your API key: ", is_password=True).strip()
             if not key:
                 return None
             if not key.startswith("slm_") or len(key) < 16:
@@ -190,18 +190,24 @@ def config(
     if show:
         print_header("CONFIG")
         cfg = load_config(config_dir=config_dir)
+        keyring_key = get_value("api_key", config_dir=config_dir)
+        if keyring_key:
+            cfg["api_key"] = keyring_key
         print_config_table(cfg)
         return
-    if not api_key and not api_url and not mode:
+    if api_key is None and api_url is None and not mode:
         print_info("Use --show to view config, or set values with --api-key, --api-url, --mode")
         return
-    if api_key:
+    if api_key is not None:
         if not api_key.startswith("slm_") or len(api_key) < 16:
             print_error("Invalid API key format. Keys must start with 'slm_' and be at least 16 characters.")
             raise typer.Exit(code=1)
         set_value("api_key", api_key, config_dir=config_dir)
         print_config_set("api_key", api_key)
-    if api_url:
+    if api_url is not None:
+        if not api_url.startswith(("http://", "https://")):
+            print_error("Invalid URL. Must start with http:// or https://")
+            raise typer.Exit(code=1)
         set_value("api_url", api_url, config_dir=config_dir)
         print_config_set("api_url", api_url)
     if mode:

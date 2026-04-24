@@ -103,10 +103,14 @@ def load_config(config_dir: str | None = None) -> dict[str, str]:
 
 
 def save_config(data: dict[str, str], config_dir: str | None = None) -> None:
-    """Save config dict to disk."""
+    """Save config dict to disk with restricted permissions."""
     path = _config_file(config_dir)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(_to_toml(data), encoding="utf-8")
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass  # Windows or read-only filesystem
 
 
 def get_value(key: str, config_dir: str | None = None) -> str | None:

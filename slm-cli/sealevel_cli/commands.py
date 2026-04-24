@@ -92,7 +92,7 @@ def _write_code_to_file(text: str, path: str) -> None:
     """Extract code from response and write to file."""
     from sealevel_cli.display import print_file_written
     code = _extract_rust_code(text)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(code)
     print_file_written(path)
 
@@ -396,7 +396,10 @@ def cmd_resume(args: list[str], session: "Session") -> CommandResult | None:
         print_info("Usage: /resume <session-id>")
         return None
 
-    from sealevel_cli.display import print_success, print_error
+    from sealevel_cli.display import print_success, print_error, print_warning
+    if session.history:
+        print_warning(f"This will replace your current conversation ({session.turns} turns).")
+
     session_id = args[0]
     try:
         detail = session.client.get_session(session_id)
@@ -500,7 +503,7 @@ def cmd_export(args: list[str], session: "Session") -> CommandResult | None:
         lines.append(f"## {role}\n\n{content}\n\n---\n\n")
 
     try:
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write("".join(lines))
         print_file_written(filename)
     except OSError as e:

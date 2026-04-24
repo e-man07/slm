@@ -268,3 +268,16 @@ def test_clear_value_api_key_also_clears_toml():
             assert get_value("api_key", config_dir=tmpdir) == "slm_toremove12345"
             clear_value("api_key", config_dir=tmpdir)
             assert get_value("api_key", config_dir=tmpdir) is None
+
+
+# --- Fix #2: Config file permissions ---
+
+
+def test_save_config_restricts_permissions():
+    """Config file should be chmod 600 (user-only read/write)."""
+    import stat
+    with tempfile.TemporaryDirectory() as tmpdir:
+        save_config({"api_key": "slm_secret12345"}, config_dir=tmpdir)
+        config_path = Path(tmpdir) / "config.toml"
+        mode = config_path.stat().st_mode & 0o777
+        assert mode == 0o600, f"Expected 0o600, got {oct(mode)}"

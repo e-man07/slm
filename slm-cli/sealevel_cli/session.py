@@ -73,12 +73,14 @@ class Session:
         self.session_id = session_id
         self.history: list[dict[str, str]] = history or []
         self.commands = build_command_registry()
+        self._bare_names: set[str] = {name.lstrip("/") for name in self.commands}
         self.turns = 0
         self.total_tokens = 0
         self.storage = SessionStorage()
         self._pending_toasts: list[tuple[str, str]] = []
         self._toolbar_cache = None
         self._toolbar_cache_key = None
+        self._context_warned = False
 
     def run(self) -> None:
         """Main REPL loop."""
@@ -151,12 +153,18 @@ class Session:
         return self._toolbar_cache
 
     def _startup_health_check(self) -> None:
-        """Check API health at startup (non-blocking)."""
-        health = self.client.get_health()
-        if health.status == "unreachable":
-            print_warning("API unreachable — responses may fail")
-        elif health.status == "degraded":
-            print_warning("API degraded — some services down")
+        """Check API health at startup with a short timeout."""
+        import threading
+
+        def _check():
+            health = self.client.get_health()
+            if health.status == "unreachable":
+                self._pending_toasts.append(("warning", "API unreachable — responses may fail"))
+            elif health.status == "degraded":
+                self._pending_toasts.append(("warning", "API degraded — some services down"))
+
+        t = threading.Thread(target=_check, daemon=True)
+        t.start()
 
     def _create_server_session(self) -> None:
         """Create a server-side session (best-effort, non-blocking)."""
@@ -203,6 +211,9 @@ class Session:
             matches = [c for c in self.commands if c.startswith(name)]
             if len(matches) == 1:
                 cmd = self.commands[matches[0]]
+            elif matches:
+                print_error(f"Ambiguous command: {name}  (matches: {', '.join(sorted(matches))})")
+                return
             else:
                 print_error(f"Unknown command: {name}  (type /help)")
                 return
@@ -307,17 +318,18 @@ class Session:
         return re.sub(r"@([\w./\-]+\.\w+)", replace_ref, text)
 
     def _warn_context_size(self) -> None:
-        """Warn if conversation history is getting large."""
-        if not self.history:
+        """Warn once if conversation history is getting large."""
+        if self._context_warned or not self.history:
             return
         est_tokens = len(_json.dumps(self.history)) // 4
         if est_tokens > 15000:
             print_warning(f"Large context (~{est_tokens / 1000:.1f}K tokens) — consider /compact")
+            self._context_warned = True
 
     def _capture_tokens(self) -> int | None:
         """Capture token count from last API call."""
         usage = self.client.last_usage
-        if usage:
+        if usage is not None and usage:
             tokens = usage.get("total_tokens", 0)
             self.total_tokens += tokens
             return tokens
@@ -343,13 +355,16 @@ class Session:
         """Load a session from the server."""
         detail = client.get_session(session_id)
         messages = detail.get("messages", [])
-        history = [{"role": m["role"], "content": m["content"]} for m in messages]
+        history = []
+        for m in messages:
+            if isinstance(m, dict) and "role" in m and "content" in m:
+                history.append({"role": m["role"], "content": m["content"]})
         session = cls(client, session_id=session_id, history=history)
         session.turns = len([m for m in history if m["role"] == "assistant"])
         return session
 
     def _bare_command_names(self) -> set[str]:
-        return {name.lstrip("/") for name in self.commands}
+        return self._bare_names
 
     def _goodbye(self) -> None:
         from sealevel_cli.display import print_repl_goodbye

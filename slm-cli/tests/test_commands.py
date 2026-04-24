@@ -634,6 +634,25 @@ def test_cmd_resume_error():
     assert session.history == []  # Should not modify history
 
 
+def test_cmd_resume_warns_existing_history():
+    """Fix #9: /resume should warn when current conversation is not empty."""
+    from sealevel_cli.commands import cmd_resume
+    session = MagicMock()
+    session.history = [
+        {"role": "user", "content": "hi"},
+        {"role": "assistant", "content": "hello"},
+    ]
+    session.turns = 1
+    session.client.get_session.return_value = {
+        "id": "new-id",
+        "messages": [{"role": "user", "content": "old"}],
+    }
+    with patch("sealevel_cli.display.print_warning") as mock_warn:
+        cmd_resume(["new-id"], session)
+        mock_warn.assert_called_once()
+        assert "replace" in mock_warn.call_args[0][0].lower()
+
+
 # --- /rename ---
 
 
