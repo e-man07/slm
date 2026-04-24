@@ -31,6 +31,7 @@ function ChatPageInner() {
     }
   }, [status, router])
   const sidebar = useSidebarState()
+  const [ragEnabled, setRagEnabled] = React.useState(true)
 
   const {
     messages,
@@ -41,7 +42,7 @@ function ChatPageInner() {
     clearChat,
     stopStreaming,
     loadSession,
-  } = useChat({ persist: isAuthenticated })
+  } = useChat({ persist: isAuthenticated, ragEnabled })
 
   const { sessions, isLoading: sessionsLoading, refresh, deleteSession } =
     useSessions()
@@ -213,6 +214,8 @@ function ChatPageInner() {
             onSend={sendMessage}
             onStop={stopStreaming}
             isLoading={isLoading}
+            ragEnabled={ragEnabled}
+            onRagToggle={() => setRagEnabled((v) => !v)}
           />
         </section>
       </div>

@@ -60,7 +60,7 @@ services:
           readOnly: false
 
   rag-api:
-    image: whyparabola/slm-rag-api:v5
+    image: whyparabola/slm-rag-api:v7
     env:
       - "SGLANG_URL=http://inference:30000/v1"
       - "QDRANT_URL=http://qdrant:6333"

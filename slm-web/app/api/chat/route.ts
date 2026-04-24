@@ -1,26 +1,35 @@
-import { SYSTEM_PROMPT, API_URLS, MAX_TOKENS_CAP, MAX_MESSAGES, MAX_MESSAGE_LENGTH } from "@/lib/constants"
+import { SYSTEM_PROMPT, API_URLS, MAX_TOKENS_CAP, MAX_MESSAGES, MAX_MESSAGE_LENGTH, cleanModelResponse, fixAnchorCode } from "@/lib/constants"
 import { withRateLimit } from "@/lib/middleware"
 import { logUsage, logInteraction } from "@/lib/db"
 
-async function fetchRAGContext(query: string, minScore = 0.55): Promise<string> {
+async function fetchRAGContext(query: string, maxChars: number = 8000, minScore = 0.60): Promise<string> {
   try {
     const ragUrl = `${API_URLS.RAG_BASE}${API_URLS.RAG_QUERY}`
     const resp = await fetch(ragUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, top_k: 5 }),
+      body: JSON.stringify({ query, top_k: 3 }),
       signal: AbortSignal.timeout(5000),
     })
     if (resp.ok) {
       const data = await resp.json()
       const topScore = data.results?.[0]?.score ?? 0
       if (topScore < minScore) return ""
-      return (data.context || "").slice(0, 8000)
+      return reorderForAttention((data.context || "").slice(0, maxChars))
     }
   } catch {
     // RAG is optional — if it fails, proceed without context
   }
   return ""
+}
+
+/** Reorder RAG chunks to mitigate "lost in the middle" — best at start, second-best at end. */
+function reorderForAttention(context: string): string {
+  const sections = context.split(/(?=--- Reference \d+)/).filter(Boolean)
+  if (sections.length <= 2) return context
+  // Best at start, second-best at end, rest in middle
+  const reordered = [sections[0], ...sections.slice(2), sections[1]]
+  return reordered.join("\n\n")
 }
 
 function detectSource(callerSource: "web" | "api", request: Request): "web" | "mcp" | "cli" {
@@ -62,23 +71,32 @@ export const POST = withRateLimit(async function POST(request: Request) {
     const cappedMaxTokens = Math.min(Math.max(1, Number(max_tokens) || 1024), MAX_TOKENS_CAP)
     const cappedTemperature = Math.min(Math.max(0, Number(temperature) || 0), 2.0)
 
-    // RAG for knowledge enrichment — always fetch, frame differently for code vs knowledge
+    // Context budget management (32K context window)
+    const historyTokens = messages.reduce((sum: number, m: { content?: string }) => sum + (m.content?.length ?? 0), 0) / 4
+    const systemTokens = 700 // SYSTEM_PROMPT + code template
+    const ragBudget = 32768 - cappedMaxTokens - systemTokens - historyTokens - 512
+    const useRag = body.useRag !== false && ragBudget >= 500
+
+    // RAG for knowledge enrichment — fetch if enabled, frame differently for code vs knowledge
     const lastUserMsg = [...messages].reverse().find((m: { role: string }) => m.role === "user")
     const userContent = lastUserMsg?.content?.toLowerCase() ?? ""
     const isCodeRequest = /\b(write|create|build|implement|show|code|program|function|instruction|scaffold|generate)\b/.test(userContent)
-    const ragContext = lastUserMsg ? await fetchRAGContext(lastUserMsg.content) : ""
+    const ragMaxChars = Math.min(Math.floor(ragBudget * 4), 8000)
+    const ragContext = useRag && lastUserMsg ? await fetchRAGContext(lastUserMsg.content, ragMaxChars) : ""
 
     let systemContent = SYSTEM_PROMPT
     if (ragContext) {
       if (isCodeRequest) {
         systemContent += `\n\n<api_reference>
 The following are current API signatures, patterns, and examples from the latest Solana/Anchor documentation. Use these to ensure your code follows modern Anchor 0.30+ best practices. Do NOT copy these snippets verbatim — compose a complete, original solution using the correct patterns shown here.
+When your answer uses information from a specific reference, cite it as [Reference N].
 
 ${ragContext}
 </api_reference>`
       } else {
         systemContent += `\n\n<reference_documentation>
 The following is verified reference documentation. Use it to inform your answer. If the context doesn't fully cover the question, supplement with your training knowledge.
+When your answer uses information from a specific reference, cite it as [Reference N].
 
 ${ragContext}
 </reference_documentation>`
@@ -107,7 +125,7 @@ ${ragContext}
         temperature: cappedTemperature,
         stream_options: stream ? { include_usage: true } : undefined,
       }),
-      signal: AbortSignal.timeout(9000),
+      signal: AbortSignal.timeout(30000),
     })
 
     // Identify caller for usage tracking
@@ -181,7 +199,61 @@ ${ragContext}
         }
       })()
 
-      return new Response(clientStream, {
+      // Transform stream: buffer content lines, clean on newline flush
+      const encoder = new TextEncoder()
+      const decoder = new TextDecoder()
+      let lineBuf = ""
+      let lastTemplate: object | null = null
+      const cleanStream = new TransformStream({
+        transform(chunk, controller) {
+          const text = decoder.decode(chunk, { stream: true })
+          const sseLines = text.split("\n")
+          for (const line of sseLines) {
+            if (line.startsWith("data: ") && !line.endsWith("[DONE]")) {
+              try {
+                const parsed = JSON.parse(line.slice(6))
+                const delta = parsed?.choices?.[0]?.delta?.content
+                if (typeof delta === "string") {
+                  lineBuf += delta
+                  lastTemplate = parsed
+                  // Flush on newline — clean the buffered line
+                  if (lineBuf.includes("\n")) {
+                    const parts = lineBuf.split("\n")
+                    // Flush all complete lines, keep last partial
+                    const complete = parts.slice(0, -1).join("\n")
+                    lineBuf = parts[parts.length - 1]
+                    const cleaned = fixAnchorCode(cleanModelResponse(complete)) + "\n"
+                    if (cleaned && lastTemplate) {
+                      const out = { ...lastTemplate } as Record<string, unknown>
+                      out.choices = [{ ...((lastTemplate as Record<string, unknown>).choices as unknown[])?.[0] as object, delta: { content: cleaned } }]
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify(out)}\n\n`))
+                    }
+                  }
+                  continue
+                }
+              } catch {
+                // pass through
+              }
+            }
+            controller.enqueue(encoder.encode(line + "\n"))
+          }
+        },
+        flush(controller) {
+          // Flush remaining buffer
+          if (lineBuf && lastTemplate) {
+            const cleaned = fixAnchorCode(cleanModelResponse(lineBuf))
+            if (cleaned) {
+              const out = { ...lastTemplate } as Record<string, unknown>
+              out.choices = [{ ...((lastTemplate as Record<string, unknown>).choices as unknown[])?.[0] as object, delta: { content: cleaned } }]
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(out)}\n\n`))
+            }
+          }
+        },
+      })
+
+      clientStream.pipeThrough(cleanStream)
+
+      return new Response(cleanStream.readable, {
         headers: {
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
@@ -194,8 +266,12 @@ ${ragContext}
     if (data?.usage?.total_tokens) {
       void recordUsage(data.usage.total_tokens)
     }
-    // Log interaction for non-streaming responses
+    // Clean deprecated patterns from non-streaming response
     const assistantContent = data?.choices?.[0]?.message?.content ?? ""
+    if (assistantContent && data?.choices?.[0]?.message) {
+      data.choices[0].message.content = fixAnchorCode(cleanModelResponse(assistantContent))
+    }
+    // Log interaction for non-streaming responses
     if (assistantContent && caller.userId) {
       logInteraction({
         userId: caller.userId,

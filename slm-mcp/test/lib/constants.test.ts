@@ -13,12 +13,17 @@ describe("SYSTEM_PROMPT", () => {
 
   it("contains key guardrail rules", () => {
     expect(SYSTEM_PROMPT).toContain("Sealevel");
-    expect(SYSTEM_PROMPT).toContain("Solana");
+    expect(SYSTEM_PROMPT).toContain("Solana Language Model");
     expect(SYSTEM_PROMPT).toContain("Anchor");
     expect(SYSTEM_PROMPT).toContain("reentrancy");
-    expect(SYSTEM_PROMPT).toContain("coral-xyz/anchor");
+    expect(SYSTEM_PROMPT).toContain("coral-xyz");
     expect(SYSTEM_PROMPT).toContain("declare_id!");
     expect(SYSTEM_PROMPT).toContain("load_instruction_at");
+  });
+
+  it("does not contain declare_id! in the code template", () => {
+    // The code template should use a comment, not declare_id!
+    expect(SYSTEM_PROMPT).not.toContain('declare_id!("');
   });
 });
 

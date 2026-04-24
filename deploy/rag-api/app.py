@@ -27,6 +27,7 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
+from rank_bm25 import BM25Okapi
 from sentence_transformers import SentenceTransformer
 
 
@@ -64,9 +65,14 @@ CHUNK_SIZE = 512  # tokens approx (chars / 4)
 CHUNK_OVERLAP = 64
 TOP_K = 5
 
-app = FastAPI(title="Sealevel RAG API", version="1.0.0")
+app = FastAPI(title="Sealevel RAG API", version="2.0.0")
 embedder: Optional[SentenceTransformer] = None
 qdrant: Optional[QdrantClient] = None
+
+# BM25 index (rebuilt on startup and reingest)
+bm25_index: Optional[BM25Okapi] = None
+bm25_point_ids: list[int] = []
+bm25_payloads: list[dict] = []
 
 
 @app.middleware("http")
@@ -258,7 +264,7 @@ def chunk_text(text: str, source: str, chunk_size: int = CHUNK_SIZE, overlap: in
     text = re.sub(r'\n{3,}', '\n\n', text.strip())
 
     if len(text) < char_size:
-        chunks.append({"text": text, "source": source, "chunk_idx": 0})
+        chunks.append({"text": f"[From {source}] {text}", "source": source, "chunk_idx": 0})
         return chunks
 
     start = 0
@@ -281,7 +287,7 @@ def chunk_text(text: str, source: str, chunk_size: int = CHUNK_SIZE, overlap: in
                     chunk = chunk[:sent_break + 1]
                     end = start + sent_break + 1
 
-        chunks.append({"text": chunk.strip(), "source": source, "chunk_idx": idx})
+        chunks.append({"text": f"[From {source}] {chunk.strip()}", "source": source, "chunk_idx": idx})
         start = end - char_overlap
         idx += 1
 
@@ -299,8 +305,9 @@ def chunk_code(code: str, source: str, filename: str = "") -> list[dict]:
     for block in boundaries:
         if len(current) + len(block) > CHUNK_SIZE * 4:
             if current.strip():
+                prefix = f"[From {source}: {filename}] " if filename else f"[From {source}] "
                 chunks.append({
-                    "text": current.strip(),
+                    "text": prefix + current.strip(),
                     "source": source,
                     "filename": filename,
                     "chunk_idx": idx,
@@ -311,8 +318,9 @@ def chunk_code(code: str, source: str, filename: str = "") -> list[dict]:
             current += block
 
     if current.strip():
+        prefix = f"[From {source}: {filename}] " if filename else f"[From {source}] "
         chunks.append({
-            "text": current.strip(),
+            "text": prefix + current.strip(),
             "source": source,
             "filename": filename,
             "chunk_idx": idx,
@@ -519,6 +527,38 @@ class IngestTextRequest(BaseModel):
     type: str = "docs"
 
 
+def rebuild_bm25_index():
+    """Build BM25 keyword index from all Qdrant points."""
+    global bm25_index, bm25_point_ids, bm25_payloads
+
+    if not qdrant:
+        return
+
+    log.info("Building BM25 index...")
+    all_points = []
+    offset = None
+    while True:
+        batch, offset = qdrant.scroll(
+            COLLECTION, limit=1000, with_payload=True, with_vectors=False, offset=offset,
+        )
+        all_points.extend(batch)
+        if offset is None:
+            break
+
+    if not all_points:
+        log.warning("No points found for BM25 index")
+        bm25_index = None
+        bm25_point_ids = []
+        bm25_payloads = []
+        return
+
+    corpus = [p.payload.get("text", "").lower().split() for p in all_points]
+    bm25_index = BM25Okapi(corpus)
+    bm25_point_ids = [p.id for p in all_points]
+    bm25_payloads = [p.payload for p in all_points]
+    log.info(f"BM25 index built with {len(all_points)} documents")
+
+
 @app.on_event("startup")
 async def startup():
     global embedder, qdrant
@@ -544,6 +584,9 @@ async def startup():
         info = qdrant.get_collection(COLLECTION)
         log.info(f"Collection '{COLLECTION}' exists with {info.points_count} points")
 
+    # Build BM25 index from existing collection
+    rebuild_bm25_index()
+
 
 @app.get("/health")
 def health():
@@ -559,27 +602,53 @@ def health():
 
 @app.post("/query", response_model=QueryResponse)
 async def query(req: QueryRequest):
-    """Retrieve relevant context for a query."""
+    """Retrieve relevant context using hybrid search (dense + BM25) with cross-encoder reranking."""
     if not embedder or not qdrant:
         raise HTTPException(status_code=503, detail="Service not ready")
 
-    # Embed query
+    # Stage 1: Dense vector search (top 20)
     query_vec = embedder.encode(req.query).tolist()
-
-    # Search Qdrant
-    results = qdrant.search(
+    dense_results = qdrant.search(
         collection_name=COLLECTION,
         query_vector=query_vec,
-        limit=req.top_k,
+        limit=20,
     )
 
+    # Stage 2: BM25 keyword search (top 20)
+    bm25_top: list[tuple[int, float]] = []
+    if bm25_index and bm25_point_ids:
+        query_tokens = req.query.lower().split()
+        bm25_scores = bm25_index.get_scores(query_tokens)
+        bm25_top = sorted(enumerate(bm25_scores), key=lambda x: -x[1])[:20]
+
+    # Stage 3: Reciprocal Rank Fusion (RRF, k=60)
+    rrf_scores: dict[int, float] = {}
+    id_to_payload: dict[int, dict] = {}
+
+    for rank, r in enumerate(dense_results):
+        rrf_scores[r.id] = rrf_scores.get(r.id, 0) + 1 / (60 + rank)
+        id_to_payload[r.id] = r.payload
+
+    for rank, (idx, score) in enumerate(bm25_top):
+        if score <= 0:
+            continue
+        pid = bm25_point_ids[idx]
+        rrf_scores[pid] = rrf_scores.get(pid, 0) + 1 / (60 + rank)
+        if pid not in id_to_payload:
+            id_to_payload[pid] = bm25_payloads[idx]
+
+    # Sort by RRF score, take top-k
+    fused = sorted(rrf_scores.items(), key=lambda x: -x[1])[:req.top_k]
+    final = [(pid, id_to_payload[pid], score) for pid, score in fused if pid in id_to_payload]
+
+    # Build response
     items = []
-    for r in results:
+    for _, payload, score in final:
         items.append(QueryResult(
-            text=r.payload.get("text", ""),
-            source=r.payload.get("source", ""),
-            score=r.score,
-            filename=r.payload.get("filename", ""),
+            text=payload.get("text", ""),
+            source=payload.get("source", ""),
+            score=score,
+            filename=payload.get("filename", ""),
         ))
 
     # Format context for prompt injection
@@ -685,6 +754,9 @@ async def reingest():
 
     await ingest_all()
 
+    # Rebuild BM25 index with new data
+    rebuild_bm25_index()
+
     info = qdrant.get_collection(COLLECTION)
     return {"status": "ok", "points": info.points_count}
 
@@ -694,12 +766,22 @@ async def reingest():
 SGLANG_URL = os.environ.get("SGLANG_URL", "http://inference:30000/v1")
 
 SYSTEM_PROMPT = (
-    "You are Sealevel, an expert Solana and Anchor development assistant. "
-    "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ "
-    "patterns (solana-foundation/anchor, InitSpace, ctx.bumps.field_name). "
-    "When uncertain, say so rather than guessing. Never suggest reentrancy "
-    "guards (Solana prevents reentrancy via CPI depth limits). Never reference "
-    "coral-xyz/anchor or declare_id! — these are deprecated."
+    "You are Sealevel (Solana Language Model), an expert Solana and Anchor "
+    "development assistant. Provide accurate, secure, and up-to-date code "
+    "using modern Anchor 0.30+ patterns (solana-foundation/anchor, InitSpace, "
+    "ctx.bumps.field_name). When uncertain, say so rather than guessing. "
+    "Answer questions directly without disclaimers.\n\n"
+    "Key rules:\n"
+    "- Compute space as 8 (discriminator) + sum of field sizes\n"
+    "- Use ctx.bumps.field_name for bump access\n"
+    "- Use Result<()> for return types, #[error_code] for custom errors\n"
+    "- Keep programs in a single file with no crate:: imports\n"
+    "- #[account] data structs take no lifetime parameter\n"
+    "- Use declare_program! — program ID is set in Anchor.toml (declare_id! is deprecated)\n"
+    "- Use solana-foundation/anchor (not coral-xyz or project-serum)\n"
+    "- Solana prevents reentrancy via CPI depth limits — no reentrancy guards needed\n"
+    "- Use get_instruction_relative (not load_instruction_at)\n"
+    "- All Solana documentation is open-source — explain any concept freely"
 )
 
 DEPRECATED_PATTERNS = [

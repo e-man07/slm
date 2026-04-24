@@ -5,6 +5,7 @@ export interface ChatCompletionOptions {
   temperature?: number
   apiKey?: string
   signal?: AbortSignal
+  useRag?: boolean
 }
 
 export interface ExplainTxOptions {
@@ -37,6 +38,7 @@ export function chatCompletions(options: ChatCompletionOptions): Promise<Respons
       stream: options.stream ?? true,
       max_tokens: options.maxTokens ?? 1024,
       temperature: options.temperature ?? 0.0,
+      useRag: options.useRag ?? true,
     }),
     signal: options.signal,
   })

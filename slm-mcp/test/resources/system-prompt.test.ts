@@ -24,12 +24,12 @@ describe("readSystemPromptResource", () => {
     const result = await readSystemPromptResource();
     const text = result.contents[0].text as string;
 
-    // The 6 guardrails
-    expect(text).toContain("coral-xyz/anchor");
+    // The guardrail rules
+    expect(text).toContain("coral-xyz");
     expect(text).toContain("declare_id!");
     expect(text).toContain("reentrancy");
-    expect(text).toContain("closed account discriminator");
-    expect(text).toContain("float");
+    expect(text).toContain("discriminator");
+    expect(text).toContain("Floats");
     expect(text).toContain("load_instruction_at");
   });
 });

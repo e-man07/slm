@@ -20,6 +20,8 @@ interface UseChatOptions {
   sessionId?: string
   /** If true, persist messages to DB via /api/sessions. Requires authed user. */
   persist?: boolean
+  /** If false, skip RAG context enrichment. Defaults to true. */
+  ragEnabled?: boolean
 }
 
 interface UseChatReturn {
@@ -209,6 +211,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
           stream: true,
           apiKey: options.apiKey,
           signal,
+          useRag: options.ragEnabled ?? true,
         })
 
         if (!response.ok) {
@@ -241,7 +244,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         setIsLoading(false)
       }
     },
-    [messages, isLoading, start, createSignal, options.apiKey, options.persist],
+    [messages, isLoading, start, createSignal, options.apiKey, options.persist, options.ragEnabled],
   )
 
   const clearChat = React.useCallback(() => {

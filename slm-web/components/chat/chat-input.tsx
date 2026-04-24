@@ -7,6 +7,8 @@ interface ChatInputProps {
   onSend: (message: string) => void
   onStop?: () => void
   isLoading?: boolean
+  ragEnabled?: boolean
+  onRagToggle?: () => void
   className?: string
 }
 
@@ -14,6 +16,8 @@ export function ChatInput({
   onSend,
   onStop,
   isLoading = false,
+  ragEnabled = true,
+  onRagToggle,
   className,
 }: ChatInputProps) {
   const [value, setValue] = React.useState("")
@@ -75,8 +79,14 @@ export function ChatInput({
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4" /></svg>
                 slm-7b
               </button>
-              <button className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground">
-                rag &middot; on
+              <button
+                onClick={onRagToggle}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2 py-1 text-[11px] transition-colors hover:text-foreground",
+                  ragEnabled ? "text-muted-foreground" : "text-muted-foreground/50",
+                )}
+              >
+                rag &middot; {ragEnabled ? "on" : "off"}
               </button>
             </div>
             {isLoading ? (
