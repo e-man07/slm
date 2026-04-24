@@ -209,7 +209,29 @@ ${ragContext}
           const text = decoder.decode(chunk, { stream: true })
           const sseLines = text.split("\n")
           for (const line of sseLines) {
-            if (line.startsWith("data: ") && !line.endsWith("[DONE]")) {
+            // Flush pending buffer before [DONE] or finish_reason events
+            // so short responses (no newlines) aren't lost after the frontend stops.
+            const isDone = line.startsWith("data: ") && line.endsWith("[DONE]")
+            let isFinish = false
+            if (line.startsWith("data: ") && !isDone) {
+              try {
+                const parsed = JSON.parse(line.slice(6))
+                isFinish = parsed?.choices?.[0]?.finish_reason != null
+              } catch {
+                // pass through
+              }
+            }
+            if ((isDone || isFinish) && lineBuf && lastTemplate) {
+              const cleaned = fixAnchorCode(cleanModelResponse(lineBuf))
+              if (cleaned) {
+                const out = { ...lastTemplate } as Record<string, unknown>
+                out.choices = [{ ...((lastTemplate as Record<string, unknown>).choices as unknown[])?.[0] as object, delta: { content: cleaned } }]
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(out)}\n\n`))
+              }
+              lineBuf = ""
+            }
+
+            if (line.startsWith("data: ") && !isDone) {
               try {
                 const parsed = JSON.parse(line.slice(6))
                 const delta = parsed?.choices?.[0]?.delta?.content
