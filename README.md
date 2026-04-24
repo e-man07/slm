@@ -22,7 +22,7 @@ https://sealevel.tech
 
 ### CLI
 ```bash
-pip install slm-cli
+pip install sealevel-cli
 slm config --api-key sk-slm-xxx
 slm chat "How do I derive a PDA in Anchor?"
 ```
