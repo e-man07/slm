@@ -1,15 +1,15 @@
 # API Specifications
 
 ## Base URL
-- Production: `https://slm.dev/api`
+- Production: `https://www.sealevel.tech/api`
 - Local: `http://localhost:3000/api`
 
 ## Authentication
-All API routes accept an optional `Authorization` header:
+All API routes require an `Authorization` header:
 ```
 Authorization: Bearer slm_xxxxxxxxxxxx
 ```
-Without auth, anonymous rate limits apply (5 req/min, 10K tokens/day).
+Without auth, requests return 401. Get a key at [sealevel.tech/dashboard](/dashboard) or via `slm login`.
 
 ---
 
@@ -24,7 +24,7 @@ Stream or non-stream chat completions. OpenAI-compatible format.
     {"role": "user", "content": "How do I create a PDA in Anchor?"}
   ],
   "stream": true,
-  "max_tokens": 1024,
+  "max_tokens": 4096,
   "temperature": 0.0
 }
 ```
@@ -157,7 +157,7 @@ All routes return errors in this format:
 {
   "error": {
     "code": "rate_limited",
-    "message": "Rate limit exceeded. Upgrade at slm.dev/dashboard",
+    "message": "Rate limit exceeded. Upgrade at sealevel.tech/dashboard",
     "status": 429
   }
 }

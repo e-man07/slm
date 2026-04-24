@@ -19,38 +19,50 @@ export const docTopics: DocTopic[] = [
     content: (
       <>
         <section>
-          <h2>1. Sign in</h2>
+          <h2>1. Install the CLI</h2>
+          <CodeBlock language="bash" code={`pip install sealevel`} />
+        </section>
+        <section>
+          <h2>2. Authenticate</h2>
+          <CodeBlock language="bash" code={`slm login
+# Opens your browser → sign in with GitHub or Google → done`} />
           <p>
-            Go to <a href="/sign-in">slm.dev/sign-in</a> and sign in with GitHub or Google. Then
-            generate an API key from the <a href="/dashboard">Dashboard</a>.
+            Or go to <a href="/sign-in">sealevel.tech/sign-in</a>, generate a key from the{" "}
+            <a href="/dashboard">Dashboard</a>, and set it manually with{" "}
+            <code>slm config --api-key slm_YOUR_KEY</code>.
           </p>
         </section>
         <section>
-          <h2>2. Pick a client</h2>
-          <p>Sealevel ships four clients — use whichever fits your workflow:</p>
+          <h2>3. Start chatting</h2>
+          <CodeBlock language="bash" code={`slm                                    # interactive session
+slm -p "How do I derive a PDA?"        # one-shot mode`} />
+        </section>
+        <section>
+          <h2>4. Pick a client</h2>
+          <p>Sealevel ships three clients — use whichever fits your workflow:</p>
           <ul>
+            <li>
+              <a href="/docs/cli">CLI</a> — interactive terminal session with slash commands
+            </li>
             <li>
               <a href="/docs/web">Web chat</a> — no install, fastest way to try it
             </li>
             <li>
-              <a href="/docs/cli">CLI</a> — terminal chat, code generation, review, migration
-            </li>
-<li>
               <a href="/docs/mcp">MCP server</a> — Claude Code, Cursor, Windsurf integration
             </li>
           </ul>
         </section>
         <section>
-          <h2>3. First query (curl)</h2>
+          <h2>5. Raw API (curl)</h2>
           <CodeBlock
             language="bash"
-            code={`curl https://api.sealevel.tech/v1/chat/completions \\
+            code={`curl https://www.sealevel.tech/api/chat \\
   -H "Authorization: Bearer slm_YOUR_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "model": "sealevel",
     "messages": [{"role": "user", "content": "How do I derive a PDA in Anchor?"}],
-    "max_tokens": 512
+    "max_tokens": 4096,
+    "stream": true
   }'`}
           />
         </section>
@@ -61,12 +73,24 @@ export const docTopics: DocTopic[] = [
     slug: "authentication",
     label: "Authentication",
     section: "Getting Started",
-    description: "OAuth sign-in, API keys, rate-limit tiers.",
+    description: "OAuth sign-in, API keys, device login, rate-limit tiers.",
     content: (
       <>
         <section>
           <h2>OAuth providers</h2>
-          <p>Sign in with GitHub or Google at <a href="/sign-in">slm.dev/sign-in</a>. Then go to the <a href="/dashboard">Dashboard</a> and click <strong>Generate API Key</strong> to create your key.</p>
+          <p>Sign in with GitHub or Google at <a href="/sign-in">sealevel.tech/sign-in</a>. Then go to the <a href="/dashboard">Dashboard</a> and click <strong>Generate API Key</strong> to create your key.</p>
+        </section>
+        <section>
+          <h2>Device login (CLI)</h2>
+          <p>
+            The CLI supports browser-based authentication via the OAuth device flow.
+            Run <code>slm login</code> — a device code appears in your terminal, your browser opens,
+            and once you authenticate, the CLI receives your API key automatically.
+          </p>
+          <CodeBlock language="bash" code={`slm login
+# Opens browser → sign in → CLI gets your key
+# Key is stored securely in OS keyring`} />
+          <p>You can also authenticate inside an active session with <code>/login</code>.</p>
         </section>
         <section>
           <h2>API key format</h2>
@@ -77,9 +101,18 @@ export const docTopics: DocTopic[] = [
           <CodeBlock language="bash" code={`Authorization: Bearer slm_a1b2c3...`} />
         </section>
         <section>
+          <h2>Key storage</h2>
+          <p>
+            The CLI stores your API key in the OS keyring (macOS Keychain, Windows Credential Locker,
+            GNOME keyring/KWallet). Falls back to <code>~/.sealevel/config.toml</code> (chmod 600)
+            if keyring is unavailable.
+          </p>
+        </section>
+        <section>
           <h2>Rate-limit tiers</h2>
           <ul>
             <li><strong>Free</strong> (signed-in): 5 req/min, 100K tokens/day</li>
+            <li><strong>Standard</strong>: 15 req/min, 500K tokens/day</li>
           </ul>
           <p>Limits reset at UTC midnight. Hit a limit and you get a 429 with <code>Retry-After</code>.</p>
         </section>
@@ -92,7 +125,7 @@ export const docTopics: DocTopic[] = [
     slug: "web",
     label: "Web Chat",
     section: "Clients",
-    description: "Use Sealevel directly at slm.dev/chat — no install needed.",
+    description: "Use Sealevel directly at sealevel.tech/chat — no install needed.",
     content: (
       <>
         <section>
@@ -119,64 +152,121 @@ export const docTopics: DocTopic[] = [
     slug: "cli",
     label: "CLI",
     section: "Clients",
-    description: "Install slm-cli and chat, generate Anchor programs, review code from your terminal.",
+    description: "Interactive terminal session with slash commands for Solana/Anchor development.",
     content: (
       <>
         <section>
           <h2>Install</h2>
-          <CodeBlock language="bash" code={`pip install slm-cli  # coming soon — install from source for now:
-# git clone https://github.com/e-man07/slm && cd slm/slm-cli && pip install -e .`} />
+          <CodeBlock language="bash" code={`pip install sealevel
+# Requires Python 3.10+`} />
+        </section>
+        <section>
+          <h2>Authenticate</h2>
+          <CodeBlock language="bash" code={`slm login          # Opens browser, authenticates via OAuth device flow
+slm logout         # Clear stored credentials
+slm config --show  # Verify your key is set`} />
           <p>
-            Requires Python 3.10+. See the{" "}
-            <a href="https://github.com/kshitij-hash/slm/tree/main/slm-cli" target="_blank" rel="noreferrer">
-              source
-            </a>{" "}
-            for dev install.
+            Your API key is stored securely in the OS keyring. You can also set it manually
+            with <code>slm config --api-key slm_YOUR_KEY</code>.
           </p>
         </section>
         <section>
-          <h2>Configure</h2>
-          <CodeBlock
-            language="bash"
-            code={`slm config --api-key slm_YOUR_KEY
-slm config --show`}
-          />
+          <h2>Interactive session</h2>
+          <p>Run <code>slm</code> with no arguments to start an interactive session. Type plain text to chat, or use slash commands:</p>
+          <CodeBlock language="bash" code={`$ slm
+❯ How do I derive a PDA in Anchor?
+◆ SEALEVEL
+  To derive a PDA, use seeds and bump in your #[account] attribute...
+
+❯ /review src/lib.rs
+◆ REVIEWING  src/lib.rs
+  ...
+
+❯ /gen counter with increment and decrement -o src/lib.rs
+✓ WROTE  src/lib.rs`} />
+        </section>
+        <section>
+          <h2>Slash commands</h2>
+          <p>Type <code>/</code> to see the live dropdown with all commands:</p>
+          <ul>
+            <li><strong>Code</strong></li>
+            <li><code>/review &lt;file&gt;</code> — Security + deprecation review for Solana/Anchor code</li>
+            <li><code>/migrate &lt;file&gt; [--write]</code> — Upgrade to modern Anchor 0.30+ patterns</li>
+            <li><code>/gen &lt;description&gt; [-o file]</code> — Generate a complete Anchor program</li>
+            <li><code>/tests &lt;file&gt; [-o out.ts]</code> — Generate TypeScript tests</li>
+            <li><strong>Explain</strong></li>
+            <li><code>/explain-tx &lt;signature&gt;</code> — Decode a Solana transaction</li>
+            <li><code>/explain-error &lt;code&gt;</code> — Decode a Solana/Anchor error code</li>
+            <li><strong>Session</strong></li>
+            <li><code>/sessions</code> — List past sessions</li>
+            <li><code>/resume &lt;id&gt;</code> — Resume a past session</li>
+            <li><code>/rename &lt;name&gt;</code> — Rename current session</li>
+            <li><code>/history</code> — Show conversation history</li>
+            <li><code>/search &lt;query&gt;</code> — Search conversation history</li>
+            <li><code>/compact [N]</code> — Trim history to last N turns</li>
+            <li><code>/export [file]</code> — Export session as markdown</li>
+            <li><code>/clear</code> — Clear conversation history</li>
+            <li><strong>Info</strong></li>
+            <li><code>/status</code> — API health + config overview</li>
+            <li><code>/usage</code> — Token usage and limits</li>
+            <li><code>/copy</code> — Copy last response to clipboard</li>
+            <li><strong>System</strong></li>
+            <li><code>/login</code> — Authenticate via browser</li>
+            <li><code>/config [--show]</code> — View or change settings</li>
+            <li><code>/rotate-key</code> — Rotate API key</li>
+            <li><code>/help</code> — Show all commands</li>
+            <li><code>/exit</code> — Exit the session</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Inline file references</h2>
+          <p>Use <code>@path/to/file.rs</code> in chat to include file contents inline:</p>
+          <CodeBlock language="bash" code={`❯ What's wrong with @src/lib.rs?
+# File content is automatically injected into the prompt`} />
+        </section>
+        <section>
+          <h2>Project memory</h2>
           <p>
-            API key is stored in the OS keyring (macOS Keychain, Windows Credential Locker, GNOME
-            keyring/KWallet). Non-secret config lives in{" "}
-            <code>~/.slm/config.toml</code>.
+            Create a <code>SEALEVEL.md</code> file in your project root (or <code>~/.sealevel/SEALEVEL.md</code>)
+            to inject project-specific context into every prompt. The CLI walks from cwd to root looking for it.
           </p>
         </section>
         <section>
-          <h2>Commands</h2>
-          <CodeBlock
-            language="bash"
-            code={`slm chat "How do I create a PDA?"        # one-shot
-slm chat                                   # interactive REPL
-
-slm gen "token vesting with linear unlock" -o src/lib.rs
-slm review src/lib.rs
-slm migrate src/lib.rs --write            # migrate in place
-slm tests src/lib.rs > tests/program.ts
-
-slm explain --tx 5U3...abc
-slm explain --error 0x1771`}
-          />
+          <h2>Pipe mode</h2>
+          <p>For scripting and CI, use <code>-p</code> for one-shot prompts:</p>
+          <CodeBlock language="bash" code={`slm -p "What is a PDA?"                           # one-shot
+cat src/lib.rs | slm -p "review this code"        # pipe stdin
+slm -c                                            # continue last session`} />
         </section>
         <section>
-          <h2>Scripting</h2>
-          <p>Use <code>--json</code> for machine-readable output:</p>
-          <CodeBlock
-            language="bash"
-            code={`slm chat --json "explain Solana rent" | jq '.content'`}
-          />
+          <h2>First-run onboarding</h2>
+          <p>
+            On first launch without an API key, the CLI prompts you to authenticate:
+          </p>
+          <CodeBlock language="bash" code={`$ slm
+◆ SEALEVEL  v0.1.0  ›  WELCOME
+
+Sign in to get started:
+
+  1. Browser login (recommended)
+  2. Paste API key manually
+
+Choose [1/2]:`} />
+          <p>
+            Option 1 runs the device flow (same as <code>slm login</code>).
+            Option 2 prompts for a key with masked input.
+            You can skip and authenticate later with <code>/login</code> inside the session.
+          </p>
+        </section>
+        <section>
+          <h2>Modes</h2>
+          <p>Switch between quality and fast inference:</p>
+          <CodeBlock language="bash" code={`slm config --mode quality   # temp=0.0, 4096 max tokens (default)
+slm config --mode fast      # temp=0.3, 2048 max tokens`} />
         </section>
         <section>
           <h2>Shell completion</h2>
-          <CodeBlock
-            language="bash"
-            code={`slm --install-completion bash   # or zsh | fish`}
-          />
+          <CodeBlock language="bash" code={`slm --install-completion bash   # or zsh | fish`} />
         </section>
       </>
     ),
@@ -282,27 +372,24 @@ slm explain --error 0x1771`}
     slug: "api-chat",
     label: "Chat Completions",
     section: "API Reference",
-    description: "OpenAI-compatible /v1/chat/completions endpoint with SSE streaming.",
+    description: "POST /api/chat — SSE streaming chat endpoint.",
     content: (
       <>
         <section>
           <h2>Request</h2>
           <CodeBlock
             language="bash"
-            code={`POST /v1/chat/completions
+            code={`POST /api/chat
 Authorization: Bearer slm_YOUR_KEY
 Content-Type: application/json
 
 {
-  "model": "sealevel",
   "messages": [
-    {"role": "system", "content": "You are Sealevel, an expert Solana developer..."},
     {"role": "user", "content": "Write an Anchor counter program"}
   ],
-  "max_tokens": 1024,
+  "max_tokens": 4096,
   "temperature": 0.0,
-  "stream": true,
-  "stream_options": {"include_usage": true}
+  "stream": true
 }`}
           />
         </section>
