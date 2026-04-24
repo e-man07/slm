@@ -48,7 +48,6 @@ export default function SignInPage() {
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
   const [tab, setTab] = React.useState<"sign-in" | "create">("sign-in")
   const [loading, setLoading] = React.useState<string | null>(null)
-  const [apiKeyInput, setApiKeyInput] = React.useState("")
 
   const handleOAuth = async (provider: "github" | "google") => {
     setLoading(provider)
@@ -89,7 +88,7 @@ export default function SignInPage() {
 
             <p className="mt-5 max-w-[38ch] text-sm leading-relaxed text-muted-foreground">
               Sign in to access your API key, track usage, and save chat
-              history. Or paste an existing key to unlock higher rate limits.
+              history.
             </p>
 
             {/* 2x2 proof grid */}
@@ -174,7 +173,7 @@ export default function SignInPage() {
               {tab === "sign-in" ? "Sign in to Sealevel." : "Create your Sealevel account."}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Pick an OAuth provider or paste an existing API key.
+              Pick an OAuth provider to continue.
             </p>
 
             {/* OAuth buttons */}
@@ -229,78 +228,6 @@ export default function SignInPage() {
                 </span>
               </button>
             </div>
-
-            {/* Divider */}
-            <div className="my-8 flex items-center gap-4">
-              <div className="flex-1" style={{ height: 1, background: "var(--border)" }} />
-              <span
-                style={{
-                  fontSize: 10,
-                  letterSpacing: "0.1em",
-                  color: "var(--muted-foreground)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                OR &middot; USE EXISTING KEY
-              </span>
-              <div className="flex-1" style={{ height: 1, background: "var(--border)" }} />
-            </div>
-
-            {/* API key input */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: 10,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "var(--muted-foreground)",
-                  marginBottom: 8,
-                }}
-              >
-                API Key
-              </label>
-              <input
-                type="text"
-                value={apiKeyInput}
-                onChange={(e) => setApiKeyInput(e.target.value)}
-                placeholder="slm_xxx..."
-                className="w-full font-mono text-sm"
-                style={{
-                  border: "1px solid var(--border)",
-                  background: "transparent",
-                  padding: "10px 14px",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "var(--slm-accent)"
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border)"
-                }}
-              />
-            </div>
-
-            {/* Continue button */}
-            <button
-              className="mt-6 flex w-full items-center justify-center gap-2 font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{
-                background: "var(--slm-accent)",
-                color: "oklch(0.153 0.006 107.1)",
-                padding: "12px 0",
-                fontSize: 14,
-                letterSpacing: "0.02em",
-              }}
-              disabled={!apiKeyInput.trim()}
-              onClick={() => {
-                if (apiKeyInput.trim()) {
-                  localStorage.setItem("slm-api-key", apiKeyInput.trim())
-                  window.location.href = callbackUrl
-                }
-              }}
-            >
-              Continue <span>&rarr;</span>
-            </button>
 
             {/* Fine print */}
             <div className="mt-8 text-center" style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
