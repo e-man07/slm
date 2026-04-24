@@ -7,7 +7,7 @@
 [![Model](https://img.shields.io/badge/Model-Qwen2.5--Coder--7B--Instruct-blue)](https://huggingface.co/WhyParabola/slm-solana-lora)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](#license)
 
-Sealevel is a fine-tuned coding LLM specialized for Solana and Anchor development. Built on Qwen2.5-Coder-7B-Instruct (7B dense) with QLoRA on 731K Solana records, it scores **85%** on a 80-task Solana/Anchor benchmark and **90%** on HumanEval (general coding).
+Sealevel(Solana Language Model) is a fine-tuned coding LLM specialized for Solana and Anchor development. Built on Qwen2.5-Coder-7B-Instruct (7B dense) with QLoRA on 731K Solana records, it scores **85%** on a 80-task Solana/Anchor benchmark and **90%** on HumanEval (general coding).
 
 Use it in your **browser**, **terminal**, **VS Code**, or via **Claude Code / Cursor / Windsurf** through MCP.
 
