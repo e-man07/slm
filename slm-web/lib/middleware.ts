@@ -203,7 +203,7 @@ async function checkDailyTokenBudget(
  */
 export function withRateLimit(
   handler: (request: Request) => Promise<Response>,
-  endpoint?: string,
+  _endpoint?: string,
 ): (request: Request) => Promise<Response> {
   return async (request: Request) => {
     const { identifier, tier, userId } = await resolveIdentifierAndTier(request)

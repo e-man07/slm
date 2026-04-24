@@ -4,11 +4,11 @@
  * RED  - tests expect auth config, API key generation, and DB schema helpers
  * GREEN - implement lib/auth.ts, lib/db.ts, and the NextAuth route
  */
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 
 // Mock next-auth since it depends on server runtime
 vi.mock("next-auth", () => ({
-  default: vi.fn((config: unknown) => ({
+  default: vi.fn((_config: unknown) => ({
     handlers: { GET: vi.fn(), POST: vi.fn() },
     auth: vi.fn(),
     signIn: vi.fn(),

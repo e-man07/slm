@@ -4,7 +4,7 @@
  * RED  - tests expect usage API route, usage logging, and dashboard stats rendering
  * GREEN - implement usage route, update middleware to log, update dashboard
  */
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect } from "vitest"
 
 describe("Feature 21 - Usage Stats", () => {
   describe("lib/db.ts usage functions", () => {

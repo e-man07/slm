@@ -113,12 +113,6 @@ function useUsageData(isAuthenticated: boolean) {
   return { data, loading }
 }
 
-const ENDPOINT_LABELS: Record<string, string> = {
-  "/api/chat": "Chat",
-  "/api/explain/tx": "Tx Explain",
-  "/api/explain/error": "Error Decode",
-}
-
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const [showKey, setShowKey] = React.useState(false)
@@ -179,7 +173,6 @@ export default function DashboardPage() {
   const todayTokens = usageData?.today.tokens ?? 0
   const todayReqs = usageData?.today.requests ?? 0
   const days = usageData?.last_7_days ?? []
-  const epData = usageData?.by_endpoint ?? []
   const webUsage = usageData?.by_source?.web ?? { requests: 0, tokens: 0 }
   const apiUsage = usageData?.by_source?.api ?? { requests: 0, tokens: 0 }
   const totalTokens7d = days.reduce((s, d) => s + d.tokens, 0)

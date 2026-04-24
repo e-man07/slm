@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import Link from "next/link"
 import { CodeBlock } from "@/components/shared/code-block"
 
 export interface DocTopic {
@@ -27,8 +28,8 @@ export const docTopics: DocTopic[] = [
           <CodeBlock language="bash" code={`slm login
 # Opens your browser → sign in with GitHub or Google → done`} />
           <p>
-            Or go to <a href="/sign-in">sealevel.tech/sign-in</a>, generate a key from the{" "}
-            <a href="/dashboard">Dashboard</a>, and set it manually with{" "}
+            Or go to <Link href="/sign-in">sealevel.tech/sign-in</Link>, generate a key from the{" "}
+            <Link href="/dashboard">Dashboard</Link>, and set it manually with{" "}
             <code>slm config --api-key slm_YOUR_KEY</code>.
           </p>
         </section>
@@ -42,13 +43,13 @@ slm -p "How do I derive a PDA?"        # one-shot mode`} />
           <p>Sealevel ships three clients — use whichever fits your workflow:</p>
           <ul>
             <li>
-              <a href="/docs/cli">CLI</a> — interactive terminal session with slash commands
+              <Link href="/docs/cli">CLI</Link> — interactive terminal session with slash commands
             </li>
             <li>
-              <a href="/docs/web">Web chat</a> — no install, fastest way to try it
+              <Link href="/docs/web">Web chat</Link> — no install, fastest way to try it
             </li>
             <li>
-              <a href="/docs/mcp">MCP server</a> — Claude Code, Cursor, Windsurf integration
+              <Link href="/docs/mcp">MCP server</Link> — Claude Code, Cursor, Windsurf integration
             </li>
           </ul>
         </section>
@@ -78,7 +79,7 @@ slm -p "How do I derive a PDA?"        # one-shot mode`} />
       <>
         <section>
           <h2>OAuth providers</h2>
-          <p>Sign in with GitHub or Google at <a href="/sign-in">sealevel.tech/sign-in</a>. Then go to the <a href="/dashboard">Dashboard</a> and click <strong>Generate API Key</strong> to create your key.</p>
+          <p>Sign in with GitHub or Google at <Link href="/sign-in">sealevel.tech/sign-in</Link>. Then go to the <Link href="/dashboard">Dashboard</Link> and click <strong>Generate API Key</strong> to create your key.</p>
         </section>
         <section>
           <h2>Device login (CLI)</h2>
@@ -133,8 +134,8 @@ slm -p "How do I derive a PDA?"        # one-shot mode`} />
           <ul>
             <li>Streaming chat with syntax-highlighted code blocks</li>
             <li>Chat history saved to your account (sign-in required)</li>
-            <li>Transaction explainer at <a href="/explain/tx">/explain/tx</a></li>
-            <li>Error decoder at <a href="/explain/error">/explain/error</a></li>
+            <li>Transaction explainer at <Link href="/explain/tx">/explain/tx</Link></li>
+            <li>Error decoder at <Link href="/explain/error">/explain/error</Link></li>
           </ul>
         </section>
         <section>
@@ -281,8 +282,8 @@ slm config --mode fast      # temp=0.3, 2048 max tokens`} />
         <section>
           <h2>Prerequisites</h2>
           <p>
-            You need a Sealevel API key. <a href="/sign-in">Sign in</a>, then generate one from the{" "}
-            <a href="/dashboard">Dashboard</a>.
+            You need a Sealevel API key. <Link href="/sign-in">Sign in</Link>, then generate one from the{" "}
+            <Link href="/dashboard">Dashboard</Link>.
           </p>
         </section>
         <section>

@@ -6,7 +6,7 @@
  *
  * Tests use actual Redis on localhost:6379
  */
-import { describe, it, expect, beforeEach, afterAll } from "vitest"
+import { describe, it, expect, afterAll } from "vitest"
 
 // These tests use a real Redis connection on localhost:6379
 // We use a test-specific prefix to avoid collisions

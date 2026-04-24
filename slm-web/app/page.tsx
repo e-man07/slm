@@ -1,7 +1,6 @@
 import Link from "next/link"
 import { PageLayout } from "@/components/shared/page-layout"
 import { InstallTabs } from "@/components/landing/install-tabs"
-import evalData from "@/data/eval-results.json"
 
 const SURFACES = [
   { idx: "A / Browser", title: "Chat", desc: "Ask anything about Solana & Anchor. Streams markdown, code, citations.", href: "/chat" },
@@ -20,14 +19,6 @@ const BENCH_ROWS = [
   { name: "Adversarial", ratio: "6/10", pct: 60, level: "weak" },
 ] as const
 
-const GUARDRAILS = [
-  { rule: "NO", label: "DECLARE_ID", desc: "Never emits declare_id!. Always uses declare_program! per Anchor 0.30+." },
-  { rule: "NO", label: "REENTRANCY", desc: "Doesn\u2019t suggest reentrancy guards \u2014 Solana prevents reentrancy via CPI depth limits." },
-  { rule: "NO", label: "CORAL-XYZ", desc: "References solana-foundation/anchor, not the old coral-xyz org." },
-  { rule: "NO", label: "CLOSED DISCRIMINATOR", desc: "No warnings about closed-account discriminator attacks \u2014 patched years ago." },
-  { rule: "NO", label: "FLOAT CONCERN", desc: "Doesn\u2019t warn about float non-determinism. Solana compute is deterministic." },
-  { rule: "YES", label: "MODERN IX", desc: "Uses get_instruction_relative, not the deprecated load_instruction_at." },
-] as const
 
 function BenchBar({ pct, level }: { pct: number; level: string }) {
   const barColor =

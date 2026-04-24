@@ -129,7 +129,7 @@ export default function DevicePage() {
           {isAuthed && step === "enter" && (
             <div className="mt-8">
               <p className="mb-4 text-sm text-muted-foreground">
-                Signed in as <strong>{session.user.name ?? session.user.email}</strong>
+                Signed in as <strong>{session.user?.name ?? session.user?.email}</strong>
               </p>
 
               <label

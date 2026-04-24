@@ -51,7 +51,6 @@ function TypingIndicator() {
 }
 
 function FeedbackButtons({
-  messageId: _messageId,
   feedback,
   onFeedbackChange,
 }: {
@@ -191,6 +190,7 @@ function UserAvatar() {
   const { data: session } = useSession()
   const image = session?.user?.image
   if (image) {
+    // eslint-disable-next-line @next/next/no-img-element
     return <img src={image} alt="" width={28} height={28} className="rounded-full" />
   }
   return (
@@ -201,6 +201,7 @@ function UserAvatar() {
 }
 
 function SealevelAvatar() {
+  // eslint-disable-next-line @next/next/no-img-element
   return <img src="/sealevel.png" alt="Sealevel" width={28} height={28} />
 }
 

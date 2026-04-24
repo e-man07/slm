@@ -90,7 +90,6 @@ export function ChatSidebar({
   onNewChat,
   onDeleteSession,
   isOpen,
-  onToggle,
   onClose,
 }: ChatSidebarProps & { isOpen: boolean; onToggle: () => void; onClose: () => void }) {
   const { data: authSession, status: authStatus } = useSession()

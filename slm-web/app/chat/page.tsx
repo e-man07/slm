@@ -9,7 +9,7 @@ import { ChatInput } from "@/components/chat/chat-input"
 import { ChatSidebar, useSidebarState } from "@/components/chat/chat-sidebar"
 import { useChat } from "@/hooks/use-chat"
 import { useSessions } from "@/hooks/use-sessions"
-import { SUGGESTED_PROMPTS } from "@/lib/constants"
+// SUGGESTED_PROMPTS used via PROMPT_GRID below
 
 const PROMPT_GRID = [
   { cat: "PDA", text: "How do I derive a PDA in Anchor?" },
@@ -93,9 +93,6 @@ function ChatPageInner() {
   )
 
   const isEmpty = messages.length === 0
-  const chatTitle = messages.length > 0
-    ? (messages[0].content.slice(0, 40) + (messages[0].content.length > 40 ? "..." : ""))
-    : ""
 
   return (
     <div className="flex h-svh flex-col">

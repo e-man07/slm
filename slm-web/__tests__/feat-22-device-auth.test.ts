@@ -228,7 +228,7 @@ describe("POST /api/auth/device/verify", () => {
 
     // Should update Redis with completed status
     expect(mockRedisSet).toHaveBeenCalledTimes(1)
-    const [key, value, ex, ttl] = mockRedisSet.mock.calls[0]
+    const [key, value, _ex, _ttl] = mockRedisSet.mock.calls[0]
     expect(key).toBe("device:ABCD-1234")
     const parsed = JSON.parse(value)
     expect(parsed.status).toBe("complete")

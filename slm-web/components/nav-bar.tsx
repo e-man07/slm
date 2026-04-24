@@ -142,6 +142,7 @@ export function NavBar({ minimal = false }: NavBarProps) {
     >
       <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between gap-6 px-6">
         <Link href="/" className="flex items-center gap-2 text-[15px] font-bold tracking-[2px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/sealevel.png" alt="Sealevel" width={32} height={28} />
           <span>SEALEVEL</span>
         </Link>
