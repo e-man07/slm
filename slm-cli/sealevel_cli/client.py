@@ -120,11 +120,15 @@ class SealevelClient:
         base_url: str = DEFAULT_BASE_URL,
         api_key: str | None = None,
         timeout: float = 120.0,
+        mode: str = "quality",
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
+        self.mode = mode  # "quality" or "fast"
         self.timeout = httpx.Timeout(connect=10.0, read=timeout, write=10.0, pool=10.0)
         self.last_usage: dict | None = None  # Token usage from last streaming response
+        self.last_finish_reason: str | None = None  # "stop", "length", etc.
+        self.extra_context: str | None = None  # Project-level context from SEALEVEL.md
 
     @property
     def chat_url(self) -> str:
@@ -163,15 +167,27 @@ class SealevelClient:
         stream: bool = True,
     ) -> dict[str, Any]:
         """Build the chat API request payload."""
-        messages: list[dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        system_content = SYSTEM_PROMPT
+        if self.extra_context:
+            system_content += "\n\n" + self.extra_context
+        messages: list[dict[str, str]] = [{"role": "system", "content": system_content}]
         if history:
             messages.extend(history)
         messages.append({"role": "user", "content": message})
+
+        # Mode-dependent parameters
+        if self.mode == "fast":
+            temperature = 0.3
+            max_tokens = 2048
+        else:  # quality (default)
+            temperature = 0.0
+            max_tokens = 4096
+
         return {
             "messages": messages,
             "stream": stream,
-            "max_tokens": 1024,
-            "temperature": 0.0,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
         }
 
     def build_error_payload(self, error_code: str, program_id: str | None = None) -> dict[str, Any]:
@@ -186,8 +202,9 @@ class SealevelClient:
         return {"signature": signature}
 
     def _parse_sse_lines(self, response: httpx.Response) -> Generator[str, None, None]:
-        """Parse SSE stream and yield content chunks. Captures usage from final chunk."""
+        """Parse SSE stream and yield content chunks. Captures usage and finish_reason."""
         self.last_usage = None
+        self.last_finish_reason = None
         for line in response.iter_lines():
             if not line.startswith("data: "):
                 continue
@@ -201,8 +218,12 @@ class SealevelClient:
                     self.last_usage = parsed["usage"]
                 # OpenAI-style delta format
                 if "choices" in parsed:
-                    delta = parsed["choices"][0].get("delta", {})
+                    choice = parsed["choices"][0]
+                    delta = choice.get("delta", {})
                     content = delta.get("content", "")
+                    fr = choice.get("finish_reason")
+                    if fr:
+                        self.last_finish_reason = fr
                     if content:
                         yield content
                 # Direct content format
@@ -316,6 +337,14 @@ class SealevelClient:
     def key_url(self) -> str:
         return f"{self.base_url}/api/key"
 
+    @property
+    def device_auth_url(self) -> str:
+        return f"{self.base_url}/api/auth/device"
+
+    @property
+    def device_poll_url(self) -> str:
+        return f"{self.base_url}/api/auth/device/poll"
+
     def list_sessions(self) -> list[dict]:
         """List user's CLI chat sessions (most recent first)."""
         resp = httpx.get(f"{self.sessions_url}?source=cli", headers=self.build_headers(), timeout=5.0)
@@ -404,6 +433,28 @@ class SealevelClient:
         if resp.status_code != 200:
             raise SealevelConnectionError(f"Failed to rotate key: HTTP {resp.status_code}")
         return resp.json().get("apiKey", "")
+
+    # ── Device auth flow ──
+
+    def initiate_device_auth(self) -> dict:
+        """Start device auth flow. Returns userCode, verificationUrl, expiresIn, interval."""
+        resp = httpx.post(self.device_auth_url, headers=self.build_headers(), timeout=10.0)
+        if resp.status_code != 200:
+            raise SealevelConnectionError(f"Failed to start device auth: HTTP {resp.status_code}")
+        return resp.json()
+
+    def poll_device_auth(self, code: str) -> dict:
+        """Poll for device auth completion. Returns status + apiKey when complete."""
+        resp = httpx.get(
+            f"{self.device_poll_url}?code={code}",
+            headers=self.build_headers(),
+            timeout=10.0,
+        )
+        if resp.status_code == 404:
+            raise SealevelConnectionError("Device code expired or invalid.")
+        if resp.status_code != 200:
+            raise SealevelConnectionError(f"Poll failed: HTTP {resp.status_code}")
+        return resp.json()
 
 
 class SealevelError(Exception):

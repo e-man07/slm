@@ -249,3 +249,22 @@ def test_non_secret_keys_skip_keyring():
             set_value("mode", "fast", config_dir=tmpdir)
             config = load_config(config_dir=tmpdir)
             assert config["mode"] == "fast"
+
+
+def test_clear_value_api_key_calls_keyring_delete():
+    """Clearing api_key should delete from keyring when available."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("sealevel_cli.config._keyring_available", return_value=True):
+            with patch("sealevel_cli.config._keyring_delete") as mock_del:
+                clear_value("api_key", config_dir=tmpdir)
+                mock_del.assert_called_once()
+
+
+def test_clear_value_api_key_also_clears_toml():
+    """Clearing api_key should remove from TOML too."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("sealevel_cli.config._keyring_available", return_value=False):
+            set_value("api_key", "slm_toremove12345", config_dir=tmpdir)
+            assert get_value("api_key", config_dir=tmpdir) == "slm_toremove12345"
+            clear_value("api_key", config_dir=tmpdir)
+            assert get_value("api_key", config_dir=tmpdir) is None

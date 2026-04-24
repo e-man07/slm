@@ -38,7 +38,7 @@ def test_registry_has_all_commands():
                 "/explain-error", "/status", "/usage", "/copy",
                 "/sessions", "/resume", "/rename", "/rotate-key",
                 "/compact", "/export", "/history",
-                "/config", "/clear", "/help", "/exit"]
+                "/search", "/config", "/clear", "/login", "/help", "/exit"]
     for name in expected:
         assert name in cmds
     assert len(cmds) == len(expected)
@@ -117,6 +117,12 @@ def test_extract_rust_code_plain_block():
 def test_extract_rust_code_no_block():
     text = "fn main() {}"
     assert _extract_rust_code(text) == "fn main() {}"
+
+
+def test_extract_typescript_code():
+    """Code extraction should work for any language, not just rust."""
+    text = "```typescript\nit('works', () => {});\n```"
+    assert _extract_rust_code(text) == "it('works', () => {});\n"
 
 
 def test_write_code_to_file():
@@ -326,10 +332,11 @@ def test_cmd_config_set_api_key():
 
 def test_cmd_config_rejects_bad_key():
     session = MagicMock()
+    session.client.api_key = "original_key"
     result = cmd_config(["--api-key", "bad"], session)
     assert result is None
-    # api_key should NOT be set on client
-    assert not hasattr(session.client, 'api_key') or session.client.api_key != "bad"
+    # api_key should remain unchanged
+    assert session.client.api_key == "original_key"
 
 
 def test_cmd_config_set_api_url():
@@ -345,7 +352,8 @@ def test_cmd_config_set_mode():
         with patch.dict(os.environ, {"SEALEVEL_CONFIG_DIR": tmpdir}):
             session = MagicMock()
             cmd_config(["--mode", "fast"], session)
-            # Should not crash
+            # Should update client mode live
+            assert session.client.mode == "fast"
 
 
 def test_cmd_config_rejects_bad_mode():
@@ -484,6 +492,61 @@ def test_registry_has_phase1_commands():
     assert "/status" in cmds
     assert "/usage" in cmds
     assert "/copy" in cmds
+
+
+# --- /search ---
+
+
+def test_cmd_search_no_args():
+    from sealevel_cli.commands import cmd_search
+    session = MagicMock()
+    result = cmd_search([], session)
+    assert result is None
+
+
+def test_cmd_search_finds_match():
+    from sealevel_cli.commands import cmd_search
+    session = MagicMock()
+    session.history = [
+        {"role": "user", "content": "what is a PDA?"},
+        {"role": "assistant", "content": "A PDA is a Program Derived Address"},
+    ]
+    result = cmd_search(["PDA"], session)
+    assert result is None  # No crash
+
+
+def test_cmd_search_no_match():
+    from sealevel_cli.commands import cmd_search
+    session = MagicMock()
+    session.history = [{"role": "user", "content": "hello"}]
+    cmd_search(["nonexistent"], session)  # No crash
+
+
+def test_cmd_search_case_insensitive():
+    from sealevel_cli.commands import cmd_search
+    session = MagicMock()
+    session.history = [{"role": "assistant", "content": "Program Derived Address"}]
+    cmd_search(["program"], session)  # Should match PDA
+
+
+def test_cmd_search_regex_special_chars():
+    from sealevel_cli.commands import cmd_search
+    session = MagicMock()
+    session.history = [{"role": "user", "content": "test [bracket] (paren)"}]
+    cmd_search(["[bracket]"], session)  # Should not crash on regex metacharacters
+
+
+def test_cmd_search_empty_history():
+    from sealevel_cli.commands import cmd_search
+    session = MagicMock()
+    session.history = []
+    cmd_search(["test"], session)
+
+
+def test_registry_has_search():
+    cmds = build_command_registry()
+    assert "/search" in cmds
+    assert cmds["/search"].adds_to_history is False
 
 
 def test_registry_has_phase3_commands():
@@ -714,15 +777,20 @@ def test_cmd_export_outside_cwd():
     from sealevel_cli.commands import cmd_export
     session = MagicMock()
     session.history = [{"role": "user", "content": "test"}]
-    cmd_export(["/etc/evil.md"], session)  # Should be rejected
+    with patch("sealevel_cli.display.print_error") as mock_err:
+        cmd_export(["/etc/evil.md"], session)
+        mock_err.assert_called_once()
+        assert "current directory" in mock_err.call_args[0][0]
+    assert not os.path.exists("/etc/evil.md")
 
 
 def test_cmd_export_permission_error():
     from sealevel_cli.commands import cmd_export
     session = MagicMock()
     session.history = [{"role": "user", "content": "test"}]
+    # Use a path inside CWD that triggers PermissionError on write
     with patch("builtins.open", side_effect=PermissionError("denied")):
-        cmd_export(["/root/nope.md"], session)  # Should not crash
+        cmd_export(["test-perm-fail.md"], session)  # Should not crash
 
 
 def test_cmd_export_filename_format():
@@ -800,3 +868,174 @@ def test_cmd_rotate_key_error():
     session = MagicMock()
     session.client.rotate_key.side_effect = SealevelAuthError("no auth")
     cmd_rotate_key([], session)  # Should not crash
+
+
+# --- Issue #7: /tests should support --write / -o ---
+
+
+def test_cmd_tests_with_output():
+    """Issue #7: /tests <file> -o output.ts should write test file."""
+    with tempfile.NamedTemporaryFile(suffix=".rs", mode="w", delete=False) as src:
+        src.write("fn main() {}")
+        src.flush()
+        with tempfile.NamedTemporaryFile(suffix=".ts", delete=False) as dst:
+            dst_path = dst.name
+        try:
+            session = MagicMock()
+            session.stream_response.return_value = "```typescript\nit('works', () => {});\n```"
+            result = cmd_tests([src.name, "-o", dst_path], session)
+            assert result is not None
+            with open(dst_path) as f:
+                content = f.read()
+            assert "it('works'" in content
+        finally:
+            os.unlink(src.name)
+            if os.path.exists(dst_path):
+                os.unlink(dst_path)
+
+
+def test_cmd_tests_write_flag():
+    """Issue #7: /tests <file> --write should also work."""
+    with tempfile.NamedTemporaryFile(suffix=".rs", mode="w", delete=False) as src:
+        src.write("fn main() {}")
+        src.flush()
+        with tempfile.NamedTemporaryFile(suffix=".ts", delete=False) as dst:
+            dst_path = dst.name
+        try:
+            session = MagicMock()
+            session.stream_response.return_value = "```typescript\ndescribe('test', () => {});\n```"
+            result = cmd_tests([src.name, "-o", dst_path], session)
+            assert result is not None
+        finally:
+            os.unlink(src.name)
+            if os.path.exists(dst_path):
+                os.unlink(dst_path)
+
+
+# --- Issue #8: /gen usage docs ---
+
+
+def test_cmd_gen_multi_word_without_quotes():
+    """Issue #8: /gen counter with increment and decrement should work without quotes."""
+    session = MagicMock()
+    session.stream_response.return_value = "generated"
+    result = cmd_gen(["counter", "with", "increment", "and", "decrement"], session)
+    assert result is not None
+    assert "counter with increment and decrement" in result.user_msg
+
+
+# --- Issue #6: /config --api-url validation ---
+
+
+def test_cmd_config_rejects_empty_url():
+    """Issue #6: Empty URL should be rejected."""
+    session = MagicMock()
+    session.client.base_url = "https://original.url"
+    with patch("sealevel_cli.display.print_error") as mock_err:
+        result = cmd_config(["--api-url", ""], session)
+        mock_err.assert_called_once()
+        assert "http" in mock_err.call_args[0][0].lower()
+    assert result is None
+    assert session.client.base_url == "https://original.url"
+
+
+def test_cmd_config_rejects_non_http_url():
+    """Issue #6: Non-HTTP URLs should be rejected."""
+    session = MagicMock()
+    session.client.base_url = "https://original.url"
+    with patch("sealevel_cli.display.print_error") as mock_err:
+        result = cmd_config(["--api-url", "ftp://bad.url"], session)
+        mock_err.assert_called_once()
+    assert result is None
+    assert session.client.base_url == "https://original.url"
+
+
+# --- Issue #12: /review should support -o for writing review to file ---
+
+
+def test_cmd_review_no_write_flag():
+    """Issue #16: /review should still work without -o."""
+    with tempfile.NamedTemporaryFile(suffix=".rs", mode="w", delete=False) as f:
+        f.write("fn main() {}")
+        f.flush()
+        try:
+            session = MagicMock()
+            session.stream_response.return_value = "LGTM"
+            result = cmd_review([f.name], session)
+            assert result is not None
+            assert result.assistant_msg == "LGTM"
+        finally:
+            os.unlink(f.name)
+
+
+# --- Issue #8: /gen usage consistency ---
+
+
+def test_gen_usage_text_no_quotes():
+    """Usage text should not show quotes around description."""
+    cmds = build_command_registry()
+    assert '"' not in cmds["/gen"].usage
+
+
+def test_tests_usage_shows_output_flag():
+    """Usage text should show -o flag."""
+    cmds = build_command_registry()
+    assert "-o" in cmds["/tests"].usage
+
+
+# --- Issue #11: /config --mode updates client mode ---
+
+
+def test_cmd_config_mode_updates_client():
+    """Setting mode via /config should update client.mode for current session."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch.dict(os.environ, {"SEALEVEL_CONFIG_DIR": tmpdir}):
+            session = MagicMock()
+            session.client.mode = "quality"
+            cmd_config(["--mode", "fast"], session)
+            assert session.client.mode == "fast"
+
+
+def test_cmd_config_mode_quality_updates_client():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch.dict(os.environ, {"SEALEVEL_CONFIG_DIR": tmpdir}):
+            session = MagicMock()
+            session.client.mode = "fast"
+            cmd_config(["--mode", "quality"], session)
+            assert session.client.mode == "quality"
+
+
+# --- /tests -o edge cases ---
+
+
+def test_cmd_tests_only_output_flag():
+    """Tests with -o but no source file shows usage."""
+    result = cmd_tests(["-o", "/tmp/out.ts"], MagicMock())
+    assert result is None
+
+
+# --- /login ---
+
+
+def test_cmd_login_already_authenticated():
+    from sealevel_cli.commands import cmd_login
+    session = MagicMock()
+    session.client.api_key = "slm_existing12345678"
+    result = cmd_login([], session)
+    assert result is None  # No device flow triggered
+
+
+def test_cmd_login_no_key_triggers_flow():
+    from sealevel_cli.commands import cmd_login
+    session = MagicMock()
+    session.client.api_key = None
+    with patch("sealevel_cli.main._device_login_flow") as mock_flow:
+        mock_flow.side_effect = SystemExit(0)
+        cmd_login([], session)
+        mock_flow.assert_called_once()
+
+
+def test_registry_has_login():
+    cmds = build_command_registry()
+    assert "/login" in cmds
+    assert cmds["/login"].adds_to_history is False

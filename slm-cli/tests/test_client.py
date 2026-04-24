@@ -11,6 +11,7 @@ from sealevel_cli.client import (
     SealevelError,
     SealevelRateLimitError,
     DEFAULT_BASE_URL,
+    MAX_RETRIES,
     clean_model_response,
     fix_anchor_code,
 )
@@ -100,7 +101,7 @@ def test_chat_payload_basic():
     assert payload["messages"][-1] == {"role": "user", "content": "Hello!"}
     assert payload["messages"][0]["role"] == "system"
     assert payload["stream"] is True
-    assert payload["max_tokens"] == 1024
+    assert payload["max_tokens"] == 4096
     assert payload["temperature"] == 0.0
 
 
@@ -276,6 +277,70 @@ def test_parse_sse_usage_overwritten_by_later_chunk():
 
     list(c._parse_sse_lines(FakeResp()))
     assert c.last_usage["total_tokens"] == 500
+
+
+def test_parse_sse_captures_finish_reason():
+    c = SealevelClient()
+    lines = [
+        'data: {"choices":[{"delta":{"content":"hi"},"finish_reason":null}]}',
+        'data: {"choices":[{"delta":{"content":"!"},"finish_reason":"length"}]}',
+        'data: [DONE]',
+    ]
+
+    class FakeResp:
+        def iter_lines(self):
+            return iter(lines)
+
+    list(c._parse_sse_lines(FakeResp()))
+    assert c.last_finish_reason == "length"
+
+
+def test_parse_sse_finish_reason_stop():
+    c = SealevelClient()
+    lines = [
+        'data: {"choices":[{"delta":{"content":"done"},"finish_reason":"stop"}]}',
+        'data: [DONE]',
+    ]
+
+    class FakeResp:
+        def iter_lines(self):
+            return iter(lines)
+
+    list(c._parse_sse_lines(FakeResp()))
+    assert c.last_finish_reason == "stop"
+
+
+def test_parse_sse_finish_reason_reset():
+    """finish_reason should reset to None at start of each parse."""
+    c = SealevelClient()
+    c.last_finish_reason = "length"  # From previous call
+    lines = [
+        'data: {"choices":[{"delta":{"content":"ok"}}]}',
+        'data: [DONE]',
+    ]
+
+    class FakeResp:
+        def iter_lines(self):
+            return iter(lines)
+
+    list(c._parse_sse_lines(FakeResp()))
+    assert c.last_finish_reason is None
+
+
+def test_extra_context_in_payload():
+    c = SealevelClient()
+    c.extra_context = "Always use Anchor 0.30+"
+    payload = c.build_chat_payload("hello")
+    system_msg = payload["messages"][0]["content"]
+    assert "Always use Anchor 0.30+" in system_msg
+
+
+def test_no_extra_context_in_payload():
+    c = SealevelClient()
+    c.extra_context = None
+    payload = c.build_chat_payload("hello")
+    system_msg = payload["messages"][0]["content"]
+    assert "Always use Anchor" not in system_msg
 
 
 def test_parse_sse_no_usage():
@@ -709,6 +774,179 @@ def test_all_errors_inherit_from_sealevel_error():
     assert issubclass(SealevelAuthError, SealevelError)
     assert issubclass(SealevelRateLimitError, SealevelError)
     assert issubclass(SealevelConnectionError, SealevelError)
+
+
+# --- Issue #1: max_tokens should be 4096 not 1024 ---
+
+
+def test_chat_payload_max_tokens_4096():
+    """max_tokens must be 4096 to avoid constant truncation on code gen."""
+    c = SealevelClient()
+    payload = c.build_chat_payload("Generate an escrow program")
+    assert payload["max_tokens"] == 4096
+
+
+# --- Issue #5: system prompt sent every request (no fix needed, just verify) ---
+# System prompt is expected per request — OpenAI-compatible format requires it.
+# This is a verification test, not a bug fix.
+
+
+# --- Issue #9/10/11: mode config wires to temperature + max_tokens ---
+
+
+def test_chat_payload_quality_mode():
+    """Quality mode: temperature 0.0, max_tokens 4096."""
+    c = SealevelClient()
+    c.mode = "quality"
+    payload = c.build_chat_payload("hello")
+    assert payload["temperature"] == 0.0
+    assert payload["max_tokens"] == 4096
+
+
+def test_chat_payload_fast_mode():
+    """Fast mode: temperature 0.3, max_tokens 2048."""
+    c = SealevelClient()
+    c.mode = "fast"
+    payload = c.build_chat_payload("hello")
+    assert payload["temperature"] == 0.3
+    assert payload["max_tokens"] == 2048
+
+
+def test_client_default_mode():
+    """Client default mode should be 'quality'."""
+    c = SealevelClient()
+    assert c.mode == "quality"
+
+
+def test_client_custom_mode():
+    """Client should accept mode parameter."""
+    c = SealevelClient(mode="fast")
+    assert c.mode == "fast"
+
+
+# --- Issue #2: _stream_request silent fallthrough ---
+
+
+def test_stream_request_no_silent_fallthrough():
+    """If retry loop exhausts without return or raise, should raise error."""
+    c = SealevelClient()
+    call_count = 0
+
+    def mock_stream(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        mock_resp = MagicMock()
+        mock_resp.status_code = 429
+        mock_resp.headers = {"Retry-After": "0"}
+        mock_resp.__enter__ = MagicMock(return_value=mock_resp)
+        mock_resp.__exit__ = MagicMock(return_value=False)
+        return mock_resp
+
+    with patch("httpx.stream", side_effect=mock_stream):
+        with patch("time.sleep"):
+            with pytest.raises(SealevelRateLimitError):
+                list(c._stream_request("POST", c.chat_url, {}))
+    assert call_count == MAX_RETRIES
+
+
+# --- Device auth flow ---
+
+
+def test_device_auth_url():
+    c = SealevelClient(base_url="https://www.sealevel.tech")
+    assert c.device_auth_url == "https://www.sealevel.tech/api/auth/device"
+
+
+def test_device_poll_url():
+    c = SealevelClient(base_url="https://www.sealevel.tech")
+    assert c.device_poll_url == "https://www.sealevel.tech/api/auth/device/poll"
+
+
+def test_initiate_device_auth():
+    c = SealevelClient()
+    with patch("httpx.post") as mock_post:
+        mock_post.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {
+                "userCode": "ABCD-1234",
+                "verificationUrl": "https://sealevel.tech/device",
+                "expiresIn": 600,
+                "interval": 5,
+            },
+        )
+        result = c.initiate_device_auth()
+    assert result["userCode"] == "ABCD-1234"
+    assert result["verificationUrl"] == "https://sealevel.tech/device"
+    assert result["expiresIn"] == 600
+
+
+def test_poll_device_auth_pending():
+    c = SealevelClient()
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {"status": "pending"},
+        )
+        result = c.poll_device_auth("ABCD-1234")
+    assert result["status"] == "pending"
+    assert "apiKey" not in result
+
+
+def test_poll_device_auth_complete():
+    c = SealevelClient()
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {
+                "status": "complete",
+                "apiKey": "slm_newkey123456",
+                "user": {"name": "kshitij", "tier": "free"},
+            },
+        )
+        result = c.poll_device_auth("ABCD-1234")
+    assert result["status"] == "complete"
+    assert result["apiKey"] == "slm_newkey123456"
+    assert result["user"]["name"] == "kshitij"
+
+
+def test_poll_device_auth_expired():
+    c = SealevelClient()
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value = MagicMock(status_code=404)
+        with pytest.raises(SealevelConnectionError, match="expired"):
+            c.poll_device_auth("XXXX-9999")
+
+
+def test_initiate_device_auth_failure():
+    c = SealevelClient()
+    with patch("httpx.post") as mock_post:
+        mock_post.return_value = MagicMock(status_code=500)
+        with pytest.raises(SealevelConnectionError, match="Failed to start device auth"):
+            c.initiate_device_auth()
+
+
+def test_poll_device_auth_server_error():
+    c = SealevelClient()
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value = MagicMock(status_code=500)
+        with pytest.raises(SealevelConnectionError, match="Poll failed"):
+            c.poll_device_auth("CODE-123")
+
+
+def test_list_sessions_server_error():
+    c = SealevelClient(api_key="slm_test123")
+    with patch("httpx.get") as mock_get:
+        mock_get.return_value = MagicMock(status_code=500)
+        with pytest.raises(SealevelConnectionError, match="Failed to list sessions"):
+            c.list_sessions()
+
+
+def test_chat_payload_unknown_mode_falls_to_quality():
+    """Invalid mode should fall through to quality defaults."""
+    c = SealevelClient(mode="turbo")
+    payload = c.build_chat_payload("hello")
+    assert payload["temperature"] == 0.0
+    assert payload["max_tokens"] == 4096
 
 
 # --- clean_model_response ---

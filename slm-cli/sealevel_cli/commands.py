@@ -78,13 +78,13 @@ def _read_file(path: str) -> str | None:
     if basename in SENSITIVE_FILES:
         print_error(f"Cannot read sensitive file: {basename}")
         return None
-    with open(resolved, "r") as f:
+    with open(resolved, "r", encoding="utf-8") as f:
         return f.read()
 
 
 def _extract_rust_code(text: str) -> str:
-    """Extract code from a ```rust block, or return full text if no block found."""
-    match = re.search(r"```(?:rust)?\n(.*?)```", text, re.DOTALL)
+    """Extract code from a fenced code block (any language), or return full text if no block found."""
+    match = re.search(r"```\w*\n(.*?)```", text, re.DOTALL)
     return match.group(1) if match else text
 
 
@@ -153,7 +153,7 @@ def cmd_migrate(args: list[str], session: "Session") -> CommandResult | None:
 def cmd_gen(args: list[str], session: "Session") -> CommandResult | None:
     if not args:
         from sealevel_cli.display import print_info
-        print_info('Usage: /gen "description" [-o file]')
+        print_info("Usage: /gen <description> [-o file]")
         return None
 
     output = None
@@ -170,7 +170,7 @@ def cmd_gen(args: list[str], session: "Session") -> CommandResult | None:
     description = " ".join(desc_parts)
     if not description:
         from sealevel_cli.display import print_info
-        print_info('Usage: /gen "description" [-o file]')
+        print_info("Usage: /gen <description> [-o file]")
         return None
 
     from sealevel_cli.display import print_info, console
@@ -193,21 +193,41 @@ def cmd_gen(args: list[str], session: "Session") -> CommandResult | None:
 def cmd_tests(args: list[str], session: "Session") -> CommandResult | None:
     if not args:
         from sealevel_cli.display import print_info
-        print_info("Usage: /tests <file>")
+        print_info("Usage: /tests <file> [-o output.ts]")
         return None
 
-    code = _read_file(args[0])
+    output = None
+    file_args = []
+    i = 0
+    while i < len(args):
+        if args[i] in ("-o", "--output") and i + 1 < len(args):
+            output = args[i + 1]
+            i += 2
+        else:
+            file_args.append(args[i])
+            i += 1
+
+    if not file_args:
+        from sealevel_cli.display import print_info
+        print_info("Usage: /tests <file> [-o output.ts]")
+        return None
+
+    code = _read_file(file_args[0])
     if code is None:
         return None
 
     from sealevel_cli.display import print_file_info, console
-    print_file_info("generating tests for", args[0])
+    print_file_info("generating tests for", file_args[0])
     console.print()
 
     prompt = TESTS_PROMPT.format(code=code)
-    full = session.stream_response(prompt)
+    full = session.stream_response(prompt, label=output is None, render_md=output is None)
     if full is None:
         return None
+
+    if output:
+        _write_code_to_file(full, output)
+
     return CommandResult(user_msg=prompt, assistant_msg=full)
 
 
@@ -338,6 +358,9 @@ def cmd_config(args: list[str], session: "Session") -> CommandResult | None:
             i += 2
         elif args[i] == "--api-url" and i + 1 < len(args):
             url = args[i + 1].rstrip("/")
+            if not url or not url.startswith(("http://", "https://")):
+                print_error("Invalid URL. Must start with http:// or https://")
+                return None
             set_value("api_url", url, config_dir=config_dir)
             print_config_set("api_url", url)
             session.client.base_url = url
@@ -348,6 +371,7 @@ def cmd_config(args: list[str], session: "Session") -> CommandResult | None:
                 return None
             set_value("mode", args[i + 1], config_dir=config_dir)
             print_config_set("mode", args[i + 1])
+            session.client.mode = args[i + 1]
             i += 2
         else:
             print_warning(f"Unknown flag: {args[i]}")
@@ -462,8 +486,9 @@ def cmd_export(args: list[str], session: "Session") -> CommandResult | None:
     filename = args[0] if args else f"sealevel-{datetime.now().strftime('%Y%m%d-%H%M%S')}.md"
 
     # Validate: only allow writing in current directory or subdirectories
-    resolved = os.path.realpath(filename)
-    if not resolved.startswith(os.path.realpath(".")):
+    from pathlib import Path as _Path
+    resolved = _Path(filename).resolve()
+    if not resolved.is_relative_to(_Path.cwd()):
         from sealevel_cli.display import print_error
         print_error("Export path must be within current directory.")
         return None
@@ -510,6 +535,50 @@ def cmd_history(args: list[str], session: "Session") -> CommandResult | None:
     return None
 
 
+def cmd_search(args: list[str], session: "Session") -> CommandResult | None:
+    from sealevel_cli.display import print_header, print_info, console
+    from rich.table import Table
+    from rich.text import Text
+
+    if not args:
+        print_info("Usage: /search <query>")
+        return None
+
+    query = " ".join(args).lower()
+
+    if not session.history:
+        print_info("No conversation to search.")
+        return None
+
+    matches = []
+    for i, msg in enumerate(session.history):
+        if query in msg["content"].lower():
+            matches.append((i, msg))
+
+    print_header("SEARCH")
+    if not matches:
+        print_info(f"No matches for '{query}'")
+        return None
+
+    table = Table(show_header=True, header_style="label", box=None, padding=(0, 2), show_edge=False)
+    table.add_column("TURN", style="value", width=6)
+    table.add_column("ROLE", style="label", width=10)
+    table.add_column("PREVIEW", style="muted")
+
+    for idx, msg in matches[:20]:
+        turn = str(idx // 2 + 1)
+        role = msg["role"].upper()
+        content = msg["content"][:80].replace("\n", " ")
+        preview = Text(content)
+        preview.highlight_regex(f"(?i){re.escape(query)}", style="accent")
+        if len(msg["content"]) > 80:
+            preview.append("…", style="muted")
+        table.add_row(turn, role, preview)
+
+    console.print(table)
+    return None
+
+
 def cmd_clear(args: list[str], session: "Session") -> CommandResult | None:
     session.history.clear()
     from sealevel_cli.display import print_success
@@ -520,6 +589,25 @@ def cmd_clear(args: list[str], session: "Session") -> CommandResult | None:
 def cmd_help(args: list[str], session: "Session") -> CommandResult | None:
     from sealevel_cli.display import print_command_help
     print_command_help(session.commands)
+    return None
+
+
+def cmd_login(args: list[str], session: "Session") -> CommandResult | None:
+    from sealevel_cli.display import print_success, print_info
+    if session.client.api_key:
+        key = session.client.api_key
+        print_info(f"Already logged in (key: {key[:8]}···{key[-4:]})")
+        return None
+    try:
+        from sealevel_cli.main import _device_login_flow
+        _device_login_flow()
+        # Reload key into current session client
+        from sealevel_cli.config import get_value
+        new_key = get_value("api_key")
+        if new_key:
+            session.client.api_key = new_key
+    except SystemExit:
+        pass
     return None
 
 
@@ -534,8 +622,8 @@ def build_command_registry() -> dict[str, SlashCommand]:
     commands = [
         SlashCommand("/review", cmd_review, "Review code for security issues", "/review <file>", expects_file=True),
         SlashCommand("/migrate", cmd_migrate, "Migrate to modern Anchor 0.30+", "/migrate <file> [--write]", expects_file=True),
-        SlashCommand("/gen", cmd_gen, "Generate an Anchor program", '/gen "description" [-o file]'),
-        SlashCommand("/tests", cmd_tests, "Generate TypeScript tests", "/tests <file>", expects_file=True),
+        SlashCommand("/gen", cmd_gen, "Generate an Anchor program", '/gen <description> [-o file]'),
+        SlashCommand("/tests", cmd_tests, "Generate TypeScript tests", "/tests <file> [-o out.ts]", expects_file=True),
         SlashCommand("/explain-tx", cmd_explain_tx, "Explain a transaction", "/explain-tx <signature>"),
         SlashCommand("/explain-error", cmd_explain_error, "Decode an error code", "/explain-error <code>"),
         SlashCommand("/status", cmd_status, "Show API status and config", "/status", adds_to_history=False),
@@ -549,7 +637,9 @@ def build_command_registry() -> dict[str, SlashCommand]:
         SlashCommand("/compact", cmd_compact, "Trim history to last N turns", "/compact [N]", adds_to_history=False),
         SlashCommand("/export", cmd_export, "Export session as markdown", "/export [file]", adds_to_history=False),
         SlashCommand("/history", cmd_history, "Show input history", "/history", adds_to_history=False),
+        SlashCommand("/search", cmd_search, "Search conversation history", "/search <query>", adds_to_history=False),
         SlashCommand("/clear", cmd_clear, "Clear conversation history", "/clear", adds_to_history=False),
+        SlashCommand("/login", cmd_login, "Authenticate via browser", "/login", adds_to_history=False),
         SlashCommand("/help", cmd_help, "Show available commands", "/help", adds_to_history=False),
         SlashCommand("/exit", cmd_exit, "Exit the session", "/exit", adds_to_history=False),
     ]

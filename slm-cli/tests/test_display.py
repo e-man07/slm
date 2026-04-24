@@ -1,5 +1,6 @@
 """Tests for sealevel_cli.display — Rich formatting, theming, brand components."""
 import pytest
+from unittest.mock import patch
 
 from sealevel_cli.display import (
     ACCENT,
@@ -16,7 +17,7 @@ from sealevel_cli.display import (
     print_error_result,
     print_markdown,
     print_header,
-    print_status,
+
     print_user_message,
     print_assistant_label,
     print_response_separator,
@@ -168,13 +169,6 @@ def test_print_header_no_crash():
     print_header()
     print_header("CHAT")
 
-
-def test_print_status_connected():
-    print_status(model="slm-8b", connected=True)
-
-
-def test_print_status_disconnected():
-    print_status(connected=False)
 
 
 def test_print_user_message_no_crash():
@@ -343,6 +337,42 @@ def test_print_sessions_table_no_crash():
 
 def test_print_sessions_table_empty():
     print_sessions_table([])
+
+
+# --- Empty response warning ---
+
+
+def test_stream_empty_response_warns():
+    with patch("sealevel_cli.display.print_warning") as mock_warn:
+        stream_with_spinner(iter([]), label=False, render_md=False)
+        mock_warn.assert_called_once()
+        assert "empty" in mock_warn.call_args[0][0].lower()
+
+
+def test_print_toasts_error():
+    from sealevel_cli.display import print_toasts
+    print_toasts([("error", "something went wrong")])
+
+
+def test_print_toasts_warning():
+    from sealevel_cli.display import print_toasts
+    print_toasts([("warning", "be careful")])
+
+
+def test_print_toasts_multiple():
+    from sealevel_cli.display import print_toasts
+    print_toasts([("error", "err1"), ("warning", "warn1"), ("info", "info1")])
+
+
+def test_print_toasts_empty():
+    from sealevel_cli.display import print_toasts
+    print_toasts([])  # Should not crash
+
+
+def test_stream_whitespace_response_warns():
+    with patch("sealevel_cli.display.print_warning") as mock_warn:
+        stream_with_spinner(iter(["  ", "\n"]), label=False, render_md=False)
+        mock_warn.assert_called_once()
 
 
 # --- Logo and branding ---

@@ -5,8 +5,12 @@ Uses prompt_toolkit for live autocomplete, multiline input, and status bar.
 """
 from __future__ import annotations
 
+import json as _json
+import os
+import re
 import shlex
 import time
+from pathlib import Path
 from typing import Generator
 
 from prompt_toolkit.formatted_text import HTML
@@ -26,6 +30,7 @@ from sealevel_cli.display import (
     print_error,
     print_info,
     print_repl_timing,
+    print_warning,
     print_response_separator,
     print_session_header,
     stream_with_spinner,
@@ -34,6 +39,25 @@ from sealevel_cli.input import (
     create_prompt_session,
     make_bottom_toolbar,
 )
+from sealevel_cli.storage import SessionStorage
+
+
+def _find_sealevel_md() -> str | None:
+    """Walk from cwd up to root looking for SEALEVEL.md, fallback to ~/.sealevel/."""
+    current = Path.cwd()
+    while True:
+        candidate = current / "SEALEVEL.md"
+        if candidate.is_file():
+            return candidate.read_text(encoding="utf-8")
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    # Fallback to user-level
+    user_md = Path.home() / ".sealevel" / "SEALEVEL.md"
+    if user_md.is_file():
+        return user_md.read_text(encoding="utf-8")
+    return None
 
 
 class Session:
@@ -51,20 +75,32 @@ class Session:
         self.commands = build_command_registry()
         self.turns = 0
         self.total_tokens = 0
+        self.storage = SessionStorage()
+        self._pending_toasts: list[tuple[str, str]] = []
+        self._toolbar_cache = None
+        self._toolbar_cache_key = None
 
     def run(self) -> None:
         """Main REPL loop."""
         print_session_header()
+        self._load_project_memory()
         self._create_server_session()
+        self._startup_health_check()
 
         # Create prompt_toolkit session with live autocomplete
-        prompt_session = create_prompt_session(self.commands)
+        prompt_session = create_prompt_session(self.commands, history_ref=self.history)
 
         while True:
+            # Show queued toasts from previous iteration
+            if self._pending_toasts:
+                from sealevel_cli.display import print_toasts
+                print_toasts(self._pending_toasts)
+                self._pending_toasts.clear()
+
             try:
                 raw = prompt_session.prompt(
                     HTML("<prompt>❯ </prompt>"),
-                    bottom_toolbar=lambda: make_bottom_toolbar(self),
+                    bottom_toolbar=self._cached_toolbar,
                 )
             except (KeyboardInterrupt, EOFError):
                 self._goodbye()
@@ -98,6 +134,30 @@ class Session:
             else:
                 self._handle_chat(line)
 
+    def _load_project_memory(self) -> None:
+        """Load SEALEVEL.md project context if present."""
+        content = _find_sealevel_md()
+        if content:
+            self.client.extra_context = content
+            line_count = len(content.splitlines())
+            print_info(f"◆ Loaded SEALEVEL.md ({line_count} lines)")
+
+    def _cached_toolbar(self):
+        """Return cached toolbar HTML, recompute only when state changes."""
+        key = (self.turns, self.total_tokens, self.session_id)
+        if self._toolbar_cache_key != key:
+            self._toolbar_cache = make_bottom_toolbar(self)
+            self._toolbar_cache_key = key
+        return self._toolbar_cache
+
+    def _startup_health_check(self) -> None:
+        """Check API health at startup (non-blocking)."""
+        health = self.client.get_health()
+        if health.status == "unreachable":
+            print_warning("API unreachable — responses may fail")
+        elif health.status == "degraded":
+            print_warning("API degraded — some services down")
+
     def _create_server_session(self) -> None:
         """Create a server-side session (best-effort, non-blocking)."""
         if self.session_id:
@@ -107,9 +167,20 @@ class Session:
             self.session_id = info.get("id")
         except SealevelError:
             pass
+        # Create local backup
+        sid = self.session_id or "local"
+        try:
+            self.storage.create(sid)
+        except Exception:
+            pass
 
     def _save_message(self, role: str, content: str) -> None:
-        """Save a message to server (best-effort)."""
+        """Save a message to server + local backup (best-effort)."""
+        sid = self.session_id or "local"
+        try:
+            self.storage.append(sid, role, content)
+        except Exception:
+            pass
         if not self.session_id:
             return
         try:
@@ -154,16 +225,19 @@ class Session:
             self._goodbye()
             raise
         except SealevelError as e:
-            print_error(str(e))
-            console.print()
+            self._pending_toasts.append(("error", str(e)))
         except KeyboardInterrupt:
             console.print("\n[muted](cancelled)[/muted]")
-            console.print()
 
     def _handle_chat(self, text: str) -> None:
         """Send plain text as chat with full history."""
+        # Expand @file references
+        text = self._expand_file_refs(text)
         self.history.append({"role": "user", "content": text})
         console.print()
+
+        # Pre-send context warning
+        self._warn_context_size()
 
         try:
             t0 = time.monotonic()
@@ -177,16 +251,19 @@ class Session:
             self._save_message("assistant", full)
             self.turns += 1
             tokens = self._capture_tokens()
+
+            # Truncation warning
+            if self.client.last_finish_reason == "length":
+                print_warning("Response may be truncated (hit token limit)")
+
             print_repl_timing(elapsed, tokens)
             print_response_separator()
         except SealevelError as e:
             self.history.pop()
-            print_error(str(e))
-            console.print()
+            self._pending_toasts.append(("error", str(e)))
         except KeyboardInterrupt:
             self.history.pop()
             console.print("\n[muted](cancelled)[/muted]")
-            console.print()
 
     def stream_response(self, prompt: str, label: bool = True, render_md: bool = True) -> str | None:
         """Stream a chat response for a slash command."""
@@ -214,6 +291,28 @@ class Session:
         except KeyboardInterrupt:
             console.print("\n[muted](cancelled)[/muted]")
             return None
+
+    def _expand_file_refs(self, text: str) -> str:
+        """Expand @file references in user input."""
+        from sealevel_cli.commands import _read_file
+
+        def replace_ref(match):
+            path = match.group(1)
+            content = _read_file(path)
+            if content is None:
+                return match.group(0)  # Leave as-is if file can't be read
+            ext = os.path.splitext(path)[1].lstrip(".")
+            return f"[file: {path}]\n```{ext}\n{content}\n```"
+
+        return re.sub(r"@([\w./\-]+\.\w+)", replace_ref, text)
+
+    def _warn_context_size(self) -> None:
+        """Warn if conversation history is getting large."""
+        if not self.history:
+            return
+        est_tokens = len(_json.dumps(self.history)) // 4
+        if est_tokens > 15000:
+            print_warning(f"Large context (~{est_tokens / 1000:.1f}K tokens) — consider /compact")
 
     def _capture_tokens(self) -> int | None:
         """Capture token count from last API call."""

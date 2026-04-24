@@ -10,7 +10,8 @@ Matches the Sealevel web app (sealevel.tech) design system.
 """
 from __future__ import annotations
 
-import time
+import sys
+import time as _time
 
 from rich.console import Console
 from rich.live import Live
@@ -82,24 +83,6 @@ def print_header(subtitle: str = "") -> None:
     console.print(header)
     console.print(Rule(style="border"))
 
-
-# ── Status line ──
-
-def print_status(model: str = "slm-8b", connected: bool = True) -> None:
-    """Print a compact status line."""
-    status = Text()
-    if connected:
-        status.append("● ", style="ok")
-        status.append("LIVE", style="accent.dim")
-    else:
-        status.append("○ ", style="muted")
-        status.append("OFFLINE", style="muted")
-    status.append("  │  ", style="border")
-    status.append(model, style="muted")
-    status.append("  │  ", style="border")
-    status.append("api.sealevel.tech", style="muted")
-    console.print(status)
-    console.print()
 
 
 # ── Chat formatting ──
@@ -253,6 +236,24 @@ def print_success(message: str) -> None:
     console.print(msg)
 
 
+def print_toasts(items: list[tuple[str, str]]) -> None:
+    """Render queued toast messages (errors/warnings accumulated between prompts)."""
+    for level, message in items:
+        msg = Text()
+        if level == "error":
+            msg.append("✗ ", style="err")
+            msg.append(message, style="err")
+        elif level == "warning":
+            msg.append("▲ ", style="warn")
+            msg.append(message)
+        else:
+            msg.append("ℹ ", style="muted")
+            msg.append(message, style="muted")
+        console.print(msg)
+    if items:
+        console.print()
+
+
 def print_info(message: str) -> None:
     """Print a styled info/dim message."""
     console.print(Text(message, style="muted"))
@@ -338,10 +339,22 @@ def stream_with_spinner(chunks, label: bool = True, render_md: bool = True):
                     spinner.stop()
                     first = False
                     console.print()
-                    live = Live(Markdown(full), console=console, refresh_per_second=8)
+                    live = Live(
+                        Markdown(full),
+                        console=console,
+                        refresh_per_second=30,
+                        vertical_overflow="visible",
+                    )
                     live.start()
-                elif chunk_count % 3 == 0:
-                    live.update(Markdown(full))
+                    _last_update = _time.monotonic()
+                    _pending = 0
+                else:
+                    _pending += len(chunk)
+                    elapsed_ms = (_time.monotonic() - _last_update) * 1000
+                    if elapsed_ms >= 100 or _pending >= 50:
+                        live.update(Markdown(full))
+                        _last_update = _time.monotonic()
+                        _pending = 0
         finally:
             if first:
                 spinner.stop()
@@ -363,6 +376,9 @@ def stream_with_spinner(chunks, label: bool = True, render_md: bool = True):
             if first:
                 spinner.stop()
         print_done()
+
+    if not full.strip():
+        print_warning("Empty response — model may be unavailable")
 
     return full
 
@@ -439,7 +455,7 @@ def print_session_header() -> None:
     hints.append("/", style="value")
     hints.append(" commands", style="muted")
     hints.append("  │  ", style="border")
-    hints.append("Ctrl+R", style="value")
+    hints.append("Ctrl+O", style="value")
     hints.append(" search", style="muted")
     hints.append("  │  ", style="border")
     hints.append("Esc Esc", style="value")

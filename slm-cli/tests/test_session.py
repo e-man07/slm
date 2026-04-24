@@ -1,9 +1,19 @@
 """Tests for sealevel_cli.session — interactive session REPL, dispatch, history."""
 import pytest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from sealevel_cli.session import Session
 from sealevel_cli.client import SealevelClient, SealevelError
+
+
+@pytest.fixture(autouse=True)
+def _mock_storage(tmp_path):
+    """Prevent session tests from writing to ~/.sealevel/sessions/."""
+    with patch("sealevel_cli.session.SessionStorage") as MockStorage:
+        instance = MagicMock()
+        MockStorage.return_value = instance
+        yield instance
 
 
 # --- Init ---
@@ -33,6 +43,7 @@ def test_session_has_all_commands():
 def test_handle_chat_adds_to_history():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     with patch("sealevel_cli.session.stream_with_spinner", return_value="Hello!"):
         s._handle_chat("test")
@@ -115,17 +126,21 @@ def test_dispatch_keyboard_interrupt_during_command():
     s._dispatch_command("/review somefile.rs")  # Should not crash
 
 
-def test_dispatch_sealevel_error_during_command():
-    s = Session(MagicMock(spec=SealevelClient))
+def test_dispatch_sealevel_error_queues_toast():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
     s.commands["/review"].handler = MagicMock(side_effect=SealevelError("API down"))
-    with patch("sealevel_cli.session.print_error") as mock_err:
-        s._dispatch_command("/review somefile.rs")
-        mock_err.assert_called_once()
+    s._dispatch_command("/review somefile.rs")
+    assert len(s._pending_toasts) == 1
+    assert s._pending_toasts[0] == ("error", "API down")
 
 
 def test_dispatch_adds_to_history_when_flagged():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     from sealevel_cli.commands import CommandResult
     s.commands["/review"].handler = MagicMock(
@@ -164,10 +179,303 @@ def test_slm_prefix_redirects_to_slash_command():
 # --- Multiline input ---
 
 
+# --- @file expansion ---
+
+
+def test_expand_file_refs_valid():
+    import tempfile, os
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    with tempfile.NamedTemporaryFile(suffix=".rs", mode="w", delete=False) as f:
+        f.write("fn main() {}")
+        f.flush()
+        try:
+            result = s._expand_file_refs(f"check @{f.name}")
+            assert "[file:" in result
+            assert "fn main() {}" in result
+            assert f.name not in result.split("[file:")[0]  # @ removed
+        finally:
+            os.unlink(f.name)
+
+
+def test_expand_file_refs_missing():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    result = s._expand_file_refs("check @/nonexistent.rs")
+    assert "@/nonexistent.rs" in result  # Left as-is
+
+
+def test_expand_file_refs_no_refs():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    result = s._expand_file_refs("hello world")
+    assert result == "hello world"
+
+
+def test_expand_file_refs_ignores_at_mentions():
+    """Issue #3: @coral-xyz/anchor should NOT trigger file lookup."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    result = s._expand_file_refs("use @coral-xyz/anchor in your Cargo.toml")
+    assert "@coral-xyz/anchor" in result  # Left unchanged
+
+
+def test_expand_file_refs_ignores_at_username():
+    """Issue #3: @username should NOT trigger file lookup."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    result = s._expand_file_refs("ask @solana_labs about this")
+    assert "@solana_labs" in result  # Left unchanged
+
+
+def test_expand_file_refs_requires_extension():
+    """Issue #3: @file refs must contain a dot (file extension)."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    result = s._expand_file_refs("check @README for info")
+    assert "@README" in result  # No dot = not a file ref
+
+
+# --- Health check ---
+
+
+def test_startup_health_check_ok():
+    from sealevel_cli.client import HealthResponse
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    client.get_health.return_value = HealthResponse("ok", True, True, "")
+    s = Session(client)
+    with patch("sealevel_cli.session.print_warning") as mock_warn:
+        s._startup_health_check()
+        mock_warn.assert_not_called()
+
+
+def test_startup_health_check_unreachable():
+    from sealevel_cli.client import HealthResponse
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    client.get_health.return_value = HealthResponse("unreachable", False, False, "")
+    s = Session(client)
+    with patch("sealevel_cli.session.print_warning") as mock_warn:
+        s._startup_health_check()
+        mock_warn.assert_called_once()
+        assert "unreachable" in mock_warn.call_args[0][0].lower()
+
+
+def test_startup_health_check_degraded():
+    from sealevel_cli.client import HealthResponse
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    client.get_health.return_value = HealthResponse("degraded", True, False, "")
+    s = Session(client)
+    with patch("sealevel_cli.session.print_warning") as mock_warn:
+        s._startup_health_check()
+        mock_warn.assert_called_once()
+        assert "degraded" in mock_warn.call_args[0][0].lower()
+
+
+# --- Truncation detection ---
+
+
+def test_truncation_warning():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = "length"
+    s = Session(client)
+    with patch("sealevel_cli.session.stream_with_spinner", return_value="truncated response"):
+        with patch("sealevel_cli.session.print_warning") as mock_warn:
+            s._handle_chat("test")
+            assert any("truncated" in str(c).lower() for c in mock_warn.call_args_list)
+
+
+def test_no_truncation_warning_on_stop():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = "stop"
+    s = Session(client)
+    with patch("sealevel_cli.session.stream_with_spinner", return_value="full response"):
+        with patch("sealevel_cli.session.print_warning") as mock_warn:
+            s._handle_chat("test")
+            truncation_warnings = [c for c in mock_warn.call_args_list if "truncated" in str(c).lower()]
+            assert len(truncation_warnings) == 0
+
+
+# --- Context warning ---
+
+
+def test_context_warning_large():
+    """Issue #4: context warning threshold raised to 15000 tokens."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    # Fill history with enough data to exceed 15000 token estimate (~60KB)
+    s.history = [{"role": "user", "content": "x" * 15000} for _ in range(5)]
+    with patch("sealevel_cli.session.print_warning") as mock_warn:
+        s._warn_context_size()
+        mock_warn.assert_called_once()
+        assert "compact" in mock_warn.call_args[0][0].lower()
+
+
+def test_context_warning_medium_no_warn():
+    """Issue #4: 6000-14999 tokens should NOT trigger warning anymore."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    # ~8000 tokens worth of data — below new 15000 threshold
+    s.history = [{"role": "user", "content": "x" * 8000} for _ in range(5)]
+    with patch("sealevel_cli.session.print_warning") as mock_warn:
+        s._warn_context_size()
+        mock_warn.assert_not_called()
+
+
+def test_context_warning_small():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    s.history = [{"role": "user", "content": "hello"}]
+    with patch("sealevel_cli.session.print_warning") as mock_warn:
+        s._warn_context_size()
+        mock_warn.assert_not_called()
+
+
+# --- SEALEVEL.md ---
+
+
+def test_find_sealevel_md_in_cwd():
+    import tempfile
+    from sealevel_cli.session import _find_sealevel_md
+    with tempfile.TemporaryDirectory() as tmpdir:
+        md_path = Path(tmpdir) / "SEALEVEL.md"
+        md_path.write_text("custom rules")
+        with patch("sealevel_cli.session.Path.cwd", return_value=Path(tmpdir)):
+            content = _find_sealevel_md()
+        assert content == "custom rules"
+
+
+def test_find_sealevel_md_not_found():
+    import tempfile
+    from sealevel_cli.session import _find_sealevel_md
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("sealevel_cli.session.Path.cwd", return_value=Path(tmpdir)):
+            with patch("sealevel_cli.session.Path.home", return_value=Path(tmpdir)):
+                content = _find_sealevel_md()
+        assert content is None
+
+
+def test_load_project_memory():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    client.extra_context = None
+    s = Session(client)
+    with patch("sealevel_cli.session._find_sealevel_md", return_value="custom rules here"):
+        s._load_project_memory()
+    assert client.extra_context == "custom rules here"
+
+
+def test_load_project_memory_none():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    client.extra_context = None
+    s = Session(client)
+    with patch("sealevel_cli.session._find_sealevel_md", return_value=None):
+        s._load_project_memory()
+    assert client.extra_context is None
+
+
+# --- Undo ---
+
+
+# --- Toolbar debounce ---
+
+
+def test_cached_toolbar_returns_same():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    t1 = s._cached_toolbar()
+    t2 = s._cached_toolbar()
+    assert t1 is t2  # Same object, cached
+
+
+def test_cached_toolbar_invalidates_on_turn():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    t1 = s._cached_toolbar()
+    s.turns = 5
+    t2 = s._cached_toolbar()
+    assert t1 is not t2  # Different, recomputed
+
+
+def test_cached_toolbar_invalidates_on_tokens():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    s._cached_toolbar()
+    s.total_tokens = 1000
+    t2 = s._cached_toolbar()
+    assert "1,000" in t2.value
+
+
+# --- Toast errors ---
+
+
+def test_error_queued_as_toast():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    s.commands["/review"].handler = MagicMock(side_effect=SealevelError("fail"))
+    s._dispatch_command("/review test.rs")
+    assert ("error", "fail") in s._pending_toasts
+
+
+def test_chat_error_queued_as_toast():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    with patch("sealevel_cli.session.stream_with_spinner", side_effect=SealevelError("offline")):
+        s._handle_chat("test")
+    assert ("error", "offline") in s._pending_toasts
+
+
+# --- Undo ---
+
+
+
+
+# --- Undo ---
+
+
 def test_undo_via_dispatch():
     """'/undo' should remove last turn."""
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     s.history = [
         {"role": "user", "content": "hi"},
@@ -204,6 +512,7 @@ def test_create_server_session_failure_is_nonfatal():
 def test_save_message_called_after_chat():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client, session_id="srv-123")
     with patch("sealevel_cli.session.stream_with_spinner", return_value="response"):
         s._handle_chat("hello")
@@ -215,6 +524,7 @@ def test_save_message_called_after_chat():
 def test_save_message_skipped_without_session_id():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client, session_id=None)
     with patch("sealevel_cli.session.stream_with_spinner", return_value="response"):
         s._handle_chat("hello")
@@ -268,6 +578,7 @@ def test_capture_tokens_empty_usage_dict():
 def test_capture_tokens_none_usage():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     tokens = s._capture_tokens()
     assert tokens is None
@@ -278,6 +589,7 @@ def test_slash_alone_shows_help():
     """Typing just '/' should show command list."""
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     with patch.object(s, "_dispatch_command") as mock_dispatch:
         # Simulate the run loop check
@@ -293,6 +605,7 @@ def test_slash_alone_shows_help():
 def test_undo_last_turn():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     s.history = [
         {"role": "user", "content": "hi"},
@@ -309,6 +622,7 @@ def test_undo_last_turn():
 def test_undo_empty_history():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     s._undo_last_turn()  # Should not crash
     assert s.history == []
@@ -318,6 +632,7 @@ def test_undo_empty_history():
 def test_undo_single_turn():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
+    client.last_finish_reason = None
     s = Session(client)
     s.history = [
         {"role": "user", "content": "hi"},
