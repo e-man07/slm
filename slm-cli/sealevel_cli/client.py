@@ -295,8 +295,8 @@ class SealevelClient:
     def get_health(self) -> HealthResponse:
         """Check API health status."""
         try:
-            resp = httpx.get(self.health_url, headers=self.build_headers(), timeout=5.0)
-            if resp.status_code != 200 or not resp.text:
+            resp = httpx.get(self.health_url, headers=self.build_headers(), timeout=15.0)
+            if not resp.text:
                 return HealthResponse(status="unreachable", sglang=False, rag=False, timestamp="")
             data = resp.json()
             services = data.get("services", {})
