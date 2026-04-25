@@ -55,16 +55,16 @@ interface ChatSidebarProps {
 }
 
 export function useSidebarState() {
-  const [isOpen, setIsOpen] = React.useState(true)
-
-  React.useEffect(() => {
+  // Lazy initializer reads localStorage before first render to avoid the
+  // open→closed flash for returning users who explicitly closed the sidebar.
+  const [isOpen, setIsOpen] = React.useState(() => {
+    if (typeof window === "undefined") return true
     try {
-      const stored = localStorage.getItem(SIDEBAR_KEY)
-      if (stored === "false") setIsOpen(false)
+      return localStorage.getItem(SIDEBAR_KEY) !== "false"
     } catch {
-      // Ignore
+      return true
     }
-  }, [])
+  })
 
   const toggle = React.useCallback(() => {
     setIsOpen((prev) => {
