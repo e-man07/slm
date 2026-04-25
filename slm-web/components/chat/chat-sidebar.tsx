@@ -42,7 +42,6 @@ function relativeTime(dateStr: string): string {
   return `${months}mo`
 }
 
-const SIDEBAR_KEY = "slm-sidebar-open-v2"
 const SIDEBAR_WIDTH = 260
 
 interface ChatSidebarProps {
@@ -55,28 +54,16 @@ interface ChatSidebarProps {
 }
 
 export function useSidebarState() {
-  // Lazy initializer reads localStorage before first render to avoid the
-  // open→closed flash for returning users who explicitly closed the sidebar.
-  const [isOpen, setIsOpen] = React.useState(() => {
-    if (typeof window === "undefined") return true
-    try {
-      return localStorage.getItem(SIDEBAR_KEY) !== "false"
-    } catch {
-      return true
-    }
-  })
+  // Sidebar always opens on page load. Closes are only kept for the current
+  // session (no localStorage persistence) so refreshing reopens the sidebar.
+  const [isOpen, setIsOpen] = React.useState(true)
 
   const toggle = React.useCallback(() => {
-    setIsOpen((prev) => {
-      const next = !prev
-      try { localStorage.setItem(SIDEBAR_KEY, String(next)) } catch { /* ignore */ }
-      return next
-    })
+    setIsOpen((prev) => !prev)
   }, [])
 
   const close = React.useCallback(() => {
     setIsOpen(false)
-    try { localStorage.setItem(SIDEBAR_KEY, "false") } catch { /* ignore */ }
   }, [])
 
   return { isOpen, toggle, close, width: SIDEBAR_WIDTH }
