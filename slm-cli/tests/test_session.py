@@ -433,6 +433,18 @@ def test_cached_toolbar_invalidates_on_turn():
     assert t1 is not t2  # Different, recomputed
 
 
+def test_cached_toolbar_invalidates_on_agent_mode():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    t1 = s._cached_toolbar()
+    s.agent_mode = True
+    t2 = s._cached_toolbar()
+    assert t1 is not t2  # Different, recomputed
+    assert "agent" in t2.value
+
+
 def test_cached_toolbar_invalidates_on_tokens():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
@@ -457,14 +469,17 @@ def test_error_queued_as_toast():
     assert ("error", "fail") in s._pending_toasts
 
 
-def test_chat_error_queued_as_toast():
+def test_chat_error_shown_immediately():
+    """Chat errors now print immediately, not as toast."""
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
     client.last_finish_reason = None
     s = Session(client)
     with patch("sealevel_cli.session.stream_with_spinner", side_effect=SealevelError("offline")):
-        s._handle_chat("test")
-    assert ("error", "offline") in s._pending_toasts
+        with patch("sealevel_cli.session.print_error") as mock_err:
+            s._handle_chat("test")
+            mock_err.assert_called_once()
+    assert len(s._pending_toasts) == 0
 
 
 # --- Undo ---
@@ -787,6 +802,51 @@ def test_from_server_skips_malformed_messages():
 
 
 # --- Fix #13: Health check is non-blocking ---
+
+
+# --- /retry ---
+
+
+def test_retry_last_turn():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    s.history = [
+        {"role": "user", "content": "original question"},
+        {"role": "assistant", "content": "bad answer"},
+    ]
+    s.turns = 1
+    with patch("sealevel_cli.session.stream_with_spinner", return_value="better answer"):
+        s._retry_last_turn()
+    assert len(s.history) == 2
+    assert s.history[1]["content"] == "better answer"
+
+
+def test_retry_empty_history():
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    s._retry_last_turn()  # Should not crash
+    assert s.history == []
+
+
+# --- Chat errors show immediately ---
+
+
+def test_chat_error_shows_immediately():
+    """API errors during chat should print immediately, not as toast."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    with patch("sealevel_cli.session.stream_with_spinner", side_effect=SealevelError("offline")):
+        with patch("sealevel_cli.session.print_error") as mock_err:
+            s._handle_chat("test")
+            mock_err.assert_called_once()
+            assert "offline" in mock_err.call_args[0][0]
+    assert len(s._pending_toasts) == 0  # NOT in toasts
 
 
 def test_startup_health_check_does_not_block():

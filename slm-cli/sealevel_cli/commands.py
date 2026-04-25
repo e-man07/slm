@@ -173,8 +173,8 @@ def cmd_gen(args: list[str], session: "Session") -> CommandResult | None:
         print_info("Usage: /gen <description> [-o file]")
         return None
 
-    from sealevel_cli.display import print_info, console
-    print_info(description)
+    from sealevel_cli.display import print_file_info, console
+    print_file_info("generating", description)
     console.print()
 
     prompt = GEN_PROMPT.format(description=description)
@@ -595,6 +595,18 @@ def cmd_help(args: list[str], session: "Session") -> CommandResult | None:
     return None
 
 
+def cmd_agent(args: list[str], session: "Session") -> CommandResult | None:
+    from sealevel_cli.display import print_success, print_info
+    session.agent_mode = not session.agent_mode
+    if session.agent_mode:
+        print_success("Agent mode ON")
+        print_info("  The model can now read, edit, and create files, and run commands.")
+        print_info("  It will ask permission before writing or executing. Use /agent to turn off.")
+    else:
+        print_info("Agent mode OFF — plain chat")
+    return None
+
+
 def cmd_login(args: list[str], session: "Session") -> CommandResult | None:
     from sealevel_cli.display import print_success, print_info
     if session.client.api_key:
@@ -642,6 +654,7 @@ def build_command_registry() -> dict[str, SlashCommand]:
         SlashCommand("/history", cmd_history, "Show input history", "/history", adds_to_history=False),
         SlashCommand("/search", cmd_search, "Search conversation history", "/search <query>", adds_to_history=False),
         SlashCommand("/clear", cmd_clear, "Clear conversation history", "/clear", adds_to_history=False),
+        SlashCommand("/agent", cmd_agent, "Toggle agent mode (file/command tools)", "/agent", adds_to_history=False),
         SlashCommand("/login", cmd_login, "Authenticate via browser", "/login", adds_to_history=False),
         SlashCommand("/help", cmd_help, "Show available commands", "/help", adds_to_history=False),
         SlashCommand("/exit", cmd_exit, "Exit the session", "/exit", adds_to_history=False),

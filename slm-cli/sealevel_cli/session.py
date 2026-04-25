@@ -81,6 +81,7 @@ class Session:
         self._toolbar_cache = None
         self._toolbar_cache_key = None
         self._context_warned = False
+        self.agent_mode = False
 
     def run(self) -> None:
         """Main REPL loop."""
@@ -122,6 +123,10 @@ class Session:
                 self._undo_last_turn()
                 continue
 
+            if line == "/retry":
+                self._retry_last_turn()
+                continue
+
             if line == "/":
                 self._dispatch_command("/help")
             elif line.startswith("/"):
@@ -133,6 +138,8 @@ class Session:
             elif line in self._bare_command_names():
                 print_info(f"Tip: use /{line}")
                 self._dispatch_command(f"/{line}")
+            elif self.agent_mode:
+                self._handle_agent_chat(line)
             else:
                 self._handle_chat(line)
 
@@ -146,7 +153,7 @@ class Session:
 
     def _cached_toolbar(self):
         """Return cached toolbar HTML, recompute only when state changes."""
-        key = (self.turns, self.total_tokens, self.session_id)
+        key = (self.turns, self.total_tokens, self.session_id, self.agent_mode)
         if self._toolbar_cache_key != key:
             self._toolbar_cache = make_bottom_toolbar(self)
             self._toolbar_cache_key = key
@@ -271,10 +278,33 @@ class Session:
             print_response_separator()
         except SealevelError as e:
             self.history.pop()
-            self._pending_toasts.append(("error", str(e)))
+            print_error(str(e))
         except KeyboardInterrupt:
             self.history.pop()
             console.print("\n[muted](cancelled)[/muted]")
+
+    def _handle_agent_chat(self, text: str) -> None:
+        """Send text through the agent loop (tool-augmented chat)."""
+        from sealevel_cli.agent import AgentLoop, AGENT_TOOL_PROMPT
+
+        # Expand @file references (same as plain chat)
+        text = self._expand_file_refs(text)
+
+        # Inject agent tool prompt into client's extra context
+        original_extra = self.client.extra_context
+        agent_ctx = (original_extra + "\n\n" if original_extra else "") + AGENT_TOOL_PROMPT
+        self.client.extra_context = agent_ctx
+
+        try:
+            loop = AgentLoop()
+            loop.run(text, self)
+            # Persist the collapsed history (added by AgentLoop.run)
+            if len(self.history) >= 2:
+                self._save_message("user", self.history[-2]["content"])
+                self._save_message("assistant", self.history[-1]["content"])
+        finally:
+            # Restore original extra context
+            self.client.extra_context = original_extra
 
     def stream_response(self, prompt: str, label: bool = True, render_md: bool = True) -> str | None:
         """Stream a chat response for a slash command."""
@@ -349,6 +379,25 @@ class Session:
             print_success("Undid last turn.")
         else:
             print_info("Nothing to undo.")
+
+    def _retry_last_turn(self) -> None:
+        """Undo last turn and re-send the user message."""
+        if (
+            len(self.history) >= 2
+            and self.history[-1]["role"] == "assistant"
+            and self.history[-2]["role"] == "user"
+        ):
+            last_user_msg = self.history[-2]["content"]
+            self.history.pop()  # assistant
+            self.history.pop()  # user
+            self.turns = max(0, self.turns - 1)
+            print_info(f"Retrying: {last_user_msg[:60]}...")
+            if self.agent_mode:
+                self._handle_agent_chat(last_user_msg)
+            else:
+                self._handle_chat(last_user_msg)
+        else:
+            print_info("Nothing to retry.")
 
     @classmethod
     def from_server(cls, client: SealevelClient, session_id: str) -> "Session":

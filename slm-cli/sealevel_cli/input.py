@@ -21,7 +21,7 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import HTML
-from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.styles import Style
@@ -72,6 +72,28 @@ class SlashCommandCompleter(Completer):
                             yield Completion(
                                 f"@{name}",
                                 start_position=-len(last_word),
+                                display=display_name,
+                            )
+                except (OSError, ValueError):
+                    pass
+                return
+
+        # File path completion for commands that expect files (e.g., /review src/li...)
+        if words and len(words) >= 2:
+            cmd_name = words[0]
+            cmd = self.commands.get(cmd_name)
+            if cmd and cmd.expects_file:
+                partial = last_word
+                dir_path = os.path.dirname(partial) or "."
+                prefix = os.path.basename(partial)
+                try:
+                    for entry in sorted(Path(dir_path).iterdir()):
+                        name = str(entry.relative_to(".")) if dir_path == "." else str(entry)
+                        if entry.name.startswith(prefix):
+                            display_name = entry.name + ("/" if entry.is_dir() else "")
+                            yield Completion(
+                                name,
+                                start_position=-len(partial),
                                 display=display_name,
                             )
                 except (OSError, ValueError):
@@ -164,8 +186,11 @@ def make_bottom_toolbar(session) -> HTML:
     """Build the bottom toolbar text for prompt_toolkit."""
     parts = []
 
-    # Model
-    parts.append('<key>slm-8b</key>')
+    # Model + agent indicator
+    model = '<key>slm-8b</key>'
+    if getattr(session, 'agent_mode', False):
+        model += ' <key>agent</key>'
+    parts.append(model)
 
     # Turns
     if session.turns > 0:
@@ -211,23 +236,8 @@ def create_key_bindings() -> KeyBindings:
         else:
             buf.insert_text("/")
 
-    # Keep completion menu open while typing after /
-    # Bind all printable characters to re-trigger completion when in slash mode
-    import string
-    for char in string.ascii_lowercase + string.ascii_uppercase + string.digits + "-_":
-        @kb.add(char, eager=True)
-        def _char_handler(event, c=char):
-            buf = event.current_buffer
-            buf.insert_text(c)
-            if buf.text.startswith("/"):
-                buf.start_completion()
-
-    @kb.add("c-h", eager=True)  # Backspace
-    def _backspace_handler(event):
-        buf = event.current_buffer
-        buf.delete_before_cursor()
-        if buf.text.startswith("/"):
-            buf.start_completion()
+    # Note: completion stays open via complete_while_typing=True on PromptSession.
+    # No need to bind every printable character — prompt_toolkit handles it natively.
 
     return kb
 
@@ -243,6 +253,14 @@ def create_prompt_session(
     auto_suggest = SealevelAutoSuggest(history_ref=history_ref)
     kb = create_key_bindings()
 
+    # Persistent input history across sessions
+    history_path = Path.home() / ".sealevel" / "prompt_history"
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        history = FileHistory(str(history_path))
+    except OSError:
+        history = InMemoryHistory()
+
     return PromptSession(
         completer=completer,
         auto_suggest=auto_suggest,
@@ -252,5 +270,5 @@ def create_prompt_session(
         complete_while_typing=True,
         complete_in_thread=True,
         enable_history_search=True,
-        history=InMemoryHistory(),
+        history=history,
     )

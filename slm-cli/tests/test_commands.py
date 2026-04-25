@@ -38,7 +38,7 @@ def test_registry_has_all_commands():
                 "/explain-error", "/status", "/usage", "/copy",
                 "/sessions", "/resume", "/rename", "/rotate-key",
                 "/compact", "/export", "/history",
-                "/search", "/config", "/clear", "/login", "/help", "/exit"]
+                "/search", "/config", "/clear", "/agent", "/login", "/help", "/exit"]
     for name in expected:
         assert name in cmds
     assert len(cmds) == len(expected)
@@ -1058,3 +1058,22 @@ def test_registry_has_login():
     cmds = build_command_registry()
     assert "/login" in cmds
     assert cmds["/login"].adds_to_history is False
+
+
+# --- /agent ---
+
+
+def test_cmd_agent_toggles():
+    from sealevel_cli.commands import cmd_agent
+    session = MagicMock()
+    session.agent_mode = False
+    cmd_agent([], session)
+    assert session.agent_mode is True
+    cmd_agent([], session)
+    assert session.agent_mode is False
+
+
+def test_registry_has_agent():
+    cmds = build_command_registry()
+    assert "/agent" in cmds
+    assert cmds["/agent"].adds_to_history is False

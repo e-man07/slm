@@ -250,8 +250,8 @@ class SealevelClient:
                 ) as response:
                     if response.status_code == 401:
                         raise SealevelAuthError(
-                            "Authentication required. Run: slm config --api-key <your-key>\n"
-                            "Get your API key at https://sealevel.tech/dashboard"
+                            "Authentication required. Run: /login or slm login\n"
+                            "Or set key: /config --api-key slm_xxx"
                         )
                     if response.status_code == 429:
                         if attempt < MAX_RETRIES - 1:

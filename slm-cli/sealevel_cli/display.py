@@ -417,7 +417,7 @@ def print_repl_timing(elapsed: float, tokens: int | None = None) -> None:
     else:
         time_str = f"{elapsed * 1000:.0f}ms"
     msg = Text()
-    msg.append(f"  {time_str}", style="muted")
+    msg.append(time_str, style="muted")
     if tokens:
         msg.append(f"  ·  {tokens:,} tokens", style="muted")
     console.print(msg)
@@ -428,25 +428,15 @@ def print_repl_timing(elapsed: float, tokens: int | None = None) -> None:
 # ── Session header ──
 
 def print_session_header() -> None:
-    """Print the branded session welcome with logo, like Claude Code's welcome screen."""
+    """Print compact branded session header."""
     console.print()
-    # Logo in accent color
-    for line in LOGO:
-        console.print(Text(line, style="accent"))
-
-    # Brand info next to logo area
     brand = Text()
-    brand.append("  Sealevel", style="bold")
+    brand.append("◆ ", style="accent")
+    brand.append("Sealevel", style="bold")
     brand.append(f"  v{__version__}", style="muted")
+    brand.append("  ·  ", style="border")
+    brand.append("sealevel.tech", style="value")
     console.print(brand)
-
-    info = Text()
-    info.append("  slm-8b", style="muted")
-    info.append("  ·  ", style="border")
-    info.append("sealevel.tech", style="value")
-    console.print(info)
-
-    console.print()
     console.print(Rule(style="border"))
 
     hints = Text()
@@ -455,29 +445,42 @@ def print_session_header() -> None:
     hints.append("/", style="value")
     hints.append(" commands", style="muted")
     hints.append("  │  ", style="border")
-    hints.append("Ctrl+O", style="value")
-    hints.append(" search", style="muted")
+    hints.append("/agent", style="value")
+    hints.append(" tools", style="muted")
     hints.append("  │  ", style="border")
-    hints.append("Esc Esc", style="value")
-    hints.append(" undo", style="muted")
+    hints.append("/retry", style="value")
+    hints.append(" redo", style="muted")
     console.print(hints)
     console.print()
 
 
 def print_command_help(commands: dict) -> None:
-    """Print a styled table of all slash commands."""
+    """Print grouped slash command help."""
+    # Group commands by category
+    groups = {
+        "Code": ["/review", "/migrate", "/gen", "/tests"],
+        "Explain": ["/explain-tx", "/explain-error"],
+        "Session": ["/sessions", "/resume", "/rename", "/history", "/search", "/compact", "/export", "/clear"],
+        "Info": ["/status", "/usage", "/copy"],
+        "System": ["/agent", "/login", "/config", "/rotate-key", "/help", "/exit"],
+    }
+
     table = Table(
-        show_header=True,
-        header_style="label",
+        show_header=False,
         box=None,
         padding=(0, 2),
         show_edge=False,
     )
-    table.add_column("COMMAND", style="accent", no_wrap=True, width=18)
-    table.add_column("DESCRIPTION", style="muted")
+    table.add_column(style="accent", no_wrap=True, width=22)
+    table.add_column(style="muted")
 
-    for cmd in commands.values():
-        table.add_row(cmd.usage, cmd.help_text)
+    for group_name, cmd_names in groups.items():
+        table.add_row(Text(group_name.upper(), style="label"), Text())
+        for name in cmd_names:
+            cmd = commands.get(name)
+            if cmd:
+                table.add_row(f"  {cmd.usage}", cmd.help_text)
+        table.add_row("", "")  # Spacer
 
     panel = Panel(
         table,
@@ -532,7 +535,7 @@ def print_status_table(health, config: dict[str, str], api_key: str | None) -> N
     table.add_row("STATUS", status_text)
 
     panel = Panel(table, title=Text(" STATUS ", style="label"), border_style="border", padding=(1, 2))
-    print_header("STATUS")
+    console.print()
     console.print(panel)
 
 
@@ -572,7 +575,7 @@ def print_usage_table(usage) -> None:
             table.add_row("", Text(f"  {endpoint}  ·  {reqs} requests", style="muted"))
 
     panel = Panel(table, title=Text(" USAGE ", style="label"), border_style="border", padding=(1, 2))
-    print_header("USAGE")
+    console.print()
     console.print(panel)
 
 

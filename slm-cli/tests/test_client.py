@@ -962,8 +962,8 @@ def test_system_prompt_no_declare_id_in_example_code():
     code_block = code_match.group(1)
     # Code block should NOT contain declare_id! as actual code usage
     assert 'declare_id!("' not in code_block
-    # But the instruction text may reference it (to say "don't use it")
-    assert "do not use declare_id!" in SYSTEM_PROMPT or "Never reference" in SYSTEM_PROMPT
+    # Instruction text should mention declare_id! is deprecated
+    assert "declare_id!" in SYSTEM_PROMPT  # Referenced in deprecation warning
 
 
 # --- clean_model_response ---

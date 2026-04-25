@@ -296,6 +296,39 @@ def test_completer_at_file_no_dir():
 # --- SUGGESTED_PROMPTS ---
 
 
+def test_completer_file_arg_for_review():
+    """File path completion should work for /review <partial-path>."""
+    import tempfile, os
+    cmds = build_command_registry()
+    completer = SlashCommandCompleter(cmds)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_file = os.path.join(tmpdir, "lib.rs")
+        with open(test_file, "w") as f:
+            f.write("fn main() {}")
+
+        doc = MagicMock()
+        doc.text_before_cursor = f"/review {tmpdir}/l"
+        doc.text = doc.text_before_cursor
+
+        completions = list(completer.get_completions(doc, MagicMock()))
+        assert len(completions) >= 1
+        assert any("lib.rs" in str(c.display) for c in completions)
+
+
+def test_completer_no_file_arg_for_non_file_commands():
+    """Commands that don't expect files should not offer file completion."""
+    cmds = build_command_registry()
+    completer = SlashCommandCompleter(cmds)
+
+    doc = MagicMock()
+    doc.text_before_cursor = "/status foo"
+    doc.text = doc.text_before_cursor
+
+    completions = list(completer.get_completions(doc, MagicMock()))
+    assert completions == []
+
+
 def test_suggested_prompts_not_empty():
     assert len(SUGGESTED_PROMPTS) > 0
     for p in SUGGESTED_PROMPTS:
