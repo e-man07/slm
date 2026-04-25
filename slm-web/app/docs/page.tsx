@@ -28,6 +28,9 @@ export default function DocsPage() {
           display: "grid",
           gridTemplateColumns: "240px 1fr",
           minHeight: "calc(100vh - 57px)",
+          maxWidth: 1200,
+          margin: "0 auto",
+          width: "100%",
         }}
       >
         {/* ── Sidebar ── */}

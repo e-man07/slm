@@ -42,7 +42,7 @@ function relativeTime(dateStr: string): string {
   return `${months}mo`
 }
 
-const SIDEBAR_KEY = "slm-sidebar-open"
+const SIDEBAR_KEY = "slm-sidebar-open-v2"
 const SIDEBAR_WIDTH = 260
 
 interface ChatSidebarProps {
