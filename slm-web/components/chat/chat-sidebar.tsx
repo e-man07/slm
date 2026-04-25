@@ -55,12 +55,12 @@ interface ChatSidebarProps {
 }
 
 export function useSidebarState() {
-  const [isOpen, setIsOpen] = React.useState(false)
+  const [isOpen, setIsOpen] = React.useState(true)
 
   React.useEffect(() => {
     try {
       const stored = localStorage.getItem(SIDEBAR_KEY)
-      if (stored === "true") setIsOpen(true)
+      if (stored === "false") setIsOpen(false)
     } catch {
       // Ignore
     }
