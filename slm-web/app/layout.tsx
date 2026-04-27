@@ -67,7 +67,15 @@ export default async function RootLayout({
         jetbrainsMono.variable,
       )}
     >
+      <head>
+        <meta name="theme-color" content="oklch(0.153 0.006 107.1)" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="oklch(1 0 0)" media="(prefers-color-scheme: light)" />
+        <meta name="color-scheme" content="light dark" />
+      </head>
       <body>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:border focus:border-border">
+          Skip to main content
+        </a>
         <AuthSessionProvider session={session}>
           <ThemeProvider>
             {children}

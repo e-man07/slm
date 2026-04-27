@@ -122,11 +122,11 @@
     }
   body {
     @apply bg-background text-foreground;
-    min-height: 100vh;
+    min-height: 100svh;
     }
   html {
     @apply font-mono;
-    font-size: 14px;
+    font-size: clamp(13px, 0.8rem + 0.15vw, 15px);
     }
   ::selection {
     background: var(--chart-1);

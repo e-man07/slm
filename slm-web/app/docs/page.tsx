@@ -24,21 +24,20 @@ export default function DocsPage() {
       <NavBar />
 
       <div
+        className="mx-auto w-full md:grid"
         style={{
-          display: "grid",
           gridTemplateColumns: "240px 1fr",
-          minHeight: "calc(100vh - 57px)",
+          minHeight: "calc(100svh - 57px)",
           maxWidth: 1200,
-          margin: "0 auto",
-          width: "100%",
         }}
       >
         {/* ── Sidebar ── */}
         <aside
+          className="hidden md:block"
           style={{
             position: "sticky",
             top: 57,
-            height: "calc(100vh - 57px)",
+            height: "calc(100svh - 57px)",
             borderRight: "1px solid var(--border)",
             padding: "40px 24px",
             overflowY: "auto",
@@ -117,8 +116,9 @@ export default function DocsPage() {
 
         {/* ── Main content ── */}
         <main
+          id="main-content"
+          className="px-5 py-10 md:px-14 md:py-14 md:pb-24"
           style={{
-            padding: "56px 56px 100px",
             maxWidth: 820,
           }}
         >
@@ -141,25 +141,19 @@ export default function DocsPage() {
 
           {/* Heading */}
           <h1
-            style={{
-              fontSize: 40,
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              lineHeight: 1.1,
-              marginBottom: 12,
-            }}
+            className="text-3xl md:text-[40px] font-bold tracking-[-0.02em] leading-[1.1] mb-3"
           >
             Sealevel Docs.
           </h1>
 
           {/* Subtitle */}
           <p
+            className="mb-8 md:mb-12"
             style={{
               fontSize: 14,
               lineHeight: 1.75,
               color: "var(--muted-foreground)",
               maxWidth: 540,
-              marginBottom: 48,
             }}
           >
             Set up CLI, MCP, or hit the API directly. Guides for every
@@ -215,10 +209,7 @@ export default function DocsPage() {
 
                 {/* Grid of topic cards */}
                 <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: `repeat(${Math.min(section.topics.length, 3)}, 1fr)`,
-                  }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                 >
                   {section.topics.map((item) => {
                     const topicIdx = docTopics.findIndex(
@@ -329,14 +320,8 @@ export default function DocsPage() {
 
           {/* ── Bottom nav ── */}
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 0,
-              marginTop: 56,
-            }}
+            className="mt-10 md:mt-14 flex justify-end"
           >
-            <div />
             <Link
               href={`/docs/${firstTopic.slug}`}
               className="docs-nav-card"

@@ -70,7 +70,7 @@ export default function SignInPage() {
             flex: "1 1 50%",
             background: "var(--card)",
             borderRight: "1px solid var(--border)",
-            padding: "60px 64px",
+            padding: "48px 48px",
           }}
         >
           {/* Top */}
@@ -141,8 +141,7 @@ export default function SignInPage() {
 
         {/* ══ RIGHT COLUMN ══ */}
         <div
-          className="flex flex-1 items-center justify-center"
-          style={{ padding: "60px 64px" }}
+          className="flex flex-1 items-center justify-center px-5 py-10 sm:px-10 lg:px-16 lg:py-16"
         >
           <div style={{ width: "100%", maxWidth: 520 }}>
             {/* Tabs */}
@@ -190,7 +189,7 @@ export default function SignInPage() {
               >
                 <GitHubIcon />
                 <span className="flex-1 text-left">
-                  {loading === "github" ? "Redirecting..." : "Continue with GitHub"}
+                  {loading === "github" ? "Redirecting\u2026" : "Continue with GitHub"}
                 </span>
                 <span
                   style={{
@@ -215,7 +214,7 @@ export default function SignInPage() {
               >
                 <GoogleIcon />
                 <span className="flex-1 text-left">
-                  {loading === "google" ? "Redirecting..." : "Continue with Google"}
+                  {loading === "google" ? "Redirecting\u2026" : "Continue with Google"}
                 </span>
                 <span
                   style={{

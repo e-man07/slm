@@ -26,20 +26,20 @@ export function Footer({ className }: FooterProps) {
             href="https://github.com/kshitij-hash/slm"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-foreground"
+            className="px-1.5 py-2 transition-colors hover:text-foreground"
           >
             github
           </a>
           <span className="opacity-40">/</span>
-          <Link href="/docs" className="transition-colors hover:text-foreground">
+          <Link href="/docs" className="px-1.5 py-2 transition-colors hover:text-foreground">
             docs
           </Link>
           <span className="opacity-40">/</span>
-          <Link href="/eval" className="transition-colors hover:text-foreground">
+          <Link href="/eval" className="px-1.5 py-2 transition-colors hover:text-foreground">
             dataset card
           </Link>
           <span className="opacity-40">/</span>
-          <Link href="/eval" className="transition-colors hover:text-foreground">
+          <Link href="/eval" className="px-1.5 py-2 transition-colors hover:text-foreground">
             model card
           </Link>
         </div>

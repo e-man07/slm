@@ -42,7 +42,7 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="grid size-9 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted" aria-label="Account">
+        <button className="grid size-11 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted sm:size-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Account">
           <Avatar className="size-6">
             {user.image ? <AvatarImage src={user.image} alt={user.name ?? ""} /> : null}
             <AvatarFallback className="text-[9px]">{initials || "U"}</AvatarFallback>

@@ -57,35 +57,47 @@ export function ErrorCodeInput({
         className="border bg-card"
         style={{ borderColor: "var(--slm-border-strong)" }}
       >
-        <div className="flex items-center gap-2 px-3.5 py-1.5">
-          <span className="font-semibold slm-accent">$</span>
-          <input
-            value={errorCode}
-            onChange={(e) => { setErrorCode(e.target.value); setError("") }}
-            onKeyDown={handleKeyDown}
-            placeholder="Error code (0x7D0 or 2000)"
-            className="flex-1 bg-transparent border-0 outline-none text-[13px] py-2.5 px-1.5 placeholder:text-muted-foreground"
-            disabled={isLoading}
-          />
-          <input
-            value={programId}
-            onChange={(e) => setProgramId(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Program ID (optional)"
-            className="flex-1 bg-transparent border-0 border-l border-border outline-none text-[13px] py-2.5 px-3 placeholder:text-muted-foreground"
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSubmit}
-            disabled={isLoading || !errorCode.trim()}
-            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium tracking-[0.02em] transition-all disabled:opacity-50"
-            style={{
-              background: "var(--slm-accent)",
-              color: "oklch(0.153 0.006 107.1)",
-            }}
-          >
-            Decode <span>&rarr;</span>
-          </button>
+        <div className="flex flex-col gap-0 sm:flex-row sm:items-center sm:gap-2 px-3.5 py-1.5">
+          <div className="flex flex-1 items-center gap-2">
+            <span className="font-semibold slm-accent">$</span>
+            <input
+              value={errorCode}
+              onChange={(e) => { setErrorCode(e.target.value); setError("") }}
+              onKeyDown={handleKeyDown}
+              placeholder="Error code (0x7D0 or 2000)"
+              aria-label="Error code"
+              name="errorCode"
+              autoComplete="off"
+              spellCheck={false}
+              className="flex-1 bg-transparent border-0 outline-none focus-visible:outline-none text-[13px] py-2.5 px-1.5 placeholder:text-muted-foreground"
+              disabled={isLoading}
+            />
+          </div>
+          <div className="flex flex-1 items-center gap-2 border-t border-border sm:border-t-0 sm:border-l">
+            <input
+              value={programId}
+              onChange={(e) => setProgramId(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Program ID (optional)"
+              aria-label="Program ID"
+              name="programId"
+              autoComplete="off"
+              spellCheck={false}
+              className="flex-1 bg-transparent border-0 outline-none focus-visible:outline-none text-[13px] py-2.5 px-3 placeholder:text-muted-foreground"
+              disabled={isLoading}
+            />
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading || !errorCode.trim()}
+              className="inline-flex shrink-0 items-center gap-2 px-3 py-2 text-xs font-medium tracking-[0.02em] transition-all disabled:opacity-50"
+              style={{
+                background: "var(--slm-accent)",
+                color: "oklch(0.153 0.006 107.1)",
+              }}
+            >
+              Decode <span>&rarr;</span>
+            </button>
+          </div>
         </div>
         <div className="flex items-center justify-between border-t border-border px-3.5 py-2 text-[11px] text-muted-foreground">
           <span>hex or decimal</span>

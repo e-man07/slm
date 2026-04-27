@@ -31,20 +31,20 @@ export function ErrorResult({
           </div>
           <div className="p-5">
             <div className="space-y-0">
-              <div className="flex justify-between items-baseline py-2.5 border-b border-dashed border-border text-xs">
-                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Program</span>
-                <span className="font-medium">{lookupResult.program_name}</span>
+              <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2.5 border-b border-dashed border-border text-xs">
+                <span className="shrink-0 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Program</span>
+                <span className="font-medium break-all">{lookupResult.program_name}</span>
               </div>
-              <div className="flex justify-between items-baseline py-2.5 border-b border-dashed border-border text-xs">
-                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Error</span>
-                <span className="font-medium">{lookupResult.error_name}</span>
+              <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2.5 border-b border-dashed border-border text-xs">
+                <span className="shrink-0 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Error</span>
+                <span className="font-medium break-all">{lookupResult.error_name}</span>
               </div>
-              <div className="flex justify-between items-baseline py-2.5 border-b border-dashed border-border text-xs">
-                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Message</span>
-                <span className="text-muted-foreground">{lookupResult.error_message}</span>
+              <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2.5 border-b border-dashed border-border text-xs">
+                <span className="shrink-0 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Message</span>
+                <span className="text-muted-foreground break-all">{lookupResult.error_message}</span>
               </div>
-              <div className="flex justify-between items-baseline py-2.5 text-xs">
-                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Code</span>
+              <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2.5 text-xs">
+                <span className="shrink-0 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Code</span>
                 <span className="mono-num">{lookupResult.hex} (decimal: {lookupResult.code})</span>
               </div>
             </div>

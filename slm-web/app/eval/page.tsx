@@ -87,24 +87,22 @@ export default function EvalPage() {
 
         {/* ── Hero split ── */}
         <div
-          className="grid"
+          className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr]"
           style={{
-            gridTemplateColumns: "1.2fr 1fr",
             border: "1px solid oklch(0.30 0.02 130)",
           }}
         >
           {/* Left: giant score */}
           <div
-            className="flex flex-col justify-center p-8"
+            className="eval-hero-left flex flex-col justify-center p-5 md:p-8"
             style={{
-              borderRight: "1px solid oklch(0.30 0.02 130)",
+              borderBottom: "1px solid oklch(0.30 0.02 130)",
               background: "oklch(0.13 0.01 130)",
             }}
           >
             <p
-              className="mono-num leading-none font-semibold"
+              className="mono-num leading-none font-semibold text-[clamp(64px,15vw,120px)]"
               style={{
-                fontSize: "120px",
                 color: "var(--slm-accent, oklch(0.89 0.19 128))",
                 fontVariantNumeric: "tabular-nums",
                 letterSpacing: "-0.04em",
@@ -192,9 +190,8 @@ export default function EvalPage() {
           </p>
 
           <div
-            className="grid gap-0"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-0"
             style={{
-              gridTemplateColumns: "1fr 1fr",
               border: "1px solid oklch(0.25 0.02 130)",
             }}
           >
@@ -220,7 +217,7 @@ export default function EvalPage() {
               return (
                 <div
                   key={cat.name}
-                  className="p-5"
+                  className="eval-cat-card p-5"
                   style={{
                     gridColumn: isAdversarial ? "1 / -1" : undefined,
                     borderBottom: "1px solid oklch(0.25 0.02 130)",
@@ -289,6 +286,19 @@ export default function EvalPage() {
 
         <div className="mb-16" />
       </div>
+      <style>{`
+        @media (min-width: 768px) {
+          .eval-hero-left {
+            border-right: 1px solid oklch(0.30 0.02 130) !important;
+            border-bottom: none !important;
+          }
+        }
+        @media (max-width: 639px) {
+          .eval-cat-card {
+            border-right: none !important;
+          }
+        }
+      `}</style>
     </PageLayout>
   )
 }

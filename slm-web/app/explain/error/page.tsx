@@ -83,7 +83,7 @@ export default function ExplainErrorPage() {
         <ErrorCodeInput onSubmit={handleSubmit} isLoading={isLoading || isStreaming} />
 
         {error && (
-          <div className="border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <div role="alert" className="border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}

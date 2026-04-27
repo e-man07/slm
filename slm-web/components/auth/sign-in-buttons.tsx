@@ -50,7 +50,7 @@ export function SignInButtons({ callbackUrl = "/dashboard" }: SignInButtonsProps
         className="w-full justify-start gap-3 h-11"
       >
         <GitHubIcon />
-        <span>{loading === "github" ? "Redirecting..." : "Continue with GitHub"}</span>
+        <span>{loading === "github" ? "Redirecting\u2026" : "Continue with GitHub"}</span>
       </Button>
 
       <Button
@@ -60,7 +60,7 @@ export function SignInButtons({ callbackUrl = "/dashboard" }: SignInButtonsProps
         className="w-full justify-start gap-3 h-11"
       >
         <GoogleIcon />
-        <span>{loading === "google" ? "Redirecting..." : "Continue with Google"}</span>
+        <span>{loading === "google" ? "Redirecting\u2026" : "Continue with Google"}</span>
       </Button>
     </div>
   )

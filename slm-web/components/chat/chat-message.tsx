@@ -71,7 +71,7 @@ function FeedbackButtons({
             : "text-muted-foreground hover:text-foreground",
         )}
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-6 0v4M5 11h4l-1 9h8l-1-9h4l-5-7h-4l-5 7z" /></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-6 0v4M5 11h4l-1 9h8l-1-9h4l-5-7h-4l-5 7z" /></svg>
       </button>
       <button
         aria-label="Thumbs down"
@@ -84,7 +84,7 @@ function FeedbackButtons({
             : "text-muted-foreground hover:text-foreground",
         )}
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 15v4a3 3 0 0 0 6 0v-4m5-2h-4l1-9H10l1 9H7l5 7h4l5-7z" /></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M10 15v4a3 3 0 0 0 6 0v-4m5-2h-4l1-9H10l1 9H7l5 7h4l5-7z" /></svg>
       </button>
     </div>
   )

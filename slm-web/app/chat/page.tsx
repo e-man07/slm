@@ -126,10 +126,10 @@ function ChatPageInner() {
               {!sidebar.isOpen && (
                 <button
                   onClick={sidebar.toggle}
-                  className="grid size-8 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
+                  className="grid size-10 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
                   aria-label="Open sidebar"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                     <path d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
@@ -147,17 +147,17 @@ function ChatPageInner() {
           </div>
 
           {/* Messages area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-8">
             {isEmpty ? (
-              <div className="flex h-full items-center justify-center px-10">
+              <div className="flex h-full items-center justify-center px-4 sm:px-10">
                 <div className="max-w-[720px] w-full">
                   <div className="text-[11px] tracking-[0.14em] slm-accent mb-3">
                     SEALEVEL / READY / TYPE TO START
                   </div>
-                  <h2 className="text-[40px] font-bold tracking-[-0.02em] leading-[1.1] max-w-[16ch]">
+                  <h1 className="text-[clamp(24px,6vw,40px)] font-bold tracking-[-0.02em] leading-[1.1] max-w-[16ch]">
                     Ask anything about{" "}
                     <span className="text-muted-foreground">Solana &amp; Anchor</span>.
-                  </h2>
+                  </h1>
                   <p className="mt-3 text-[13px] text-muted-foreground">
                     Uses the model fine-tuned on 270K Solana records. Streams responses, cites docs, suggests fixes.{" "}
                     <span className="kbd">&thinsp;&#x2318;K&thinsp;</span> to focus.
@@ -167,13 +167,13 @@ function ChatPageInner() {
                       <button
                         key={p.text}
                         onClick={() => sendMessage(p.text)}
-                        className="group flex items-center justify-between gap-3 border-b border-r border-border p-4 text-left transition-colors hover:bg-muted"
+                        className="group flex items-center justify-between gap-3 border-b border-r border-border p-4 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                       >
                         <div>
                           <div className="text-[10px] tracking-[0.12em] text-muted-foreground">{p.cat}</div>
                           <div className="mt-1 text-[13px]">{p.text}</div>
                         </div>
-                        <span className="text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-[var(--slm-accent)]">&rarr;</span>
+                        <span className="text-muted-foreground transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-[var(--slm-accent)]">&rarr;</span>
                       </button>
                     ))}
                   </div>
@@ -204,7 +204,7 @@ function ChatPageInner() {
 
           {/* Error display */}
           {error && (
-            <div className="border-t border-destructive/20 bg-destructive/5 px-4 py-2 text-center text-sm text-destructive">
+            <div role="alert" className="border-t border-destructive/20 bg-destructive/5 px-4 py-2 text-center text-sm text-destructive">
               {error}
             </div>
           )}

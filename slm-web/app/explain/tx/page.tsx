@@ -183,9 +183,13 @@ export default function ExplainTxPage() {
                 setInputError("")
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Paste a Solana transaction signature..."
+              placeholder="Paste a Solana transaction signature\u2026"
+              aria-label="Transaction signature"
+              name="signature"
+              autoComplete="off"
+              spellCheck={false}
               disabled={busy}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:opacity-30"
+              className="flex-1 bg-transparent text-sm outline-none focus-visible:outline-none placeholder:opacity-30"
               style={{
                 color: "oklch(0.85 0.02 130)",
                 fontFamily: "inherit",
@@ -194,7 +198,7 @@ export default function ExplainTxPage() {
             <button
               onClick={() => handleSubmit()}
               disabled={busy || !value.trim()}
-              className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-opacity disabled:opacity-30"
+              className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition-opacity disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               style={{
                 background: "var(--slm-accent, oklch(0.89 0.19 128))",
                 color: "oklch(0.13 0.02 130)",
@@ -206,7 +210,7 @@ export default function ExplainTxPage() {
 
           {/* Bottom bar */}
           <div
-            className="flex items-center justify-between px-5 py-2 text-[10px]"
+            className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-[10px] sm:px-5"
             style={{
               borderTop: "1px solid oklch(0.22 0.01 130)",
               color: "oklch(0.40 0.02 130)",
@@ -287,16 +291,15 @@ export default function ExplainTxPage() {
         {/* ── Result split ── */}
         {(txData || explanation || isStreaming) && (
           <div
-            className="mt-8 grid"
+            className="mt-8 grid grid-cols-1 md:grid-cols-[1fr_1.4fr]"
             style={{
-              gridTemplateColumns: "1fr 1.4fr",
               border: "1px solid oklch(0.30 0.02 130)",
             }}
           >
             {/* Left: tx details */}
             <div
-              className="p-6"
-              style={{ borderRight: "1px solid oklch(0.30 0.02 130)" }}
+              className="tx-result-left p-4 md:p-6"
+              style={{ borderBottom: "1px solid oklch(0.30 0.02 130)" }}
             >
               {txData && (
                 <>
@@ -365,7 +368,7 @@ export default function ExplainTxPage() {
             </div>
 
             {/* Right: AI explanation */}
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <div className="flex items-center justify-between">
                 <span
                   className="text-[11px] uppercase tracking-[0.14em]"
@@ -530,6 +533,14 @@ export default function ExplainTxPage() {
           </div>
         )}
       </div>
+      <style>{`
+        @media (min-width: 768px) {
+          .tx-result-left {
+            border-right: 1px solid oklch(0.30 0.02 130) !important;
+            border-bottom: none !important;
+          }
+        }
+      `}</style>
     </PageLayout>
   )
 }

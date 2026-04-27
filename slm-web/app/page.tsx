@@ -53,7 +53,7 @@ export default function Page() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/chat"
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium tracking-[0.02em] transition-all hover:opacity-90"
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium tracking-[0.02em] transition-opacity hover:opacity-90"
                 style={{
                   background: "var(--slm-accent)",
                   color: "oklch(0.153 0.006 107.1)",
@@ -62,7 +62,7 @@ export default function Page() {
               >
                 Try it now <span>&rarr;</span>
               </Link>
-              <span className="inline-flex items-center gap-2 border border-[var(--slm-border-strong)] px-4 py-2.5 text-[13px] font-medium tracking-[0.02em] text-foreground transition-all hover:border-foreground hover:bg-muted">
+              <span className="inline-flex items-center gap-2 border border-[var(--slm-border-strong)] px-4 py-2.5 text-[13px] font-medium tracking-[0.02em] text-foreground transition-colors hover:border-foreground hover:bg-muted">
                 $ pip install slm-cli
               </span>
             </div>
@@ -144,9 +144,9 @@ export default function Page() {
               className="group relative border-b border-r border-t border-border p-6 transition-colors hover:bg-muted"
             >
               <div className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground">{s.idx}</div>
-              <h3 className="mt-4 text-lg font-bold tracking-[-0.01em]">{s.title}</h3>
+              <h2 className="mt-4 text-lg font-bold tracking-[-0.01em]">{s.title}</h2>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{s.desc}</p>
-              <span className="absolute right-6 top-7 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--slm-accent)]">{"\u2197"}</span>
+              <span className="absolute right-6 top-7 text-muted-foreground transition-[color,transform] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--slm-accent)]">{"\u2197"}</span>
             </Link>
           ))}
         </div>
@@ -163,7 +163,7 @@ export default function Page() {
         <div className="grid items-start gap-16 md:grid-cols-[1fr_1.4fr]">
           <div className="border border-border p-6">
             <div className="eyebrow" style={{ color: "var(--muted-foreground)" }}>Overall score</div>
-            <div className="mono-num text-[84px] font-bold leading-none tracking-[-0.04em] slm-accent">
+            <div className="mono-num text-[clamp(48px,12vw,84px)] font-bold leading-none tracking-[-0.04em] slm-accent">
               91<span className="text-4xl text-muted-foreground">%</span>
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
@@ -178,7 +178,8 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="grid gap-px bg-border">
+          <div className="overflow-x-auto">
+            <div className="grid gap-px bg-border min-w-[520px]">
             {BENCH_ROWS.map((row, i) => (
               <div
                 key={row.name}
@@ -192,6 +193,7 @@ export default function Page() {
                 <span className="mono-num text-right font-semibold">{row.pct}%</span>
               </div>
             ))}
+          </div>
           </div>
         </div>
       </section>

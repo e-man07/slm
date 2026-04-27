@@ -236,7 +236,7 @@ export default function DashboardPage() {
                 style={{ fontSize: 12, padding: "6px 10px", border: "1px solid var(--border)" }}
                 className="text-muted-foreground transition-colors hover:text-foreground hover:bg-muted disabled:opacity-50"
               >
-                {keyLoading ? "..." : "Rotate key"}
+                {keyLoading ? "\u2026" : "Rotate key"}
               </button>
             )}
             <button
@@ -252,7 +252,7 @@ export default function DashboardPage() {
         {/* ── main grid ── */}
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-[2fr_1fr]" style={{ border: "1px solid var(--border)" }}>
           {/* ═══ LEFT COLUMN ═══ */}
-          <div style={{ borderRight: "1px solid var(--border)" }}>
+          <div className="lg:border-r lg:border-border">
 
             {/* ── API Key card ── */}
             <div style={{ borderBottom: "1px solid var(--border)" }}>
@@ -268,14 +268,14 @@ export default function DashboardPage() {
                       <button
                         onClick={() => setShowKey(!showKey)}
                         style={{ fontSize: 10, letterSpacing: "0.08em", padding: "3px 8px", border: "1px solid var(--border)" }}
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {showKey ? "HIDE" : "SHOW"}
                       </button>
                       <button
                         onClick={handleCopy}
                         style={{ fontSize: 10, letterSpacing: "0.08em", padding: "3px 8px", border: "1px solid var(--border)" }}
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {copied ? "COPIED" : "COPY"}
                       </button>
@@ -292,10 +292,10 @@ export default function DashboardPage() {
                     <button
                       onClick={handleGenerateKey}
                       disabled={keyLoading}
-                      className="disabled:opacity-50"
+                      className="disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       style={{ fontSize: 13, padding: "10px 20px", background: "var(--slm-accent)", color: "oklch(0.153 0.006 107.1)", fontWeight: 600 }}
                     >
-                      {keyLoading ? "Generating..." : "Generate API Key"}
+                      {keyLoading ? "Generating\u2026" : "Generate API Key"}
                     </button>
                   </div>
                 )}
@@ -307,7 +307,7 @@ export default function DashboardPage() {
               <CardHead title="Usage &middot; last 7 days" right="tokens/day" />
               <div style={{ padding: 20 }}>
                 {usageLoading ? (
-                  <div style={{ height: 100 }} className="flex items-center justify-center text-xs text-muted-foreground">Loading...</div>
+                  <div style={{ height: 100 }} className="flex items-center justify-center text-xs text-muted-foreground">Loading\u2026</div>
                 ) : days.length === 0 ? (
                   <div style={{ height: 100 }} className="flex items-center justify-center text-xs text-muted-foreground">No usage yet</div>
                 ) : (
@@ -335,14 +335,14 @@ export default function DashboardPage() {
                   </>
                 )}
                 {/* Stats row */}
-                <div className="mt-4 grid grid-cols-4" style={{ border: "1px solid var(--border)" }}>
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 border border-border">
                   {[
                     { value: fmtNum(totalTokens7d), label: "Tokens 7d" },
                     { value: String(totalReqs7d), label: "Requests 7d" },
                     { value: fmtNum(todayTokens), label: "Tokens today" },
                     { value: `${quotaPct}%`, label: "Of quota" },
-                  ].map((s, i) => (
-                    <div key={s.label} style={{ padding: "10px 12px", borderRight: i < 3 ? "1px solid var(--border)" : "none" }}>
+                  ].map((s) => (
+                    <div key={s.label} className="border-b border-r border-border p-3 last:border-r-0 [&:nth-child(2)]:border-r-0 sm:[&:nth-child(2)]:border-r sm:[&:nth-child(3)]:border-b-0 [&:nth-child(3)]:border-b-0 [&:nth-child(4)]:border-b-0">
                       <div className="mono-num font-bold" style={{ fontSize: 16 }}>{s.value}</div>
                       <div style={{ fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted-foreground)", marginTop: 2 }}>{s.label}</div>
                     </div>
@@ -379,11 +379,11 @@ export default function DashboardPage() {
             {/* ── Rate limits card ── */}
             <div>
               <CardHead title="Your limits" right="free plan" />
-              <div className="grid grid-cols-2">
-                <div style={{ borderRight: "1px solid var(--border)" }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2">
+                <div className="border-b border-border sm:border-b-0 sm:border-r">
                   <MeterBar value={todayReqs} max={tierLimits.requestsPerMin * 1440} label="Requests today" />
                   <p style={{ padding: "0 20px 14px", fontSize: 10, color: "var(--muted-foreground)" }}>
-                    Rate limit: {tierLimits.requestsPerMin} req/min ({fmtNum(tierLimits.requestsPerMin * 1440)}/day max)
+                    {tierLimits.requestsPerMin} req/min ({fmtNum(tierLimits.requestsPerMin * 1440)}/day)
                   </p>
                 </div>
                 <div>
@@ -393,7 +393,7 @@ export default function DashboardPage() {
                     label="Tokens today"
                   />
                   <p style={{ padding: "0 20px 14px", fontSize: 10, color: "var(--muted-foreground)" }}>
-                    Limit: {fmtNum(tierLimits.tokensPerDay)} tokens/day
+                    {fmtNum(tierLimits.tokensPerDay)} tokens/day
                   </p>
                 </div>
               </div>

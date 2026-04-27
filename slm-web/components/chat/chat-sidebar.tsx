@@ -88,10 +88,13 @@ export function ChatSidebar({
     <>
       {/* Backdrop — mobile */}
       {isOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={onClose}
-          aria-hidden
+          onKeyDown={(e) => { if (e.key === "Escape") onClose() }}
+          aria-label="Close sidebar"
+          tabIndex={-1}
         />
       )}
 
@@ -99,19 +102,19 @@ export function ChatSidebar({
       <aside
         className={cn(
           "fixed left-0 top-14 z-40 flex h-[calc(100svh-3.5rem)] flex-col border-r border-border bg-background transition-transform duration-200 ease-in-out",
+          "w-[240px] sm:w-[260px]",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
-        style={{ width: SIDEBAR_WIDTH }}
       >
         {/* Sidebar header with collapse button */}
         <div className="flex h-12 items-center justify-between border-b border-border px-4">
           <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Chat History</span>
           <button
             onClick={onClose}
-            className="grid size-7 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
+            className="grid size-9 place-items-center text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
             aria-label="Close sidebar"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
               <path d="M15 4l-8 8 8 8" />
             </svg>
           </button>
@@ -123,7 +126,7 @@ export function ChatSidebar({
             onClick={() => { onNewChat(); if (window.innerWidth < 768) onClose() }}
             className="flex items-center gap-2 border border-border px-3 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground hover:bg-muted"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14" /></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
             New chat
           </button>
 
@@ -149,7 +152,7 @@ export function ChatSidebar({
                 <div
                   key={s.id}
                   className={cn(
-                    "group flex w-full items-center gap-2.5 py-2 px-2.5 -mx-2.5 text-[12.5px] border-l-2 border-transparent transition-all cursor-pointer",
+                    "group flex w-full items-center gap-2.5 py-2 px-2.5 -mx-2.5 text-[12.5px] border-l-2 border-transparent transition-colors",
                     s.id === activeSessionId
                       ? "text-foreground border-l-[var(--slm-accent)]"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted",
@@ -170,7 +173,7 @@ export function ChatSidebar({
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteSession(s.id) }}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+                    className="shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-muted-foreground hover:text-destructive transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     aria-label="Delete chat"
                   >
                     &times;

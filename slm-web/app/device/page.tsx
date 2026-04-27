@@ -133,6 +133,7 @@ export default function DevicePage() {
               </p>
 
               <label
+                htmlFor="device-code"
                 style={{
                   display: "block",
                   fontSize: 10,
@@ -145,25 +146,17 @@ export default function DevicePage() {
                 Device Code
               </label>
               <input
+                id="device-code"
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="XXXX-XXXX"
+                aria-label="Device code"
+                name="deviceCode"
+                autoComplete="one-time-code"
+                spellCheck={false}
                 maxLength={9}
-                className="w-full text-center font-mono text-2xl tracking-[0.2em]"
-                style={{
-                  border: "1px solid var(--border)",
-                  background: "transparent",
-                  padding: "16px",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "var(--slm-accent)"
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--border)"
-                }}
-                autoFocus
+                className="w-full text-center font-mono text-2xl tracking-[0.2em] border border-border bg-transparent p-4 outline-none focus-visible:border-[var(--slm-accent)]"
               />
 
               <button

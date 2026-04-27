@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+import Link from "next/link"
 import { PageLayout } from "@/components/shared/page-layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Breadcrumb } from "@/components/shared/breadcrumb"
@@ -50,7 +51,7 @@ export default async function DocTopicPage({ params }: PageProps) {
                 <ul className="flex flex-col gap-1">
                   {section.topics.map((item) => (
                     <li key={item.slug}>
-                      <a
+                      <Link
                         href={`/docs/${item.slug}`}
                         className={`block rounded-sm px-2 py-1 text-sm transition-colors ${
                           item.slug === slug
@@ -59,7 +60,7 @@ export default async function DocTopicPage({ params }: PageProps) {
                         }`}
                       >
                         {item.label}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -97,7 +98,7 @@ export default async function DocTopicPage({ params }: PageProps) {
           {/* Prev / Next navigation */}
           <div className="mt-8 flex items-center justify-between border-t pt-6">
             {prev ? (
-              <a
+              <Link
                 href={`/docs/${prev.slug}`}
                 className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
@@ -112,12 +113,12 @@ export default async function DocTopicPage({ params }: PageProps) {
                     {prev.label}
                   </span>
                 </span>
-              </a>
+              </Link>
             ) : (
               <div />
             )}
             {next ? (
-              <a
+              <Link
                 href={`/docs/${next.slug}`}
                 className="group flex items-center gap-2 text-right text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
@@ -132,7 +133,7 @@ export default async function DocTopicPage({ params }: PageProps) {
                 <span className="transition-transform group-hover:translate-x-0.5">
                   &rarr;
                 </span>
-              </a>
+              </Link>
             ) : (
               <div />
             )}

@@ -62,7 +62,7 @@ export function InstallTabs() {
           {(Object.keys(PANELS) as Tab[]).map((key) => (
             <button
               key={key}
-              className={`border-r border-border px-3.5 py-2.5 text-xs tracking-[0.04em] transition-all last:border-r-0 ${
+              className={`border-r border-border px-3.5 py-2.5 text-xs tracking-[0.04em] transition-colors last:border-r-0 ${
                 active === key ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
               onClick={() => setActive(key)}
