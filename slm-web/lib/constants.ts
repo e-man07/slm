@@ -79,8 +79,8 @@ export interface RateLimitConfig {
 
 export const RATE_LIMITS: Record<RateLimitTier, RateLimitConfig> = {
   anonymous: { requestsPerMin: 3, tokensPerDay: 5_000 },
-  free: { requestsPerMin: 5, tokensPerDay: 100_000 },
-  standard: { requestsPerMin: 15, tokensPerDay: 500_000 },
+  free: { requestsPerMin: 20, tokensPerDay: 300_000 },
+  standard: { requestsPerMin: 30, tokensPerDay: 1_000_000 },
   admin: { requestsPerMin: 100, tokensPerDay: Infinity },
 }
 
