@@ -62,9 +62,14 @@ export default function Page() {
               >
                 Try it now <span>&rarr;</span>
               </Link>
-              <span className="inline-flex items-center gap-2 border border-[var(--slm-border-strong)] px-4 py-2.5 text-[13px] font-medium tracking-[0.02em] text-foreground transition-colors hover:border-foreground hover:bg-muted">
+              <a
+                href="https://pypi.org/project/sealevel/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 border border-[var(--slm-border-strong)] px-4 py-2.5 text-[13px] font-medium tracking-[0.02em] text-foreground transition-colors hover:border-foreground hover:bg-muted"
+              >
                 $ pip install sealevel
-              </span>
+              </a>
             </div>
           </div>
 
