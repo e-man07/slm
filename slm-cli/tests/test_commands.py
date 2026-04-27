@@ -376,8 +376,25 @@ def test_cmd_config_unknown_flag_warns():
 def test_cmd_clear_empties_history():
     session = MagicMock()
     session.history = [{"role": "user", "content": "hi"}]
-    cmd_clear([], session)
+    session.turns = 1
+    with patch("builtins.input", return_value="y"):
+        cmd_clear([], session)
     assert session.history == []
+
+
+def test_cmd_clear_denied():
+    session = MagicMock()
+    session.history = [{"role": "user", "content": "hi"}]
+    session.turns = 1
+    with patch("builtins.input", return_value="n"):
+        cmd_clear([], session)
+    assert len(session.history) == 1  # Not cleared
+
+
+def test_cmd_clear_empty_history():
+    session = MagicMock()
+    session.history = []
+    cmd_clear([], session)  # Should not prompt
 
 
 # --- /exit ---
@@ -634,8 +651,8 @@ def test_cmd_resume_error():
     assert session.history == []  # Should not modify history
 
 
-def test_cmd_resume_warns_existing_history():
-    """Fix #9: /resume should warn when current conversation is not empty."""
+def test_cmd_resume_confirms_existing_history():
+    """Resume should confirm before replacing existing history."""
     from sealevel_cli.commands import cmd_resume
     session = MagicMock()
     session.history = [
@@ -647,10 +664,20 @@ def test_cmd_resume_warns_existing_history():
         "id": "new-id",
         "messages": [{"role": "user", "content": "old"}],
     }
-    with patch("sealevel_cli.display.print_warning") as mock_warn:
+    with patch("builtins.input", return_value="y"):
         cmd_resume(["new-id"], session)
-        mock_warn.assert_called_once()
-        assert "replace" in mock_warn.call_args[0][0].lower()
+    assert session.session_id == "new-id"
+
+
+def test_cmd_resume_denied():
+    """Resume should abort if user says no."""
+    from sealevel_cli.commands import cmd_resume
+    session = MagicMock()
+    session.history = [{"role": "user", "content": "hi"}]
+    session.turns = 1
+    with patch("builtins.input", return_value="n"):
+        cmd_resume(["new-id"], session)
+    assert len(session.history) == 1  # Unchanged
 
 
 # --- /rename ---
@@ -705,20 +732,33 @@ def test_cmd_rotate_key():
 # --- /compact ---
 
 
-def test_cmd_compact_default():
+def test_cmd_compact_summarizes():
+    """Compact uses LLM to summarize old messages."""
     from sealevel_cli.commands import cmd_compact
     session = MagicMock()
     session.history = [{"role": "user", "content": f"msg{i}"} for i in range(20)]
+    session.client.stream_chat.return_value = iter(["Summary of conversation."])
+    session._context_warned = True
     cmd_compact([], session)
-    assert len(session.history) == 10  # 5 turns * 2
+    # Should have: 2 summary msgs + 4 recent
+    assert len(session.history) == 6
+    assert session.history[0]["content"] == "(conversation summary request)"
+    assert session.history[1]["content"] == "Summary of conversation."
+    assert session._context_warned is False  # Reset
 
 
-def test_cmd_compact_custom_turns():
+def test_cmd_compact_with_focus():
+    """Compact accepts focus hint."""
     from sealevel_cli.commands import cmd_compact
     session = MagicMock()
     session.history = [{"role": "user", "content": f"msg{i}"} for i in range(20)]
-    cmd_compact(["3"], session)
-    assert len(session.history) == 6  # 3 turns * 2
+    session.client.stream_chat.return_value = iter(["Focused summary."])
+    session._context_warned = False
+    cmd_compact(["PDA", "changes"], session)
+    assert session.history[1]["content"] == "Focused summary."
+    # Verify focus was in the prompt sent to LLM
+    prompt_sent = session.client.stream_chat.call_args[0][0]
+    assert "PDA changes" in prompt_sent
 
 
 def test_cmd_compact_empty_history():
@@ -729,35 +769,25 @@ def test_cmd_compact_empty_history():
 
 
 def test_cmd_compact_small_history():
+    """Too short to compact — need at least 5 messages."""
     from sealevel_cli.commands import cmd_compact
     session = MagicMock()
     session.history = [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"}]
     cmd_compact([], session)
-    assert len(session.history) == 2  # Already smaller than 5 turns
+    assert len(session.history) == 2  # Unchanged
 
 
-def test_cmd_compact_zero_turns():
+def test_cmd_compact_fallback_on_llm_error():
+    """If LLM fails, fall back to truncation."""
     from sealevel_cli.commands import cmd_compact
-    session = MagicMock()
-    session.history = [{"role": "user", "content": f"msg{i}"} for i in range(10)]
-    cmd_compact(["0"], session)
-    assert len(session.history) == 2  # Clamped to 1 turn
-
-
-def test_cmd_compact_negative_turns():
-    from sealevel_cli.commands import cmd_compact
-    session = MagicMock()
-    session.history = [{"role": "user", "content": f"msg{i}"} for i in range(10)]
-    cmd_compact(["-5"], session)
-    assert len(session.history) == 2  # Clamped to 1 turn
-
-
-def test_cmd_compact_invalid_arg():
-    from sealevel_cli.commands import cmd_compact
+    from sealevel_cli.client import SealevelError
     session = MagicMock()
     session.history = [{"role": "user", "content": f"msg{i}"} for i in range(20)]
-    cmd_compact(["abc"], session)  # Should use default 5
-    assert len(session.history) == 10
+    session.client.stream_chat.side_effect = SealevelError("offline")
+    session._context_warned = False
+    cmd_compact([], session)
+    # Should keep last 4 messages (fallback truncation)
+    assert len(session.history) == 4
 
 
 # --- /export ---

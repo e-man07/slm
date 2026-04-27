@@ -2,7 +2,7 @@
 
 Command-line interface for [Sealevel](https://sealevel.tech) — the Solana-specialized coding AI.
 
-Interactive session with slash commands for chatting, generating Anchor programs, reviewing code, migrating to modern patterns, decoding errors, and explaining transactions.
+Interactive terminal session with agent mode, slash commands, and Solana/Anchor developer tools.
 
 ## Install
 
@@ -10,40 +10,82 @@ Interactive session with slash commands for chatting, generating Anchor programs
 pip install sealevel
 ```
 
+Requires Python 3.10+.
+
 ## Quick Start
 
 ```bash
-# Set your API key (get one at https://sealevel.tech/dashboard)
-slm config --api-key slm_xxxxxxxxxxxx
-
-# Start interactive session
-slm
+slm login              # Authenticate via browser (OAuth device flow)
+slm                    # Start interactive session
 ```
 
-Inside the session, type to chat or use `/` commands:
+Or set your key manually:
+
+```bash
+slm config --api-key slm_xxxxxxxxxxxx
+```
+
+## Interactive Session
 
 ```
 ❯ How do I derive a PDA in Anchor?
 ◆ SEALEVEL
 [streaming response with markdown rendering]
 
-❯ /review src/lib.rs
+❯ /review @src/lib.rs
 ◆ REVIEWING  src/lib.rs
 [security + deprecated pattern analysis]
 
 ❯ /explain-error 0x1771
 [error decode + fix suggestion]
 
-❯ /gen "escrow with atomic token swap"
-[generates full Anchor program]
+❯ /gen escrow with atomic token swap -o src/lib.rs
+✓ WROTE  src/lib.rs
 ```
+
+## Agent Mode
+
+Toggle with `/agent` — the LLM can read, edit, and create files, and run commands:
+
+```
+❯ /agent
+✓ Agent mode ON
+
+❯ read src/lib.rs and add an authority check to increment
+╭─ read_file ──────────────╮
+│  path: src/lib.rs        │
+│  ✓ 38 lines              │
+╰──────────────────────────╯
+╭─ edit_file ──────────────╮
+│  path: src/lib.rs        │
+│  -2 / +5 lines           │
+╰──────────────────────────╯
+▸ Allow edit? [y/N/a] y
+✓ EDITED  src/lib.rs
+
+Done. Added authority check.
+```
+
+Tools: `read_file`, `write_file`, `edit_file`, `run_command`, `glob_files`, `grep_files`. Read-only tools auto-approve. Write/execute asks permission. Type `a` to approve all.
+
+## Features
+
+- **@file references** — `@src/lib.rs` inlines file content into chat
+- **Project memory** — `SEALEVEL.md` in project root auto-injects context
+- **AI-powered `/compact`** — summarizes old conversation to free context
+- **Auto-upgrade** — notifies when newer version is available
+- **File checkpoints** — `/undo` restores files modified by agent
+- **Persistent history** — input history persists across sessions (Ctrl+R to search)
+- **Progressive streaming** — live markdown rendering with Rich
 
 ## Modes
 
 ```bash
 slm                    # Interactive session (default)
-slm -p "prompt"        # One-shot mode — print response and exit
+slm -p "prompt"        # One-shot pipe mode
 slm -c                 # Continue most recent session
+slm login              # Authenticate via browser
+slm logout             # Clear credentials
 slm config --show      # View configuration
 ```
 
@@ -52,28 +94,26 @@ slm config --show      # View configuration
 ```bash
 slm -p "What is a PDA?"
 cat src/lib.rs | slm -p "review this code"
-echo "0x1771" | slm -p "explain this Solana error"
 ```
 
-## Session Commands
+## Slash Commands
 
-Type `/` to see all commands with live filtering. Type `/help` for the full list.
+Type `/` for live dropdown. 25 commands:
 
-### Chat & Code
+### Code
 
 | Command | Description |
 |---------|-------------|
-| (plain text) | Chat with Sealevel |
-| `/review <file>` | Review code for security issues |
-| `/migrate <file> [--write]` | Migrate to modern Anchor 0.30+ |
-| `/gen "description" [-o file]` | Generate an Anchor program |
-| `/tests <file>` | Generate TypeScript tests |
+| `/review <file>` | Security + deprecation review |
+| `/migrate <file> [--write]` | Migrate to Anchor 0.30+ |
+| `/gen <description> [-o file]` | Generate Anchor program |
+| `/tests <file> [-o out.ts]` | Generate TypeScript tests |
 
 ### Explain
 
 | Command | Description |
 |---------|-------------|
-| `/explain-tx <signature>` | Explain a Solana transaction |
+| `/explain-tx <signature>` | Decode a Solana transaction |
 | `/explain-error <code>` | Decode an error code |
 
 ### Session
@@ -83,55 +123,43 @@ Type `/` to see all commands with live filtering. Type `/help` for the full list
 | `/sessions` | List past sessions |
 | `/resume <id>` | Resume a past session |
 | `/rename <name>` | Rename current session |
-| `/compact [N]` | Trim history to last N turns |
-| `/export [file]` | Export session as markdown |
 | `/history` | Show conversation history |
-| `/clear` | Clear conversation |
+| `/search <query>` | Search conversation |
+| `/compact [focus]` | AI-summarize old history |
+| `/export [file]` | Export as markdown |
+| `/clear` | Clear history (with confirmation) |
+| `/undo` | Undo last turn + restore files |
+| `/retry` | Redo last turn |
+
+### Info
+
+| Command | Description |
+|---------|-------------|
+| `/status` | API health + config |
+| `/usage` | Token usage + limits |
+| `/copy` | Copy last response to clipboard |
 
 ### System
 
 | Command | Description |
 |---------|-------------|
-| `/status` | Show API health and config |
-| `/usage` | Show token usage and limits |
-| `/copy` | Copy last response to clipboard |
+| `/agent` | Toggle agent mode |
+| `/login` | Authenticate via browser |
+| `/config [--show]` | View/set config |
 | `/rotate-key` | Rotate API key |
-| `/config [--show]` | View or set configuration |
 | `/help` | Show all commands |
 | `/exit` | Exit session |
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `/` | Open command dropdown (live filter as you type) |
-| `Tab` | Accept suggestion |
-| `Ctrl+R` | Search input history |
-| `Ctrl+L` | Clear screen |
-| `Ctrl+J` | Newline (multiline input) |
-| `Esc Esc` | Undo last turn |
-| `Ctrl+C` | Cancel current operation |
-| `Ctrl+D` | Exit |
 
 ## Configuration
 
 ```bash
 slm config --api-key slm_xxxx     # Set API key
 slm config --api-url https://...  # Custom endpoint
-slm config --mode quality         # 'quality' or 'fast'
+slm config --mode quality         # 'quality' (temp=0.0, 4096 tokens) or 'fast' (temp=0.3, 2048)
 slm config --show                 # Show current config
 ```
 
-Config stored at `~/.sealevel/config.toml`. API key stored in OS keyring (macOS Keychain / Windows Credential Locker / GNOME Keyring).
-
-Override config dir: `SEALEVEL_CONFIG_DIR=/path/to/dir`
-
-## Uninstall
-
-```bash
-pip uninstall sealevel
-rm -rf ~/.sealevel
-```
+Config: `~/.sealevel/config.toml` (chmod 600). API key: OS keyring.
 
 ## License
 
@@ -140,4 +168,5 @@ MIT
 ## Links
 
 - [Sealevel](https://sealevel.tech)
-- [API docs](https://sealevel.tech/docs)
+- [Docs](https://sealevel.tech/docs)
+- [PyPI](https://pypi.org/project/sealevel/)

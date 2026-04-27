@@ -115,8 +115,10 @@ def test_dispatch_exit():
 def test_dispatch_clear():
     s = Session(MagicMock(spec=SealevelClient))
     s.history = [{"role": "user", "content": "hi"}]
+    s.turns = 1
     with patch("sealevel_cli.session.print_response_separator"):
-        s._dispatch_command("/clear")
+        with patch("builtins.input", return_value="y"):
+            s._dispatch_command("/clear")
     assert s.history == []
 
 
@@ -807,6 +809,43 @@ def test_from_server_skips_malformed_messages():
 # --- /retry ---
 
 
+def test_undo_restores_file_checkpoints(tmp_path):
+    """Undo should restore files modified during agent mode."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+
+    # Simulate file checkpoint
+    test_file = tmp_path / "lib.rs"
+    test_file.write_text("original code")
+    s._save_file_checkpoint(str(test_file))
+
+    # File gets modified (simulating agent edit)
+    test_file.write_text("modified code")
+
+    # Add history so undo has something to pop
+    s.history = [{"role": "user", "content": "edit"}, {"role": "assistant", "content": "done"}]
+    s.turns = 1
+
+    s._undo_last_turn()
+
+    assert test_file.read_text() == "original code"
+    assert s.history == []
+
+
+def test_undo_no_checkpoints():
+    """Undo without file checkpoints still works for history."""
+    client = MagicMock(spec=SealevelClient)
+    client.last_usage = None
+    client.last_finish_reason = None
+    s = Session(client)
+    s.history = [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"}]
+    s.turns = 1
+    s._undo_last_turn()
+    assert s.history == []
+
+
 def test_retry_last_turn():
     client = MagicMock(spec=SealevelClient)
     client.last_usage = None
@@ -847,6 +886,70 @@ def test_chat_error_shows_immediately():
             mock_err.assert_called_once()
             assert "offline" in mock_err.call_args[0][0]
     assert len(s._pending_toasts) == 0  # NOT in toasts
+
+
+# --- Update checker ---
+
+
+def test_check_for_update_notifies(monkeypatch):
+    """Update check should add toast when newer version exists."""
+    import time
+    client = MagicMock(spec=SealevelClient)
+    s = Session(client)
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {"info": {"version": "99.0.0"}}
+    with patch("httpx.get", return_value=mock_resp):
+        s._check_for_update()
+        time.sleep(0.2)
+    assert any("Update available" in msg for _, msg in s._pending_toasts)
+
+
+def test_check_for_update_no_toast_when_current(monkeypatch):
+    """No toast when already on latest."""
+    import time
+    from sealevel_cli import __version__
+    client = MagicMock(spec=SealevelClient)
+    s = Session(client)
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {"info": {"version": __version__}}
+    with patch("httpx.get", return_value=mock_resp):
+        s._check_for_update()
+        time.sleep(0.2)
+    update_toasts = [m for _, m in s._pending_toasts if "Update" in m]
+    assert len(update_toasts) == 0
+
+
+def test_check_for_update_error_no_crash():
+    """PyPI unreachable should not crash."""
+    import time
+    client = MagicMock(spec=SealevelClient)
+    s = Session(client)
+    with patch("httpx.get", side_effect=Exception("offline")):
+        s._check_for_update()
+        time.sleep(0.2)
+    # No crash, no toast
+
+
+# --- File checkpoints ---
+
+
+def test_save_file_checkpoint(tmp_path):
+    client = MagicMock(spec=SealevelClient)
+    s = Session(client)
+    f = tmp_path / "lib.rs"
+    f.write_text("original")
+    s._save_file_checkpoint(str(f))
+    assert len(s._file_checkpoints) == 1
+    assert s._file_checkpoints[0]["content"] == "original"
+
+
+def test_save_file_checkpoint_nonexistent():
+    client = MagicMock(spec=SealevelClient)
+    s = Session(client)
+    s._save_file_checkpoint("/nonexistent/file.rs")
+    assert len(s._file_checkpoints) == 0  # No crash, no checkpoint
 
 
 def test_startup_health_check_does_not_block():

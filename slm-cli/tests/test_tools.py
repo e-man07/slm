@@ -335,3 +335,77 @@ def test_read_file_empty_path(tmp_path):
 def test_write_file_empty_path(tmp_path):
     result = exec_write_file({"path": "", "content": "x"}, cwd=tmp_path)
     assert not result.success or True  # May resolve to cwd dir, OSError caught
+
+
+# --- Additional edge cases for coverage ---
+
+
+def test_read_file_binary(tmp_path):
+    """Binary file should fail gracefully."""
+    f = tmp_path / "binary.bin"
+    f.write_bytes(b"\x00\x01\x02\xff\xfe")
+    result = exec_read_file({"path": str(f)}, cwd=tmp_path)
+    # May succeed (utf-8 decode) or fail — shouldn't crash
+    assert isinstance(result, ToolResult)
+
+
+def test_write_file_overwrites(tmp_path):
+    f = tmp_path / "exist.rs"
+    f.write_text("old")
+    result = exec_write_file({"path": str(f), "content": "new"}, cwd=tmp_path)
+    assert result.success
+    assert f.read_text() == "new"
+
+
+def test_edit_file_sensitive_pem(tmp_path):
+    f = tmp_path / "key.pem"
+    f.write_text("-----BEGIN-----")
+    result = exec_edit_file({"path": str(f), "old_text": "BEGIN", "new_text": "END"}, cwd=tmp_path)
+    assert not result.success
+
+
+def test_run_command_stderr(tmp_path):
+    result = exec_run_command({"command": "echo err >&2"}, cwd=tmp_path)
+    assert "err" in result.output
+
+
+def test_glob_files_with_path(tmp_path):
+    sub = tmp_path / "sub"
+    sub.mkdir()
+    (sub / "a.rs").write_text("")
+    result = exec_glob_files({"pattern": "*.rs", "path": str(sub)}, cwd=tmp_path)
+    assert result.success
+    assert "a.rs" in result.output
+
+
+def test_glob_files_nonexistent_dir(tmp_path):
+    result = exec_glob_files({"pattern": "*.rs", "path": "/nonexistent"}, cwd=tmp_path)
+    assert not result.success
+
+
+def test_grep_files_single_file(tmp_path):
+    f = tmp_path / "test.rs"
+    f.write_text("fn main() {}\nfn helper() {}")
+    result = exec_grep_files({"pattern": "helper", "path": str(f)}, cwd=tmp_path)
+    assert result.success
+    assert "helper" in result.output
+
+
+def test_grep_files_nonexistent_path(tmp_path):
+    result = exec_grep_files({"pattern": "x", "path": "/nonexistent"}, cwd=tmp_path)
+    assert not result.success
+
+
+def test_grep_files_binary_skipped(tmp_path):
+    """Binary files should be skipped, not crash."""
+    f = tmp_path / "binary.bin"
+    f.write_bytes(b"\x00\x01\xff")
+    result = exec_grep_files({"pattern": "test"}, cwd=tmp_path)
+    assert result.success  # No crash
+
+
+def test_read_file_with_offset_beyond_length(tmp_path):
+    f = tmp_path / "short.rs"
+    f.write_text("line1\nline2")
+    result = exec_read_file({"path": str(f), "offset": 100, "limit": 10}, cwd=tmp_path)
+    assert result.success  # Empty result but success

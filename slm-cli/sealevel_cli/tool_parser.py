@@ -167,6 +167,10 @@ def _try_parse_json(raw: str) -> ToolCall | None:
     if not isinstance(args, dict):
         args = {}
 
+    # Fix common key name typos from 7B model
+    key_fixes = {"_text": "old_text", "oldtext": "old_text", "newtext": "new_text", "_path": "path"}
+    args = {key_fixes.get(k, k): v for k, v in args.items()}
+
     return ToolCall(name=str(name), args=args)
 
 

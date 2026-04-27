@@ -322,7 +322,7 @@ def cmd_copy(args: list[str], session: "Session") -> CommandResult | None:
         else:
             print_info(f"Clipboard not supported on {sys.platform}")
             return None
-        print_success("Copied last response to clipboard.")
+        print_success("Copied last response to clipboard (markdown).")
     except FileNotFoundError:
         print_info("Clipboard tool not found. Install xclip (Linux) or use macOS/Windows.")
     except subprocess.SubprocessError as e:
@@ -399,6 +399,12 @@ def cmd_resume(args: list[str], session: "Session") -> CommandResult | None:
     from sealevel_cli.display import print_success, print_error, print_warning
     if session.history:
         print_warning(f"This will replace your current conversation ({session.turns} turns).")
+        try:
+            confirm = input("  Continue? [y/N] ").strip().lower()
+        except (KeyboardInterrupt, EOFError):
+            return None
+        if confirm != "y":
+            return None
 
     session_id = args[0]
     try:
@@ -454,28 +460,62 @@ def cmd_rotate_key(args: list[str], session: "Session") -> CommandResult | None:
 
 
 def cmd_compact(args: list[str], session: "Session") -> CommandResult | None:
-    from sealevel_cli.display import print_success, print_info
+    from sealevel_cli.display import print_success, print_info, create_spinner
+    import json as _json
 
     if not session.history:
         print_info("History is already empty.")
         return None
 
-    # Default: keep last 5 turns (10 messages)
+    if len(session.history) <= 4:
+        print_info("History too short to compact.")
+        return None
+
+    # Build focus hint from args
+    focus = " ".join(args) if args else None
+
+    # Split: old messages to summarize + recent to keep
+    keep_recent = 4  # Keep last 2 turns verbatim
+    old_messages = session.history[:-keep_recent]
+    recent_messages = session.history[-keep_recent:]
+
+    # Ask LLM to summarize old conversation
+    summary_prompt = (
+        "Summarize this conversation concisely. Preserve: key decisions, "
+        "code changes, file paths, error messages, and important context. "
+        "Drop: pleasantries, repeated explanations, verbose code blocks.\n"
+    )
+    if focus:
+        summary_prompt += f"Focus on: {focus}\n"
+    summary_prompt += "\nConversation to summarize:\n"
+    for msg in old_messages:
+        summary_prompt += f"\n{msg['role'].upper()}: {msg['content'][:500]}"
+
+    spinner = create_spinner("Compacting conversation...")
     try:
-        n_turns = int(args[0]) if args else 5
-    except ValueError:
-        n_turns = 5
+        spinner.start()
+        chunks = list(session.client.stream_chat(summary_prompt))
+        summary = "".join(chunks)
+        spinner.stop()
+    except Exception as e:
+        spinner.stop()
+        # Fallback to truncation if LLM fails
+        before = len(session.history)
+        session.history = recent_messages
+        print_success(f"Compacted (truncated): kept last 2 turns, removed {before - len(session.history)} messages.")
+        return None
 
-    if n_turns < 1:
-        n_turns = 1
-
-    keep = n_turns * 2  # Each turn = user + assistant
+    # Replace history: summary + recent messages
     before = len(session.history)
-    if len(session.history) > keep:
-        session.history = session.history[-keep:]
-    after = len(session.history)
-    removed = before - after
-    print_success(f"Compacted: kept last {n_turns} turns, removed {removed} messages.")
+    session.history = [
+        {"role": "user", "content": "(conversation summary request)"},
+        {"role": "assistant", "content": summary},
+    ] + recent_messages
+    session._context_warned = False  # Reset context warning
+
+    removed = before - len(session.history)
+    est_tokens = len(_json.dumps(session.history)) // 4
+    print_success(f"Compacted: {before} → {len(session.history)} messages (~{est_tokens // 1000:.0f}K tokens)")
     return None
 
 
@@ -583,8 +623,19 @@ def cmd_search(args: list[str], session: "Session") -> CommandResult | None:
 
 
 def cmd_clear(args: list[str], session: "Session") -> CommandResult | None:
+    if not session.history:
+        from sealevel_cli.display import print_info
+        print_info("History is already empty.")
+        return None
+    from sealevel_cli.display import print_warning, print_success
+    print_warning(f"This will clear {len(session.history)} messages ({session.turns} turns).")
+    try:
+        confirm = input("  Continue? [y/N] ").strip().lower()
+    except (KeyboardInterrupt, EOFError):
+        return None
+    if confirm != "y":
+        return None
     session.history.clear()
-    from sealevel_cli.display import print_success
     print_success("History cleared.")
     return None
 
@@ -596,12 +647,13 @@ def cmd_help(args: list[str], session: "Session") -> CommandResult | None:
 
 
 def cmd_agent(args: list[str], session: "Session") -> CommandResult | None:
-    from sealevel_cli.display import print_success, print_info
+    from sealevel_cli.display import print_success, print_info, print_warning
     session.agent_mode = not session.agent_mode
     if session.agent_mode:
-        print_success("Agent mode ON")
-        print_info("  The model can now read, edit, and create files, and run commands.")
-        print_info("  It will ask permission before writing or executing. Use /agent to turn off.")
+        print_success("Agent mode ON (experimental)")
+        print_info("  Tools: read files, search code, run commands, create files.")
+        print_info("  Best with one action at a time. Use /agent to turn off.")
+        print_warning("  Multi-step edits (read→edit) may require guidance.")
     else:
         print_info("Agent mode OFF — plain chat")
     return None
@@ -649,12 +701,12 @@ def build_command_registry() -> dict[str, SlashCommand]:
         SlashCommand("/rename", cmd_rename, "Rename current session", "/rename <name>", adds_to_history=False),
         SlashCommand("/rotate-key", cmd_rotate_key, "Rotate API key", "/rotate-key", adds_to_history=False),
         SlashCommand("/config", cmd_config, "View or set configuration", "/config [--show]", adds_to_history=False),
-        SlashCommand("/compact", cmd_compact, "Trim history to last N turns", "/compact [N]", adds_to_history=False),
+        SlashCommand("/compact", cmd_compact, "Summarize old history to free context", "/compact [focus]", adds_to_history=False),
         SlashCommand("/export", cmd_export, "Export session as markdown", "/export [file]", adds_to_history=False),
-        SlashCommand("/history", cmd_history, "Show input history", "/history", adds_to_history=False),
+        SlashCommand("/history", cmd_history, "Show conversation history", "/history", adds_to_history=False),
         SlashCommand("/search", cmd_search, "Search conversation history", "/search <query>", adds_to_history=False),
         SlashCommand("/clear", cmd_clear, "Clear conversation history", "/clear", adds_to_history=False),
-        SlashCommand("/agent", cmd_agent, "Toggle agent mode (file/command tools)", "/agent", adds_to_history=False),
+        SlashCommand("/agent", cmd_agent, "Toggle agent mode — experimental", "/agent", adds_to_history=False),
         SlashCommand("/login", cmd_login, "Authenticate via browser", "/login", adds_to_history=False),
         SlashCommand("/help", cmd_help, "Show available commands", "/help", adds_to_history=False),
         SlashCommand("/exit", cmd_exit, "Exit the session", "/exit", adds_to_history=False),

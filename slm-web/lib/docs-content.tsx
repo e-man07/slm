@@ -188,7 +188,7 @@ slm config --show  # Verify your key is set`} />
         </section>
         <section>
           <h2>Slash commands</h2>
-          <p>Type <code>/</code> to see the live dropdown with all commands:</p>
+          <p>Type <code>/</code> to see the live dropdown. 25 commands:</p>
           <ul>
             <li><strong>Code</strong></li>
             <li><code>/review &lt;file&gt;</code> — Security + deprecation review for Solana/Anchor code</li>
@@ -204,20 +204,49 @@ slm config --show  # Verify your key is set`} />
             <li><code>/rename &lt;name&gt;</code> — Rename current session</li>
             <li><code>/history</code> — Show conversation history</li>
             <li><code>/search &lt;query&gt;</code> — Search conversation history</li>
-            <li><code>/compact [N]</code> — Trim history to last N turns</li>
+            <li><code>/compact [focus]</code> — AI-summarize old history to free context</li>
             <li><code>/export [file]</code> — Export session as markdown</li>
-            <li><code>/clear</code> — Clear conversation history</li>
+            <li><code>/clear</code> — Clear conversation history (with confirmation)</li>
+            <li><code>/undo</code> — Undo last turn + restore modified files</li>
+            <li><code>/retry</code> — Redo last turn with a fresh response</li>
             <li><strong>Info</strong></li>
             <li><code>/status</code> — API health + config overview</li>
             <li><code>/usage</code> — Token usage and limits</li>
             <li><code>/copy</code> — Copy last response to clipboard</li>
             <li><strong>System</strong></li>
+            <li><code>/agent</code> — Toggle agent mode — experimental</li>
             <li><code>/login</code> — Authenticate via browser</li>
             <li><code>/config [--show]</code> — View or change settings</li>
             <li><code>/rotate-key</code> — Rotate API key</li>
             <li><code>/help</code> — Show all commands</li>
             <li><code>/exit</code> — Exit the session</li>
           </ul>
+        </section>
+        <section>
+          <h2>Agent mode (experimental)</h2>
+          <p>
+            Toggle with <code>/agent</code>. The model can read files, search code,
+            and run commands. Best with one action at a time:
+          </p>
+          <CodeBlock language="bash" code={`❯ /agent
+✓ Agent mode ON
+
+❯ read src/lib.rs and add an authority check
+╭─ read_file ──────────────╮
+│  path: src/lib.rs        │
+│  ✓ 38 lines              │
+╰──────────────────────────╯
+╭─ edit_file ──────────────╮
+│  path: src/lib.rs        │
+│  -2 / +5 lines           │
+╰──────────────────────────╯
+▸ Allow edit? [y/N/a] y
+✓ EDITED  src/lib.rs`} />
+          <p>
+            Read-only tools auto-approve. Write and execute tools ask permission.
+            Type <code>a</code> to approve all of that type for the session.
+            Use <code>/undo</code> to revert file changes.
+          </p>
         </section>
         <section>
           <h2>Inline file references</h2>
@@ -245,7 +274,7 @@ slm -c                                            # continue last session`} />
             On first launch without an API key, the CLI prompts you to authenticate:
           </p>
           <CodeBlock language="bash" code={`$ slm
-◆ SEALEVEL  v0.1.0  ›  WELCOME
+◆ Sealevel  v0.3.0  ·  sealevel.tech
 
 Sign in to get started:
 

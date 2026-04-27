@@ -260,6 +260,33 @@ def test_clear_value_api_key_calls_keyring_delete():
                 mock_del.assert_called_once()
 
 
+def test_keyring_get_returns_none_on_error():
+    """Keyring errors should return None, not crash."""
+    with patch("sealevel_cli.config._keyring_available", return_value=True):
+        with patch("sealevel_cli.config._keyring_get", return_value=None):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                result = get_value("api_key", config_dir=tmpdir)
+                assert result is None
+
+
+def test_keyring_set_failure_falls_to_toml():
+    """If keyring set fails, should fall back to TOML."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("sealevel_cli.config._keyring_available", return_value=True):
+            with patch("sealevel_cli.config._keyring_set", return_value=False):
+                set_value("api_key", "slm_fallback99999999", config_dir=tmpdir)
+                config = load_config(config_dir=tmpdir)
+                assert config["api_key"] == "slm_fallback99999999"
+
+
+def test_keyring_delete_error_no_crash():
+    """Keyring delete error should not crash (handled internally)."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("sealevel_cli.config._keyring_available", return_value=True):
+            # _keyring_delete internally catches all exceptions
+            clear_value("api_key", config_dir=tmpdir)  # Should not crash
+
+
 def test_clear_value_api_key_also_clears_toml():
     """Clearing api_key should remove from TOML too."""
     with tempfile.TemporaryDirectory() as tmpdir:

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sealevel"
-version = "0.2.0"
+version = "0.3.0"
 description = "CLI for Sealevel — the Solana-specialized coding LLM. Chat, generate Anchor programs, review code, decode errors."
 readme = "README.md"
 requires-python = ">=3.10"

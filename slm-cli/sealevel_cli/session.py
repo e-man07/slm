@@ -82,6 +82,7 @@ class Session:
         self._toolbar_cache_key = None
         self._context_warned = False
         self.agent_mode = False
+        self._file_checkpoints: list[dict[str, str]] = []  # {path: original_content}
 
     def run(self) -> None:
         """Main REPL loop."""
@@ -89,6 +90,7 @@ class Session:
         self._load_project_memory()
         self._create_server_session()
         self._startup_health_check()
+        self._check_for_update()
 
         # Create prompt_toolkit session with live autocomplete
         prompt_session = create_prompt_session(self.commands, history_ref=self.history)
@@ -158,6 +160,28 @@ class Session:
             self._toolbar_cache = make_bottom_toolbar(self)
             self._toolbar_cache_key = key
         return self._toolbar_cache
+
+    def _check_for_update(self) -> None:
+        """Check PyPI for newer version in background."""
+        import threading
+
+        def _check():
+            try:
+                import httpx
+                from sealevel_cli import __version__
+                resp = httpx.get("https://pypi.org/pypi/sealevel/json", timeout=5.0)
+                if resp.status_code == 200:
+                    latest = resp.json().get("info", {}).get("version", "")
+                    if latest and latest != __version__:
+                        self._pending_toasts.append((
+                            "info",
+                            f"Update available: v{__version__} → v{latest}. Run: pip install --upgrade sealevel"
+                        ))
+            except Exception:
+                pass
+
+        t = threading.Thread(target=_check, daemon=True)
+        t.start()
 
     def _startup_health_check(self) -> None:
         """Check API health at startup with a short timeout."""
@@ -298,21 +322,11 @@ class Session:
     )
 
     def _handle_agent_chat(self, text: str) -> None:
-        """Send text through the agent loop (tool-augmented chat)."""
-        from sealevel_cli.agent import AgentLoop, AGENT_TOOL_PROMPT
+        """Send text through the agent loop (uses external model for tool orchestration)."""
+        from sealevel_cli.agent import AgentLoop
 
-        # Expand @file references (same as plain chat)
+        # Expand @file references
         text = self._expand_file_refs(text)
-
-        # Save originals so we restore exactly the prior client state
-        original_extra = self.client.extra_context
-        original_system = self.client.system_prompt_override
-
-        # Use the short, training-matched system prompt + AGENT_TOOL_PROMPT.
-        # Preserve any project-level SEALEVEL.md context if set.
-        self.client.system_prompt_override = self.AGENT_SYSTEM_PROMPT
-        agent_ctx = (original_extra + "\n\n" if original_extra else "") + AGENT_TOOL_PROMPT
-        self.client.extra_context = agent_ctx
 
         try:
             loop = AgentLoop()
@@ -321,10 +335,8 @@ class Session:
             if len(self.history) >= 2:
                 self._save_message("user", self.history[-2]["content"])
                 self._save_message("assistant", self.history[-1]["content"])
-        finally:
-            # Restore original client state
-            self.client.extra_context = original_extra
-            self.client.system_prompt_override = original_system
+        except Exception as e:
+            print_error(f"Agent error: {e}")
 
     def stream_response(self, prompt: str, label: bool = True, render_md: bool = True) -> str | None:
         """Stream a chat response for a slash command."""
@@ -385,8 +397,19 @@ class Session:
             return tokens
         return None
 
+    def _save_file_checkpoint(self, path: str) -> None:
+        """Save file content before modification for undo."""
+        from pathlib import Path as _P
+        p = _P(path)
+        if p.is_file():
+            try:
+                content = p.read_text(encoding="utf-8")
+                self._file_checkpoints.append({"path": str(p.resolve()), "content": content})
+            except (OSError, UnicodeDecodeError):
+                pass
+
     def _undo_last_turn(self) -> None:
-        """Remove last user+assistant pair from history."""
+        """Remove last user+assistant pair from history and restore file changes."""
         from sealevel_cli.display import print_success
         if (
             len(self.history) >= 2
@@ -396,7 +419,22 @@ class Session:
             self.history.pop()  # assistant
             self.history.pop()  # user
             self.turns = max(0, self.turns - 1)
-            print_success("Undid last turn.")
+
+            # Restore file checkpoints from last turn
+            restored = 0
+            while self._file_checkpoints:
+                cp = self._file_checkpoints.pop()
+                try:
+                    from pathlib import Path as _P
+                    _P(cp["path"]).write_text(cp["content"], encoding="utf-8")
+                    restored += 1
+                except OSError:
+                    pass
+
+            msg = "Undid last turn."
+            if restored:
+                msg += f" Restored {restored} file{'s' if restored != 1 else ''}."
+            print_success(msg)
         else:
             print_info("Nothing to undo.")
 

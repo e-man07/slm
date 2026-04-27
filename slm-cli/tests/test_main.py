@@ -29,7 +29,8 @@ def test_cli_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
     assert "SEALEVEL" in result.stdout
-    assert "0.1.0" in result.stdout
+    from sealevel_cli import __version__
+    assert __version__ in result.stdout
 
 
 def test_bare_slm_starts_session():
@@ -278,6 +279,16 @@ def test_first_run_setup_invalid_choice():
     with tempfile.TemporaryDirectory() as tmpdir:
         with patch("sealevel_cli.main.pt_prompt", return_value="3"):
             key = _first_run_setup(tmpdir)
+        assert key is None
+
+
+def test_first_run_setup_browser_login_error():
+    """Browser login failure returns None."""
+    from sealevel_cli.main import _first_run_setup
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with patch("sealevel_cli.main.pt_prompt", return_value="1"):
+            with patch("sealevel_cli.main._device_login_flow", side_effect=SystemExit(1)):
+                key = _first_run_setup(tmpdir)
         assert key is None
 
 
