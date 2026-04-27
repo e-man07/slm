@@ -6,7 +6,7 @@ const PANELS = {
   cli: {
     title: "Python CLI",
     desc: "Drop into any terminal. Streaming, syntax highlighting, session history. Works with any OpenAI-compatible endpoint.",
-    items: ["pypi: slm-cli", "Commands: chat \u00b7 gen \u00b7 review \u00b7 migrate", "History at ~/.slm/history", "MIT license"],
+    items: ["pypi: sealevel", "Commands: chat \u00b7 gen \u00b7 review \u00b7 migrate", "History at ~/.slm/history", "MIT license"],
   },
   mcp: {
     title: "MCP Server",
@@ -22,7 +22,7 @@ function TerminalCode({ tab }: { tab: Tab }) {
     case "cli":
       return (
         <>
-          <span className="t-prompt">$</span> pip install slm-cli<br />
+          <span className="t-prompt">$</span> pip install sealevel<br />
           <span className="t-prompt">$</span> slm config --api-key slm_xxx<br />
           <span className="t-prompt">$</span> slm chat <span className="t-str">&quot;how do i derive a PDA?&quot;</span><br /><br />
           <span className="t-muted">&rarr; Streaming from slm-solana (7B)&hellip;</span><br />

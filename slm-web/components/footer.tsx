@@ -22,25 +22,12 @@ export function Footer({ className }: FooterProps) {
           <span className="inline-block size-1 bg-current" />
         </div>
         <div className="flex items-center gap-1">
-          <a
-            href="https://github.com/kshitij-hash/slm"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-1.5 py-2 transition-colors hover:text-foreground"
-          >
-            github
-          </a>
-          <span className="opacity-40">/</span>
           <Link href="/docs" className="px-1.5 py-2 transition-colors hover:text-foreground">
             docs
           </Link>
           <span className="opacity-40">/</span>
           <Link href="/eval" className="px-1.5 py-2 transition-colors hover:text-foreground">
-            dataset card
-          </Link>
-          <span className="opacity-40">/</span>
-          <Link href="/eval" className="px-1.5 py-2 transition-colors hover:text-foreground">
-            model card
+            eval
           </Link>
         </div>
       </div>

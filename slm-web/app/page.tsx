@@ -63,7 +63,7 @@ export default function Page() {
                 Try it now <span>&rarr;</span>
               </Link>
               <span className="inline-flex items-center gap-2 border border-[var(--slm-border-strong)] px-4 py-2.5 text-[13px] font-medium tracking-[0.02em] text-foreground transition-colors hover:border-foreground hover:bg-muted">
-                $ pip install slm-cli
+                $ pip install sealevel
               </span>
             </div>
           </div>
