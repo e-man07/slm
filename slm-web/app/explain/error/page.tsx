@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { PageLayout } from "@/components/shared/page-layout"
 import { ErrorCodeInput } from "@/components/explain/error-code-input"
 import { ErrorResult } from "@/components/explain/error-result"
@@ -10,6 +12,15 @@ import type { LookupResult } from "@/lib/sse"
 import { cleanModelResponse, fixAnchorCode } from "@/lib/constants"
 
 export default function ExplainErrorPage() {
+  const router = useRouter()
+  const { status } = useSession()
+
+  React.useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/sign-in?callbackUrl=/explain/error")
+    }
+  }, [status, router])
+
   const [lookupResult, setLookupResult] = React.useState<LookupResult | null>(null)
   const [explanation, setExplanation] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)

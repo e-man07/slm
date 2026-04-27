@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { PageLayout } from "@/components/shared/page-layout"
 import { useStreaming } from "@/hooks/use-streaming"
 import { explainTransaction } from "@/lib/api-client"
@@ -23,6 +25,15 @@ interface TxInstruction {
 }
 
 export default function ExplainTxPage() {
+  const router = useRouter()
+  const { status } = useSession()
+
+  React.useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/sign-in?callbackUrl=/explain/tx")
+    }
+  }, [status, router])
+
   const [value, setValue] = React.useState("")
   const [inputError, setInputError] = React.useState("")
   const [txData, setTxData] = React.useState<TxData | null>(null)
