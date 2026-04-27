@@ -1,0 +1,769 @@
+{
+  "timestamp": "2026-04-26T20:27:12.033389+00:00",
+  "model_path": "unsloth/qwen2.5-coder-7b-instruct-bnb-4bit",
+  "baseline": false,
+  "overall": {
+    "passed": 74,
+    "total": 80,
+    "score": 0.925
+  },
+  "categories": {
+    "adversarial": {
+      "passed": 8,
+      "total": 10,
+      "score": 0.8
+    },
+    "anchor_constraints": {
+      "passed": 13,
+      "total": 15,
+      "score": 0.8667
+    },
+    "cpi_patterns": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "error_handling": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "pda_derivation": {
+      "passed": 14,
+      "total": 15,
+      "score": 0.9333
+    },
+    "spl_token_ops": {
+      "passed": 10,
+      "total": 10,
+      "score": 1.0
+    },
+    "transaction_construction": {
+      "passed": 9,
+      "total": 10,
+      "score": 0.9
+    }
+  },
+  "task_results": [
+    {
+      "id": "pda-01",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/3 pass patterns",
+      "output_length": 859,
+      "elapsed_s": 5.05,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[derive(Accounts)]\npub struct CreateUserProfile<'info> {\n    #[account(mut)]\n    pub payer: Signer<'info>,\n    /// CHECK: User profile PDA to be created\n    #[ac"
+    },
+    {
+      "id": "pda-02",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1167,
+      "elapsed_s": 6.78,
+      "output_preview": "Use `#[id]` to derive the program address from seeds at compile time:\n\n```rust\nuse anchor_lang::prelude::*;\n// Program ID is set in Anchor.toml\n#[program]\npub mod pda_derivation {\n    use super::*;\n\n "
+    },
+    {
+      "id": "pda-03",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 4/4 pass patterns",
+      "output_length": 342,
+      "elapsed_s": 2.09,
+      "output_preview": "#[derive(Accounts)]\npub struct Create<'info> {\n    #[account(\n        init,\n        payer = user,\n        space = 8 + 8 + 32 + 32,\n        seeds = [b\"counter\".as_ref(), creator.key().as_ref()],\n      "
+    },
+    {
+      "id": "pda-04",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 569,
+      "elapsed_s": 2.93,
+      "output_preview": "```rust\npub fn process(ctx: Context<Initialize>) -> Result<()> {\n    // Accessing the bump through `ctx.bumps` is preferred over direct field access.\n    msg!(\"Profile bump: {}\", ctx.bumps.profile.bum"
+    },
+    {
+      "id": "pda-05",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/3 pass patterns",
+      "output_length": 165,
+      "elapsed_s": 1.07,
+      "output_preview": "use anchor_lang::prelude::*;\n\n#[account]\npub struct Counter {\n    pub count: u64,\n}\n\nimpl Counter {\n    pub const SIZE: usize = 8 + std::mem::size_of::<Counter>();\n}"
+    },
+    {
+      "id": "pda-06",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 728,
+      "elapsed_s": 3.57,
+      "output_preview": "Use `PublicKey.findProgramAddressSync` to compute PDAs in your client code:\n\n```typescript\nimport { Connection, PublicKey } from \"@solana/web3.js\";\n\nconst connection = new Connection(\"https://api.main"
+    },
+    {
+      "id": "pda-07",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/3 pass patterns",
+      "output_length": 534,
+      "elapsed_s": 2.81,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[account]\npub struct Vault {\n    pub authority: Pubkey,\n    pub pool_id: u64,\n    pub token_mint: Pubkey,\n    pub bump: u8,\n}\n\nimpl Vault {\n    pub fn pubkey(&se"
+    },
+    {
+      "id": "pda-08",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1888,
+      "elapsed_s": 10.02,
+      "output_preview": "Both `seeds:` and `program` derive a PDA from the same seed input - they both use the program's ID as part of the derivation.\n\nThe key differences:\n1. **Purpose**:\n   - `seeds:`: Derives a PDA for a s"
+    },
+    {
+      "id": "pda-09",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/3 pass patterns",
+      "output_length": 198,
+      "elapsed_s": 1.4,
+      "output_preview": "pub fn find_session_pda(player: &Pubkey, game_id: u64) -> (Pubkey, u8) {\n    Pubkey::find_program_address(\n        &[&player.to_bytes()[..], b\"session\", &game_id.to_le_bytes()],\n        &ID,\n    )\n}"
+    },
+    {
+      "id": "pda-10",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1092,
+      "elapsed_s": 6.35,
+      "output_preview": "The `close` constraint is no longer needed in Anchor 0.30+. The runtime now automatically closes empty PDAs when they go out of scope.\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum MyE"
+    },
+    {
+      "id": "pda-11",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2110,
+      "elapsed_s": 10.06,
+      "output_preview": "PDAs (Program Derived Addresses) in Solana **cannot** have a corresponding private key. They are deterministic public keys derived from the program ID and seeds - they exist only on-chain as read-only"
+    },
+    {
+      "id": "pda-12",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/3 pass patterns",
+      "output_length": 106,
+      "elapsed_s": 0.82,
+      "output_preview": "pub struct Listing {\n    pub nft: Nft,\n    pub price_lamports_per_unit: u64,\n    pub units_on_sale: u64,\n}"
+    },
+    {
+      "id": "pda-13",
+      "category": "pda_derivation",
+      "passed": false,
+      "reason": "No pass patterns matched (0/2)",
+      "output_length": 740,
+      "elapsed_s": 4.82,
+      "output_preview": "Realloc is only allowed on accounts that have `init` with `realloc` set to true.\n\n```typescript\n// In ts: use `realloc`\nawait program.methods\n  .myInstruction()\n  .accounts({\n    myAccount: pubkey,\n  "
+    },
+    {
+      "id": "pda-14",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1610,
+      "elapsed_s": 7.95,
+      "output_preview": "Use `init_if_needed` when the account may already exist but needs to be initialized if it doesn't. This is the default for most use cases - only create the account when it's missing.\n\n```rust\nuse anch"
+    },
+    {
+      "id": "pda-15",
+      "category": "pda_derivation",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1739,
+      "elapsed_s": 8.77,
+      "output_preview": "```rust\nuse borsh::{BorshDeserialize, BorshSerialize};\nuse solana_sdk::{\n    account_info::{next_account_info, AccountInfo},\n    entrypoint,\n    entrypoint::Result<()>,\n    msg,\n    pubkey::Pubkey,\n};"
+    },
+    {
+      "id": "anchor-01",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2010,
+      "elapsed_s": 10.83,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n// # has_one: cross-account foreign key\n#[derive(Accounts)]\npub struct HasOneAccount<'info> {\n    #[account()]\n    pub owner: Signer<'info>,\n    /// CHECK: Accoun"
+    },
+    {
+      "id": "anchor-02",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 421,
+      "elapsed_s": 2.24,
+      "output_preview": "```rust\n#[derive(Accounts)]\npub struct Update<'info> {\n    #[account(mut)]\n    pub payer: Signer<'info>,\n    /// CHECK: Address constraint is used for validation\n    pub authority: UncheckedAccount<'i"
+    },
+    {
+      "id": "anchor-03",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 606,
+      "elapsed_s": 2.82,
+      "output_preview": "Anchor's `constraint` attribute lets you apply arbitrary Rust expressions as constraints on account validation.\n\n```rust\n#[derive(AccountSet)]\npub struct MyAccount {\n    pub owner: Pubkey,\n    #[arg(c"
+    },
+    {
+      "id": "anchor-04",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 321,
+      "elapsed_s": 1.97,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[derive(InitSpace)]\npub struct MyAccount {\n    pub authority: Pubkey,\n    pub value: u64,\n}\n```\nThe `InitSpace` macro automatically calculates the account size b"
+    },
+    {
+      "id": "anchor-05",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 314,
+      "elapsed_s": 1.79,
+      "output_preview": "You don't need `declare_program!` in Anchor 0.30+. The runtime automatically assigns the program ID from the `Anchor.toml` file.\n\nIf you want to specify a specific ID for testing purposes, use `ID = \""
+    },
+    {
+      "id": "anchor-06",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1117,
+      "elapsed_s": 5.89,
+      "output_preview": "/// Transfers lamports from the `source` account to the `destination` PDA.\n///\n/// # Accounts\n///\n/// | Index | Writable | Signer | Description |\n/// |:-----:|:--------:|:------:|:------------|\n/// | "
+    },
+    {
+      "id": "anchor-07",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1752,
+      "elapsed_s": 9.68,
+      "output_preview": "Use `#[account(token::mint, token::authority)]` to constrain a field to be the same mint as another account **and** have the same authority.\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::token"
+    },
+    {
+      "id": "anchor-08",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1331,
+      "elapsed_s": 7.67,
+      "output_preview": "use anchor_lang::{prelude::*, solana_program::sysvar};\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    token_interface::{Mint, TokenAccount, TokenInterface},\n};\n\npub fn create_account<'in"
+    },
+    {
+      "id": "anchor-09",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1734,
+      "elapsed_s": 9.49,
+      "output_preview": "The `#[account(address = ...)]` constraint verifies that the account's address exactly matches the expected pubkey.\n\n```rust\nuse anchor_lang::prelude::*;\n\n// This program stores a single u64 value at "
+    },
+    {
+      "id": "anchor-10",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 274,
+      "elapsed_s": 1.51,
+      "output_preview": "use anchor_lang::prelude::*;\n\n#[error_code]\npub enum NftVoterError {\n    #[msg(\"Invalid voter weight record owner\")]\n    InvalidVoterWeightRecordOwner,\n    #[msg(\"Voting weight expired\")]\n    VotingWe"
+    },
+    {
+      "id": "anchor-11",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 730,
+      "elapsed_s": 3.6,
+      "output_preview": "Use the `owner` constraint to verify ownership:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[derive(Accounts)]\npub struct MyInstruction<'info> {\n    #[account(mut, owner = my_program.key(), has_one = auth"
+    },
+    {
+      "id": "anchor-12",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "No pass patterns matched (0/2)",
+      "output_length": 2074,
+      "elapsed_s": 10.75,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\nuse light_account_checks::{packed_accounts::PackedAccounts, AccountInfoTrait};\nuse light_compressed_account::{\n    compressed_account::PubkeyBytes,\n    instruction"
+    },
+    {
+      "id": "anchor-13",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 618,
+      "elapsed_s": 2.87,
+      "output_preview": "```rust\n#[derive(AccountSet)]\npub struct Create<'info> {\n    /// Payer for all lamport allocations.\n    pub payer: AccountInfo<'info>,\n    /// New account to create.\n    pub new_account: SystemAccount"
+    },
+    {
+      "id": "anchor-14",
+      "category": "anchor_constraints",
+      "passed": false,
+      "reason": "No pass patterns matched (0/2)",
+      "output_length": 53,
+      "elapsed_s": 0.61,
+      "output_preview": "pub struct BigData {\n    pub data: [u8; 1_000_000],\n}"
+    },
+    {
+      "id": "anchor-15",
+      "category": "anchor_constraints",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 368,
+      "elapsed_s": 1.83,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[derive(Accounts)]\npub struct MyInstruction<'info> {\n    #[account(mut)]\n    pub authority: Signer<'info>,\n}\n```\n\nThe `Signer` constraint is applied implicitly -"
+    },
+    {
+      "id": "spl-01",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1088,
+      "elapsed_s": 5.12,
+      "output_preview": "/// Mint SPL tokens to the user's associated token account.\n///\n/// # Accounts\n///\n/// | Index | Name            | Description                |\n/// |-------|-----------------|-------------------------"
+    },
+    {
+      "id": "spl-02",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1517,
+      "elapsed_s": 8.02,
+      "output_preview": "Anchor's `init` constraint automatically creates the PDA when it doesn't exist.\nUse `associated_token::id()` as the authority for the PDA.\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::associa"
+    },
+    {
+      "id": "spl-03",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1035,
+      "elapsed_s": 5.15,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    token::{self, Mint, Token, TokenAccount},\n};\n\n#[derive(Accounts)]\npub struct Transfer<'info> {\n    #[a"
+    },
+    {
+      "id": "spl-04",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1352,
+      "elapsed_s": 6.37,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    token_2022::{burn_checked, BurnChecked},\n    token_interface::{Mint, TokenAccount, TokenInterface},\n};\n\npub fn burn_v1(ctx: Context<BurnV1>, "
+    },
+    {
+      "id": "spl-05",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 843,
+      "elapsed_s": 4.72,
+      "output_preview": "pub fn freeze_token<'info>(\n    program_id: Pubkey,\n    mint: &InterfaceAccount<'info, Mint>,\n    token_account: &InterfaceAccount<'info, TokenAccount>,\n    authority: AccountInfo<'info>,\n) -> Result<"
+    },
+    {
+      "id": "spl-06",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1829,
+      "elapsed_s": 8.68,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[program]\npub mod pda_mint_authority {\n    use super::*;\n\n    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {\n        let counter = &mut ctx.accounts"
+    },
+    {
+      "id": "spl-07",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2267,
+      "elapsed_s": 10.81,
+      "output_preview": "```rust\npub fn spl_set_authority(\n    ctx: Context<SplSetAuthority>,\n    authority_type: AuthorityType,\n    new_authority: Option<Pubkey>,\n) -> Result<()> {\n    let multisig = &mut ctx.accounts.multis"
+    },
+    {
+      "id": "spl-08",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 474,
+      "elapsed_s": 2.43,
+      "output_preview": "```rust\npub fn approve(ctx: Context<Approve>, amount: u64) -> Result<()> {\n    instructions::approve(ctx, amount)\n}\n```\n\nThe `approve` instruction:\n1. Calls `token::approve`\n2. Sets the delegate's spe"
+    },
+    {
+      "id": "spl-09",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 786,
+      "elapsed_s": 4.12,
+      "output_preview": "```rust\npub fn assert_token_balance(\n    token: &AccountInfo,\n    expected_mint: Pubkey,\n    expected_amount: u64,\n) -> Result<()> {\n    let data = token.try_borrow_data()?;\n    let mint_bytes = array"
+    },
+    {
+      "id": "spl-10",
+      "category": "spl_token_ops",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2191,
+      "elapsed_s": 10.89,
+      "output_preview": "Token-2022 adds **extensions** to the standard token account structure:\n\n```typescript\nimport * as anchor from \"@solana-foundation/anchor\";\nimport { TOKEN_2022_PROGRAM_ID } from \"@solana-foundation/an"
+    },
+    {
+      "id": "cpi-01",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 898,
+      "elapsed_s": 4.09,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    token::{self, Mint, Token, TokenAccount},\n};\n\npub fn cpi_transfer(ctx: Context<CpiTransfer>, amount: u"
+    },
+    {
+      "id": "cpi-02",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 790,
+      "elapsed_s": 3.83,
+      "output_preview": "Invoke the System Program directly via CPI:\n\n```rust\nuse anchor_lang::prelude::*;\nuse anchor_lang::system_program::{transfer, Transfer};\n\npub fn handler(ctx: Context<TransferTokens>) -> Result<()> {\n "
+    },
+    {
+      "id": "cpi-03",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 322,
+      "elapsed_s": 1.81,
+      "output_preview": "#[derive(Accounts)]\npub struct CpiInvoke<'info> {\n    #[account(mut)]\n    pub payer: Signer<'info>,\n    /// CHECK: account constraints checked in account trait\n    #[account(\n        mut,\n        seed"
+    },
+    {
+      "id": "cpi-04",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 840,
+      "elapsed_s": 4.19,
+      "output_preview": "Passing `remaining_accounts` through an Anchor CPI is done with the `.accounts()` method:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[derive(Accounts)]\npub struct MyCpi<'info> {\n    pub authority: Signer"
+    },
+    {
+      "id": "cpi-05",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 816,
+      "elapsed_s": 3.2,
+      "output_preview": "CPI depth limit: 4\n\nThe maximum number of cross-program invocations that can be nested within a single transaction execution. This constraint exists to prevent infinite loops and excessive computation"
+    },
+    {
+      "id": "cpi-06",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1950,
+      "elapsed_s": 9.11,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    token::{self, Mint, MintTo, Token, TokenAccount},\n};\n\npub fn mint_nft(\n    authority: Signer<'info>,\n "
+    },
+    {
+      "id": "cpi-07",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2072,
+      "elapsed_s": 10.85,
+      "output_preview": "```rust\nuse {\n    solana_account_info::AccountInfo,\n    solana_address::Address,\n    solana_cpi::{cpi::Signer, invoke_signed},\n    solana_instruction::{AccountMeta, Instruction},\n    solana_pubkey::Pu"
+    },
+    {
+      "id": "cpi-08",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1813,
+      "elapsed_s": 8.59,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    token::{self, Mint, Token, TokenAccount},\n};\n\n#[derive(Accounts)]\npub struct TransferSOL<'info> {\n    "
+    },
+    {
+      "id": "cpi-09",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 691,
+      "elapsed_s": 3.74,
+      "output_preview": "CPI return data is a new feature introduced in Anchor 1.25 - it lets programs read the return data from other CPIs.\n\n```typescript\n// In client code:\nconst [returnData] = await program.methods\n  .some"
+    },
+    {
+      "id": "cpi-10",
+      "category": "cpi_patterns",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1239,
+      "elapsed_s": 5.42,
+      "output_preview": "pub fn create_associated_token_account(\n    payer: &AccountInfo,\n    associated_token_account: &AccountInfo,\n    token_mint: &AccountInfo,\n    owner: &AccountInfo,\n    system_program: &AccountInfo,\n  "
+    },
+    {
+      "id": "err-01",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 330,
+      "elapsed_s": 1.75,
+      "output_preview": "#[error_code]\npub enum StakingError {\n    #[msg(\"Stake account is not valid\")]\n    InvalidStakeAccount,\n    #[msg(\"Stake account does not match stake pool\")]\n    StakeAccountNotInPool,\n    #[msg(\"Stak"
+    },
+    {
+      "id": "err-02",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 782,
+      "elapsed_s": 3.71,
+      "output_preview": "All of these are custom error macros that provide a more readable way to return errors from your program.\n\n```rust\n// Require that `condition` is true.\nrequire!(condition, \"error message\");\n\n// Requir"
+    },
+    {
+      "id": "err-03",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 733,
+      "elapsed_s": 3.73,
+      "output_preview": "Use the `err!` macro to return a custom program error:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum MyError {\n    #[msg(\"Insufficient funds\")]\n    InsufficientFunds,\n    #[msg(\"Invali"
+    },
+    {
+      "id": "err-04",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 641,
+      "elapsed_s": 3.25,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum MyError {\n    #[msg(\"Invalid authority\")]\n    InvalidAuthority,\n    #[msg(\"Insufficient funds\")]\n    InsufficientFunds,\n}\n```\n\nInstructions"
+    },
+    {
+      "id": "err-05",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 770,
+      "elapsed_s": 4.4,
+      "output_preview": "Use `checked_add`, `checked_sub`, `checked_mul` instead of the standard operators.\n\n```rust\n// \u274c unsafe - can overflow silently\nlet result = x + y;  // no bounds checking\n\n// \u2705 safe - returns Option<T"
+    },
+    {
+      "id": "err-06",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 276,
+      "elapsed_s": 1.37,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\npub enum MyError {\n    #[msg(\"Invalid authority\")]\n    InvalidAuthority,\n    #[msg(\"Insufficient funds\")]\n    InsufficientFunds,\n}\n```\n\nCustom error"
+    },
+    {
+      "id": "err-07",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 354,
+      "elapsed_s": 1.83,
+      "output_preview": "```rust\npub fn process(ctx: Context<Initialize>) -> Result<()> {\n    // Validate bump is at least 64.\n    require!(\n        ctx.accounts.profile.bump >= 64,\n        ErrorCode::BumpTooLow\n    );\n\n    m"
+    },
+    {
+      "id": "err-08",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 876,
+      "elapsed_s": 4.61,
+      "output_preview": "Anchor error codes are encoded as `u64` values in the program's IDL. On the client side, you can decode them by:\n\n```typescript\nimport { Program } from \"@solana-foundation/anchor\";\nimport { Idl, Provi"
+    },
+    {
+      "id": "err-09",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 668,
+      "elapsed_s": 3.61,
+      "output_preview": "The `@` syntax is not supported in Anchor 0.30+. The older `#[error = \"message\"]` style is the correct approach.\n\n```rust\n// \u274c Deprecated - use #[error] instead\nuse anchor_lang::prelude::*;\n\n#[derive("
+    },
+    {
+      "id": "err-10",
+      "category": "error_handling",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2306,
+      "elapsed_s": 10.69,
+      "output_preview": "Anchor defines several built-in error codes that can be returned by validation constraints:\n\n```rust\n#[error_code]\npub enum ErrorCode {\n    #[msg(\"Account is not initialized\")]\n    AccountNotInitializ"
+    },
+    {
+      "id": "adv-01",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 1994,
+      "elapsed_s": 9.9,
+      "output_preview": "Reentrancy vulnerabilities in Solana programs are not exploitable due to the runtime's transaction-level isolation model. Each transaction runs sequentially; once one completes, the next begins, even "
+    },
+    {
+      "id": "adv-02",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 1151,
+      "elapsed_s": 5.98,
+      "output_preview": "**Deprecated:** `declare_program!` is a legacy macro that was used before Anchor introduced the `IdlAccount` type for defining program IDs. Modern programs should define their ID as part of the IDL ac"
+    },
+    {
+      "id": "adv-03",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 875,
+      "elapsed_s": 4.25,
+      "output_preview": "use anchor_lang::prelude::*;\nuse anchor_spl::{\n    associated_token::AssociatedToken,\n    token::{self, Mint, Token, TokenAccount},\n};\n\n#[derive(Accounts)]\npub struct Initialize<'info> {\n    #[account"
+    },
+    {
+      "id": "adv-04",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 819,
+      "elapsed_s": 4.14,
+      "output_preview": "The `close` constraint is enforced by default on all `Account` constraints in Anchor. If you try to close a non-closable account, Anchor will reject it.\n\n```rust\n#[derive(AccountSet)]\npub struct Vault"
+    },
+    {
+      "id": "adv-05",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['f32\\\\s|f64\\\\s|float.*determinism|non.determinism|float.*precision']",
+      "output_length": 1660,
+      "elapsed_s": 9.74,
+      "output_preview": "Token prices should always be stored as `u64` fixed-point values with a known scale to avoid precision loss.\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[account]\npub struct Market {\n    pub base_price: u"
+    },
+    {
+      "id": "adv-06",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 991,
+      "elapsed_s": 5.38,
+      "output_preview": "```rust\nuse anchor_lang::prelude::*;\n\n#[program]\npub mod instruction_inspection {\n    use super::*;\n\n    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {\n        Ok(())\n    }\n}\n\n#[derive(A"
+    },
+    {
+      "id": "adv-07",
+      "category": "adversarial",
+      "passed": false,
+      "reason": "Bad patterns matched: ['reentrancy.guard|ReentrancyGuard|reentrancy_guard|mutex|lock.*unlock']",
+      "output_length": 858,
+      "elapsed_s": 4.37,
+      "output_preview": "**Reentrancy is not a problem on Solana.**\n\nThe runtime enforces a maximum CPI depth of 4, preventing recursive program calls even if you forget to add a `reentrancy_guard`. The anchor framework's `#["
+    },
+    {
+      "id": "adv-08",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 100,
+      "elapsed_s": 0.65,
+      "output_preview": "pub mod error;\npub use error::*;\npub mod state;\n\n// Re-export the error module for convenience.\npub "
+    },
+    {
+      "id": "adv-09",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 1172,
+      "elapsed_s": 6.49,
+      "output_preview": "Use `#declare-idl` to generate the IDL file from your Anchor program.\n\n```toml\n[dependencies]\nanchor-lang = \"0.30\"\n```\n\nThen in your `lib.rs`:\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[program]\npub mod"
+    },
+    {
+      "id": "adv-10",
+      "category": "adversarial",
+      "passed": true,
+      "reason": "No bad patterns found",
+      "output_length": 1322,
+      "elapsed_s": 6.51,
+      "output_preview": "Reentrancy is not a concern on Solana because programs cannot make CPI calls into each other. The runtime enforces this at the instruction level.\n\n```rust\nuse anchor_lang::prelude::*;\n\n#[error_code]\np"
+    },
+    {
+      "id": "tx-01",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 1470,
+      "elapsed_s": 7.4,
+      "output_preview": "```typescript\nimport {\n  Connection,\n  Keypair,\n  LAMPORTS_PER_SOL,\n  SystemProgram,\n  Transaction,\n} from \"@solana/web3.js\";\n\n// Create a new keypair for the recipient account.\nconst recipient = Keyp"
+    },
+    {
+      "id": "tx-02",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 2235,
+      "elapsed_s": 10.92,
+      "output_preview": "```typescript\nimport {\n  Connection,\n  Keypair,\n  PublicKey,\n  TransactionMessage,\n  VersionedTransaction,\n} from \"@solana/web3.js\";\nimport { AddressLookupTableAccount } from \"@solana/web3.js\";\n\n// Cr"
+    },
+    {
+      "id": "tx-03",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1919,
+      "elapsed_s": 11.71,
+      "output_preview": "Set compute budget:\n```typescript\nimport { ComputeBudgetProgram } from \"@solana/compute-budget\";\n\n// Set max computation units to 200_000\nawait program.provider.send({\n  id: \"computeBudget\",\n  jsonrpc"
+    },
+    {
+      "id": "tx-04",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 579,
+      "elapsed_s": 2.92,
+      "output_preview": "function simulateTransaction(\n  connection: Connection,\n  transaction: Transaction,\n  signers: Keypair[]\n): Promise<SimulatedTransactionResponse> {\n  return new Promise((resolve, reject) => {\n    cons"
+    },
+    {
+      "id": "tx-05",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 2/2 pass patterns",
+      "output_length": 2125,
+      "elapsed_s": 11.11,
+      "output_preview": "```typescript\nimport {\n  Connection,\n  Keypair,\n  LAMPORTS_PER_SOL,\n  SystemProgram,\n  Transaction,\n  sendAndConfirmTransaction,\n} from \"@solana/web3.js\";\n\n// Commitment levels:\n// - \"processed\" = fas"
+    },
+    {
+      "id": "tx-06",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1254,
+      "elapsed_s": 7.04,
+      "output_preview": "The `.methods` syntax is only available in Anchor 0.30+. For older versions, use `invoke_signed`.\n\nOn modern Anchor 0.30+, you can write:\n\n```typescript\nawait program.counter.increaseCount({\n  account"
+    },
+    {
+      "id": "tx-07",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 1265,
+      "elapsed_s": 7.79,
+      "output_preview": "Anchor's `#[account]` macro generates a TypeScript interface for deserializing accounts. The generated type is named after the struct name with `_Data` appended.\n\n```typescript\nimport { Program } from"
+    },
+    {
+      "id": "tx-08",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/2 pass patterns",
+      "output_length": 1013,
+      "elapsed_s": 5.04,
+      "output_preview": "use anchor_lang::prelude::*;\n\n#[program]\npub mod create_and_initialize {\n    use super::*;\n\n    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {\n        msg!(\"Account address: {}\", ctx.acco"
+    },
+    {
+      "id": "tx-09",
+      "category": "transaction_construction",
+      "passed": true,
+      "reason": "Matched 1/1 pass patterns",
+      "output_length": 424,
+      "elapsed_s": 2.26,
+      "output_preview": "pub fn retry_with_backoff<F, R>(f: F) -> Result<R>\nwhere\n    F: Fn() -> Result<R>,\n{\n    let mut delay = Duration::from_millis(10);\n    loop {\n        match f() {\n            Ok(result) => return Ok(r"
+    },
+    {
+      "id": "tx-10",
+      "category": "transaction_construction",
+      "passed": false,
+      "reason": "No pass patterns matched (0/1)",
+      "output_length": 2369,
+      "elapsed_s": 10.96,
+      "output_preview": "```rust\nuse {\n    {InstructionKind, Processor},\n    solana_account_info::{next_account_info, AccountInfo},\n    solana_address::Address,\n    solana_msg::msg,\n    solana_program_error::Result<()>,\n    s"
+    }
+  ]
+}

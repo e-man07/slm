@@ -193,6 +193,14 @@ def exec_read_file(args: dict, cwd: Path) -> ToolResult:
     return ToolResult(True, _cap_output(f"{header}\n{output}"))
 
 
+def _post_fix(text: str) -> str:
+    """Apply the same post-fix used on prose responses to tool-arg content.
+    Strips deprecated Anchor patterns (declare_id!, coral-xyz, ProgramResult,
+    ctx.bumps.get(), `<'info>` lifetimes, etc.) before they reach disk."""
+    from sealevel_cli.client import clean_model_response, fix_anchor_code
+    return fix_anchor_code(clean_model_response(text))
+
+
 def exec_write_file(args: dict, cwd: Path) -> ToolResult:
     """Write content to a file."""
     path = _resolve_path(args.get("path", ""), cwd)
@@ -200,7 +208,7 @@ def exec_write_file(args: dict, cwd: Path) -> ToolResult:
     if _is_sensitive(str(path)):
         return ToolResult(False, f"Cannot write sensitive file: {path.name}")
 
-    content = args.get("content", "")
+    content = _post_fix(args.get("content", ""))
 
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -223,7 +231,7 @@ def exec_edit_file(args: dict, cwd: Path) -> ToolResult:
         return ToolResult(False, f"File not found: {args.get('path', '')}")
 
     old_text = args.get("old_text", "")
-    new_text = args.get("new_text", "")
+    new_text = _post_fix(args.get("new_text", ""))
 
     try:
         content = path.read_text(encoding="utf-8")

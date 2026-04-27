@@ -43,6 +43,10 @@ class EvalConfig:
         default="/workspace/checkpoints/sft/final",
         metadata={"help": "Path to model checkpoint or HF model ID"},
     )
+    adapter: str = field(
+        default="",
+        metadata={"help": "Optional LoRA adapter to load on top of model_path"},
+    )
     max_seq_length: int = field(default=32768)
     load_in_4bit: bool = field(default=True)
     dtype: str = field(default="auto")
@@ -782,7 +786,15 @@ def generate_response(
     # Decode only the newly generated tokens
     new_tokens = output_ids[0][inputs["input_ids"].shape[1]:]
     response = tokenizer.decode(new_tokens, skip_special_tokens=True)
-    return response.strip()
+    response = response.strip()
+    # Apply production CLI post-fix (strips deprecated declare_id! lines, etc.)
+    # so eval scores reflect what users actually see.
+    try:
+        from sealevel_cli.client import clean_model_response, fix_anchor_code  # noqa: E402
+        response = fix_anchor_code(clean_model_response(response))
+    except Exception:
+        pass
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -834,6 +846,12 @@ def main():
         load_in_4bit=cfg.load_in_4bit,
         attn_implementation="eager",  # Avoid flex_attention crash
     )
+
+    # Optional: load LoRA adapter on top
+    if cfg.adapter:
+        print(f"  Loading adapter: {cfg.adapter}")
+        from peft import PeftModel  # noqa: E402
+        model = PeftModel.from_pretrained(model, cfg.adapter)
 
     FastLanguageModel.for_inference(model)
 

@@ -71,6 +71,10 @@ class SFTRunConfig:
     bf16: bool = field(default=True)
     gradient_checkpointing: bool = field(default=True)
     resume_from: str = field(default="")
+    # continual_from: load an existing PEFT adapter as starting weights for
+    # continual learning. Distinct from `resume_from` (which resumes a partial
+    # training run with optimizer/scheduler state).
+    continual_from: str = field(default="")
     seed: int = field(default=42)
     lora_r: int = field(default=32)  # 32 for 8B model — can train more of the smaller model
     lora_alpha: int = field(default=64)
@@ -225,25 +229,47 @@ def main():
     )
 
     # -- 2. Apply LoRA --
-    print("[2/4] Applying LoRA adapters...")
-    lora_kwargs = dict(
-        r=train_cfg.lora_r,
-        lora_alpha=train_cfg.lora_alpha,
-        lora_dropout=train_cfg.lora_dropout,
-        target_modules=[
-            "q_proj", "k_proj", "v_proj", "o_proj",
-            "gate_proj", "up_proj", "down_proj",
-        ],
-        bias="none",
-        use_gradient_checkpointing="unsloth",
-        random_state=train_cfg.seed,
-    )
-    # target_parameters=[] disables MoE expert LoRA (128 experts = too slow/OOM)
-    try:
-        model = FastModel.get_peft_model(model, target_parameters=[], **lora_kwargs)
-    except TypeError:
-        # Older Unsloth versions don't support target_parameters
-        model = FastModel.get_peft_model(model, **lora_kwargs)
+    # Two paths:
+    #   (a) continual_from is set → load existing PEFT adapter directly, skip get_peft_model
+    #       (avoids stacking two LoRAs which doubles forward-pass cost)
+    #   (b) fresh training → get_peft_model creates a new random-init LoRA
+    if train_cfg.continual_from:
+        print(f"[2/4] Loading existing LoRA adapter: {train_cfg.continual_from}")
+        from peft import PeftModel
+        # Load the existing adapter as the ONLY adapter on the base model.
+        # is_trainable=True so its weights are unfrozen for further training.
+        model = PeftModel.from_pretrained(
+            model,
+            train_cfg.continual_from,
+            is_trainable=True,
+        )
+        # Apply Unsloth's gradient checkpointing optimization (normally done inside get_peft_model)
+        try:
+            from unsloth import FastLanguageModel
+            FastLanguageModel.for_training(model)
+        except Exception:
+            pass
+        print(f"  Successfully loaded continual adapter (single adapter, no stacking)")
+    else:
+        print("[2/4] Applying fresh LoRA adapters...")
+        lora_kwargs = dict(
+            r=train_cfg.lora_r,
+            lora_alpha=train_cfg.lora_alpha,
+            lora_dropout=train_cfg.lora_dropout,
+            target_modules=[
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "gate_proj", "up_proj", "down_proj",
+            ],
+            bias="none",
+            use_gradient_checkpointing="unsloth",
+            random_state=train_cfg.seed,
+        )
+        # target_parameters=[] disables MoE expert LoRA (128 experts = too slow/OOM)
+        try:
+            model = FastModel.get_peft_model(model, target_parameters=[], **lora_kwargs)
+        except TypeError:
+            # Older Unsloth versions don't support target_parameters
+            model = FastModel.get_peft_model(model, **lora_kwargs)
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())

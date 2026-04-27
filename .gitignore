@@ -2,6 +2,10 @@
 data/
 synthetic/
 
+# Generated training datasets (large — regenerable from scripts/gen_*.py)
+scripts/v2_test/sft_v*.jsonl
+scripts/v2_test/__pycache__/
+
 # DVC local cache
 /dvc.lock
 

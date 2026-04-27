@@ -283,6 +283,20 @@ class Session:
             self.history.pop()
             console.print("\n[muted](cancelled)[/muted]")
 
+    # In agent mode we override the long template-laden SYSTEM_PROMPT with this
+    # short prompt that matches what v5 was trained on. The long version causes
+    # the model to regurgitate the inline Anchor example instead of calling
+    # tools. Client-side post-fix (clean_model_response + fix_anchor_code) still
+    # handles deprecated patterns at display time, so guardrails are preserved.
+    AGENT_SYSTEM_PROMPT = (
+        "You are Sealevel, an expert Solana and Anchor development assistant. "
+        "Provide accurate, secure, and up-to-date code using modern Anchor 0.30+ patterns "
+        "(solana-foundation/anchor, InitSpace, ctx.bumps.field_name). "
+        "When uncertain, say so rather than guessing. "
+        "Never suggest reentrancy guards (Solana prevents reentrancy via CPI depth limits). "
+        "Never reference coral-xyz/anchor or declare_id! - these are deprecated."
+    )
+
     def _handle_agent_chat(self, text: str) -> None:
         """Send text through the agent loop (tool-augmented chat)."""
         from sealevel_cli.agent import AgentLoop, AGENT_TOOL_PROMPT
@@ -290,8 +304,13 @@ class Session:
         # Expand @file references (same as plain chat)
         text = self._expand_file_refs(text)
 
-        # Inject agent tool prompt into client's extra context
+        # Save originals so we restore exactly the prior client state
         original_extra = self.client.extra_context
+        original_system = self.client.system_prompt_override
+
+        # Use the short, training-matched system prompt + AGENT_TOOL_PROMPT.
+        # Preserve any project-level SEALEVEL.md context if set.
+        self.client.system_prompt_override = self.AGENT_SYSTEM_PROMPT
         agent_ctx = (original_extra + "\n\n" if original_extra else "") + AGENT_TOOL_PROMPT
         self.client.extra_context = agent_ctx
 
@@ -303,8 +322,9 @@ class Session:
                 self._save_message("user", self.history[-2]["content"])
                 self._save_message("assistant", self.history[-1]["content"])
         finally:
-            # Restore original extra context
+            # Restore original client state
             self.client.extra_context = original_extra
+            self.client.system_prompt_override = original_system
 
     def stream_response(self, prompt: str, label: bool = True, render_md: bool = True) -> str | None:
         """Stream a chat response for a slash command."""

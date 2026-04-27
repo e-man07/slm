@@ -134,6 +134,7 @@ class SealevelClient:
         self.last_usage: dict | None = None  # Token usage from last streaming response
         self.last_finish_reason: str | None = None  # "stop", "length", etc.
         self.extra_context: str | None = None  # Project-level context from SEALEVEL.md
+        self.system_prompt_override: str | None = None  # Set by agent mode to use the short, training-matched prompt instead of SYSTEM_PROMPT
 
     @property
     def chat_url(self) -> str:
@@ -172,7 +173,7 @@ class SealevelClient:
         stream: bool = True,
     ) -> dict[str, Any]:
         """Build the chat API request payload."""
-        system_content = SYSTEM_PROMPT
+        system_content = self.system_prompt_override if self.system_prompt_override else SYSTEM_PROMPT
         if self.extra_context:
             system_content += "\n\n" + self.extra_context
         messages: list[dict[str, str]] = [{"role": "system", "content": system_content}]

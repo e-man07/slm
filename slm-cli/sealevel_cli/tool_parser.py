@@ -23,8 +23,12 @@ class ToolCall:
 # Regex for <tool_call>JSON</tool_call> (dotall for multiline JSON)
 _XML_TAG_RE = re.compile(r"<tool_call>\s*(.*?)\s*</tool_call>", re.DOTALL)
 
-# Regex for ```tool_call\nJSON\n``` code blocks
-_CODE_BLOCK_RE = re.compile(r"```tool_call\s*\n(.*?)\n```", re.DOTALL)
+# Regex for ``` <label>\nJSON\n``` code blocks. Label is any word (json,
+# tool_call, typescript, etc.) or absent — the model sometimes emits ```json
+# blocks instead of ```tool_call. Validation at parse-time ensures only blocks
+# whose JSON is shaped like a tool call (has `name` + `arguments`/`parameters`)
+# are accepted.
+_CODE_BLOCK_RE = re.compile(r"```(?:[a-zA-Z_]+)?\s*\n(.*?)\n```", re.DOTALL)
 
 
 def parse(text: str) -> tuple[list[ToolCall], str]:
@@ -34,6 +38,7 @@ def parse(text: str) -> tuple[list[ToolCall], str]:
         (tool_calls, prose) — list of parsed calls + text with tool_call tags removed.
     """
     calls: list[ToolCall] = []
+    consumed_spans: list[tuple[int, int]] = []
 
     # 1. Try XML tag format (primary)
     failed_tags: list[str] = []
@@ -42,34 +47,106 @@ def parse(text: str) -> tuple[list[ToolCall], str]:
         tc = _try_parse_json(raw)
         if tc:
             calls.append(tc)
+            consumed_spans.append((match.start(), match.end()))
         else:
             failed_tags.append(match.group(0))  # Keep failed tag text
 
-    # 2. Fallback: ```tool_call blocks (only if no XML tags found)
+    # 2. Fallback: ``` <label> blocks (only if no XML tags found)
     if not calls:
         for match in _CODE_BLOCK_RE.finditer(text):
             raw = match.group(1).strip()
             tc = _try_parse_json(raw)
             if tc:
                 calls.append(tc)
+                consumed_spans.append((match.start(), match.end()))
 
-    # 3. Extract prose (remove parsed tool tags, keep failed ones)
-    if calls and _XML_TAG_RE.search(text):
-        # XML tags were parsed — strip them
-        prose = _XML_TAG_RE.sub("", text)
+    # 3. Naked JSON fallback — handles streaming truncation where the SSE layer
+    #    drops the closing ``` fence or the language label. Walk the text
+    #    counting braces (honoring string quoting) to find balanced JSON
+    #    objects; accept ones that look like a tool call.
+    if not calls:
+        for start, end in _find_naked_json_objects(text):
+            candidate = text[start:end]
+            tc = _try_parse_json(candidate)
+            if tc:
+                calls.append(tc)
+                consumed_spans.append((start, end))
+
+    # 4. Extract prose
+    if calls:
+        prose = _strip_spans(text, consumed_spans)
         for tag_text in failed_tags:
             prose += "\n" + tag_text
-    elif calls and _CODE_BLOCK_RE.search(text):
-        # Code blocks were parsed — strip them
-        prose = _CODE_BLOCK_RE.sub("", text)
     else:
-        # No tool calls found — full text is prose
         prose = text
 
     prose = prose.strip()
     prose = re.sub(r"\n{3,}", "\n\n", prose)
 
     return calls, prose
+
+
+def _find_naked_json_objects(text: str) -> list[tuple[int, int]]:
+    """Find balanced top-level JSON objects via brace-counting + string-state.
+
+    Handles braces inside string values (e.g. glob `{rs,md}`) so they don't
+    affect depth tracking. If an object opens but never closes (truncation),
+    emits a partial span so repair logic can attempt to close it.
+    """
+    spans: list[tuple[int, int]] = []
+    i = 0
+    n = len(text)
+    while i < n:
+        if text[i] != "{":
+            i += 1
+            continue
+        depth = 0
+        in_string = False
+        escape = False
+        j = i
+        balanced = False
+        while j < n:
+            ch = text[j]
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == "\\":
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+            else:
+                if ch == '"':
+                    in_string = True
+                elif ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        spans.append((i, j + 1))
+                        i = j + 1
+                        balanced = True
+                        break
+            j += 1
+        if not balanced:
+            spans.append((i, n))
+            break
+    return spans
+
+
+def _strip_spans(text: str, spans: list[tuple[int, int]]) -> str:
+    """Remove the given (start, end) spans from text."""
+    if not spans:
+        return text
+    spans = sorted(spans)
+    out: list[str] = []
+    cursor = 0
+    for start, end in spans:
+        if start > cursor:
+            out.append(text[cursor:start])
+        cursor = end
+    if cursor < len(text):
+        out.append(text[cursor:])
+    return "".join(out)
 
 
 def _try_parse_json(raw: str) -> ToolCall | None:
