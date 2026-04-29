@@ -300,20 +300,6 @@ export default function DocsPage() {
               }}
             >
               Sealevel is under active development. APIs and clients may change.
-              Star the{" "}
-              <a
-                href="https://github.com/e-man07/slm"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "var(--foreground)",
-                  textDecoration: "underline",
-                  textUnderlineOffset: 3,
-                }}
-              >
-                GitHub repo
-              </a>{" "}
-              for updates.
             </p>
           </div>
 
