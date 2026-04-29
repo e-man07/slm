@@ -326,7 +326,11 @@ slm config --mode fast      # temp=0.3, 2048 max tokens`} />
         </section>
         <section>
           <h2>Add to Cursor</h2>
-          <p>Open Cursor Settings → MCP Servers, add:</p>
+          <p>
+            Open Cursor Settings → MCP Servers, or edit <code>~/.cursor/mcp.json</code>{" "}
+            directly (use <code>&lt;project&gt;/.cursor/mcp.json</code> for project-scoped
+            install). Add:
+          </p>
           <CodeBlock
             language="json"
             code={`{
@@ -343,7 +347,10 @@ slm config --mode fast      # temp=0.3, 2048 max tokens`} />
         </section>
         <section>
           <h2>Add to Windsurf</h2>
-          <p>Open Windsurf Settings → MCP, add:</p>
+          <p>
+            Open Windsurf Settings → MCP, or edit{" "}
+            <code>~/.codeium/windsurf/mcp_config.json</code> directly. Add:
+          </p>
           <CodeBlock
             language="json"
             code={`{
