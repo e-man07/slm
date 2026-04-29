@@ -139,10 +139,6 @@ slm -p "How do I derive a PDA?"        # one-shot mode`} />
           </ul>
         </section>
         <section>
-          <h2>Anonymous vs signed-in</h2>
-          <p>Anonymous users get 3 req/min. Sign in for 5 req/min + chat history.</p>
-        </section>
-        <section>
           <h2>Stop generation</h2>
           <p>Click the Stop button while streaming — aborts the request mid-response.</p>
         </section>
