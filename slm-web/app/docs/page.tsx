@@ -13,7 +13,6 @@ const SECTION_NUMBERS: Record<string, string> = {
   "Getting Started": "01",
   Clients: "02",
   "API Reference": "03",
-  Guides: "04",
 }
 
 export default function DocsPage() {
@@ -156,7 +155,7 @@ export default function DocsPage() {
               maxWidth: 540,
             }}
           >
-            Set up CLI, MCP, or hit the API directly. Guides for every
+            Set up CLI, MCP, or hit the API directly. Reference for every
             integration point.
           </p>
 
