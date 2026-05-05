@@ -118,7 +118,7 @@ ${ragContext}
       method: "POST",
       headers: sglangHeaders,
       body: JSON.stringify({
-        model: "slm-solana",
+        model: process.env.MODEL_NAME ?? "slm-solana",
         messages: fullMessages,
         stream,
         max_tokens: cappedMaxTokens,
@@ -148,6 +148,10 @@ ${ragContext}
         { status: 502 },
       )
     }
+
+    // Always present this name to clients, regardless of which upstream model
+    // (slm-solana, berrymodel, etc.) actually generated the response.
+    const DISPLAY_MODEL = "slm-solana"
 
     if (stream && response.body) {
       const [clientStream, sniffStream] = response.body.tee()
@@ -224,7 +228,7 @@ ${ragContext}
             if ((isDone || isFinish) && lineBuf && lastTemplate) {
               const cleaned = fixAnchorCode(cleanModelResponse(lineBuf))
               if (cleaned) {
-                const out = { ...lastTemplate } as Record<string, unknown>
+                const out = { ...lastTemplate, model: DISPLAY_MODEL } as Record<string, unknown>
                 out.choices = [{ ...((lastTemplate as Record<string, unknown>).choices as unknown[])?.[0] as object, delta: { content: cleaned } }]
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify(out)}\n\n`))
               }
@@ -246,11 +250,25 @@ ${ragContext}
                     lineBuf = parts[parts.length - 1]
                     const cleaned = fixAnchorCode(cleanModelResponse(complete)) + "\n"
                     if (cleaned && lastTemplate) {
-                      const out = { ...lastTemplate } as Record<string, unknown>
+                      const out = { ...lastTemplate, model: DISPLAY_MODEL } as Record<string, unknown>
                       out.choices = [{ ...((lastTemplate as Record<string, unknown>).choices as unknown[])?.[0] as object, delta: { content: cleaned } }]
                       controller.enqueue(encoder.encode(`data: ${JSON.stringify(out)}\n\n`))
                     }
                   }
+                  continue
+                }
+              } catch {
+                // pass through
+              }
+            }
+            // Pass-through: rewrite model field on data lines (initial role chunk,
+            // finish_reason chunk, etc.) so the client never sees the upstream name.
+            if (line.startsWith("data: ") && !isDone) {
+              try {
+                const parsed = JSON.parse(line.slice(6))
+                if (parsed && typeof parsed === "object") {
+                  parsed.model = DISPLAY_MODEL
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(parsed)}\n\n`))
                   continue
                 }
               } catch {
@@ -265,7 +283,7 @@ ${ragContext}
           if (lineBuf && lastTemplate) {
             const cleaned = fixAnchorCode(cleanModelResponse(lineBuf))
             if (cleaned) {
-              const out = { ...lastTemplate } as Record<string, unknown>
+              const out = { ...lastTemplate, model: DISPLAY_MODEL } as Record<string, unknown>
               out.choices = [{ ...((lastTemplate as Record<string, unknown>).choices as unknown[])?.[0] as object, delta: { content: cleaned } }]
               controller.enqueue(encoder.encode(`data: ${JSON.stringify(out)}\n\n`))
             }
@@ -288,6 +306,8 @@ ${ragContext}
     if (data?.usage?.total_tokens) {
       void recordUsage(data.usage.total_tokens)
     }
+    // Always present DISPLAY_MODEL to the client, regardless of upstream
+    if (data && typeof data === "object") data.model = DISPLAY_MODEL
     // Clean deprecated patterns from non-streaming response
     const assistantContent = data?.choices?.[0]?.message?.content ?? ""
     if (assistantContent && data?.choices?.[0]?.message) {
